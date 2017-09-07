@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>iOMC3网络管理软件（v3.0-alpha-070917）</title>
+  <link rel="stylesheet" type="text/css" href="resource/semantic/semantic.min.css"  media="screen,projection">
+</head>
+<body>
+<div class="ui secondary pointing menu">
+  <a class="item" href="index.html">首页</a>
+  <a class="active item">安装</a>
+  <div class="right menu">
+    <a class="item" href="http://www.6harmonics.com/" target="_blank">官网</a>
+    <a class="ui item">使用手册</a>
+  </div>
+</div>
+
+<div class="ui middle aligned center aligned grid">
+  <!--[STEP] start-->
+  <div class="ui one column centered grid">
+    <div class="column fourteen wide mobile twelve wide computer">
+      <div class="ui three top attached steps">
+        <div class="disabled step" id="qz-nav-s1">
+          <i class="puzzle icon"></i>
+          <div class="content">
+            <div class="title">检查软件环境</div>
+            <div class="description">检查运行条件与组件</div>
+          </div>
+        </div>
+        <div class="disabled step" id="qz-nav-s2">
+          <i class="copy icon"></i>
+          <div class="content">
+            <div class="title">拷贝文件</div>
+            <div class="description">准备好文件夹与文件</div>
+          </div>
+        </div>
+        <div class="disabled step" id="qz-nav-s3">
+          <i class="database icon"></i>
+          <div class="content">
+            <div class="title">配置数据库</div>
+            <div class="description">连接并初始化数据库</div>
+          </div>
+        </div>
+      </div>
+      <!--[STEP].[ATTACHED] start-->
+      <div class="ui attached segment qz-install-block" id="qz-block-s1">
+        <!--[LOADER] start-->
+        <div class="ui inverted dimmer" id="qz-s1-mask">
+          <div class="ui text loader">正在检查，请稍候……</div>
+        </div>      
+        <!--[LOADER] end-->
+        <!--[INFO] start-->
+        <div class="ui message" id="qz-s1-info">
+          <p>请确认下列检查均已经成功完成，然后点击“下一步”。</p>
+        </div>
+        <!--[INFO] end-->
+        <div class="ui segment">
+          <!--[LIST] start-->      
+          <div class="ui relaxed divided list">
+            <div class="item">
+              <i class="large checkmark middle aligned green icon"></i>
+              <div class="content">
+                <a class="header">检查安装锁定</a>
+                <div class="description">未锁定</div>
+              </div>
+            </div>
+            <div class="item">
+              <i class="large checkmark middle aligned green icon"></i>
+              <div class="content">
+                <a class="header">检查操作系统</a>
+                <div class="description">符合要求</div>
+              </div>
+            </div>
+            <div class="item">
+              <i class="large checkmark middle aligned green icon"></i>
+              <div class="content">
+                <a class="header">检查运行环境</a>
+                <div class="description">符合要求</div>
+              </div>
+            </div>
+            <div class="item">
+              <i class="large checkmark middle aligned green icon"></i>
+              <div class="content">
+                <a class="header">检查运行环境组件</a>
+                <div class="description">符合要求</div>
+              </div>
+            </div>
+          </div>      
+          <!--[LIST] end-->
+        </div>
+        <!--[PROGRESS] start-->
+        <div class="ui inverted">
+          <div class="ui indicating progress" data-value="0" data-total="4" id="qz-s1-progress">
+            <div class="bar">
+              <div class="progress"></div>
+            </div>
+          </div>
+        </div>
+        <!--[PROGRESS] end-->
+        <button class="ui button primary" id="qz-s1-btn-next">下一步</button>
+        <div class="ui divider"></div>
+        <div class="ui segment">
+          <!--[FORM] start-->
+          <div class="ui form">
+            <!--[INFO] start-->
+            <div class="ui info message" id="qz-server-info">
+              <p>请将本页截图后，发邮件至 admin@6wilink.com 以索取该重装密码</p>
+              <p>服务器IP地址：192.168.1.3，版本号：v3.0-alpha-070917</p>
+            </div>
+            <!--[INFO] end-->
+            <div class="field">
+                <label>请输入重装密码</label>
+                <input type="text" placeholder="请将本页截图后，发邮件至 admin@6wilink.com 以索取该重装密码">
+            </div>
+            <div class="field">
+              <button class="ui button" id="qz-s1-btn-reinstall">重新安装</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--[STEP].[ATTACHED] end-->
+      <div class="ui attached segment qz-install-block" id="qz-block-s2">
+        <!--[LOADER] start-->
+        <div class="ui inverted dimmer" id="qz-s2-mask">
+          <div class="ui text loader">正在安装，请稍候……</div>
+        </div>      
+        <!--[LOADER] end-->
+        <!--[INFO] start-->
+        <div class="ui info message" id="qz-s2-info">
+          <p>请填写已经准备就绪的，然后点击“开始安装”。</p>
+          <p>请确认所有工作均已成功完成，然后点击“下一步”。</p>
+        </div>
+        <!--[INFO] end-->
+        <div class="ui segment">
+          <!--[FORM] start-->
+          <div class="ui form">
+            <div class="field">
+                <label>iOMC3安装路径</label>
+                <input type="text" placeholder="默认是 /var/www/html/iOMC3/，请注意大小写" id="qz-s2-app-path">
+            </div>
+            <div class="field">
+              <button class="ui button" id="qz-s2-btn-copy">开始安装</button>
+              <button class="ui button primary" id="qz-s2-btn-default">使用默认位置安装</button>
+            </div>
+          </div>
+          <!--[FORM] end-->
+        </div>
+        <div class="ui segment">
+          <!--[LIST] start-->
+          <div class="ui relaxed divided list">
+            <div class="item">
+              <i class="large checkmark middle aligned green icon"></i>
+              <div class="content">
+                <a class="header">检查读写权限</a>
+                <div class="description">写失败</div>
+              </div>
+            </div>
+            <div class="item">
+              <i class="large remove middle aligned red icon"></i>
+              <div class="content">
+                <a class="header">复制所有文件</a>
+                <div class="description">复制失败</div>
+              </div>
+            </div>
+            <div class="item">
+              <i class="large wait middle aligned grey icon"></i>
+              <div class="content">
+                <a class="header">测试服务</a>
+                <div class="description">等待检查</div>
+              </div>
+            </div>
+          </div>      
+          <!--[LIST] end-->
+        </div>
+        <!--[PROGRESS] start-->
+        <div class="ui inverted">
+          <div class="ui indicating progress" data-value="0" data-total="4" id="qz-s2-progress">
+            <div class="bar">
+              <div class="progress"></div>
+            </div>
+          </div>
+        </div>
+        <!--[PROGRESS] end-->
+
+        <button class="ui button" id="qz-s2-btn-prev">上一步</button>
+        <button class="ui button" id="qz-s2-btn-next">下一步</button>
+      </div>
+      <!--[STEP].[ATTACHED] end-->
+      <!--[STEP].[ATTACHED] start-->
+      <div class="ui attached segment qz-install-block" id="qz-block-s3">
+        <div class="ui inverted dimmer" id="qz-s3-mask">
+          <div class="ui text loader">正在检查，请稍候……</div>
+        </div>      
+        <!--[INFO] start-->
+        <div class="ui info message" id="qz-s3-info">
+          <p>请填写数据库连接信息，然后点击“开始初始化”。</p>
+          <p>请在初始化完成后，点击“下一步”。</p>
+        </div>
+        <!--[INFO] end-->
+        <div class="ui segment">
+          <!--[FORM] start-->
+          <div class="ui form">
+            <div class="field">
+                <label>数据库IP地址</label>
+                <input type="text" placeholder="默认是 127.0.0.1" id="qz-s3-db-ip">
+            </div>
+            <div class="two fields">
+              <div class="field">
+                <label>数据库连接用户</label>
+                <input type="text" placeholder="默认是 root" id="qz-s3-db-user">
+              </div>
+              <div class="field">
+                <label>数据库连接密码</label>
+                <input type="password" placeholder="请输入连接密码" id="qz-s3-db-passwd">
+              </div>
+            </div>
+            <div class="field">
+              <button class="ui button" id="qz-s3-btn-import">开始初始化</button>
+              <button class="ui button primary" id="qz-s3-btn-default">使用默认配置初始化</button>
+            </div>
+          </div>
+          <!--[FORM] end-->
+        </div>
+        <div class="ui segment">
+          <!--[LIST] start-->
+          <div class="ui relaxed divided list">
+            <div class="item">
+              <i class="large checkmark middle aligned green icon"></i>
+              <div class="content">
+                <a class="header">尝试连接数据库</a>
+                <div class="description">连接成功</div>
+              </div>
+            </div>
+            <div class="item">
+              <i class="large remove middle aligned red icon"></i>
+              <div class="content">
+                <a class="header">初始化数据表</a>
+                <div class="description">初始化失败</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--[PROGRESS] start-->
+        <div class="ui inverted">
+          <div class="ui indicating progress" data-value="0" data-total="4" id="qz-s3-progress">
+            <div class="bar">
+              <div class="progress"></div>
+            </div>
+          </div>
+        </div>
+        <!--[PROGRESS] end-->    
+        <button class="ui button" id="qz-s3-btn-prev">上一步</button>
+        <button class="ui button" id="qz-s3-btn-next">开始使用</button>
+      </div>
+      <!--[STEP].[ATTACHED] end-->
+      <div class="ui secondary segment">Copyright &copy; 2017. All rights reserved.</div>
+    </div>
+  <!--[STEP] end-->
+  </div>
+</div>
+<!--Powered by Qige from 6Harmonics/6WiLink-->
+<script src="resource/jquery-3.1.1.min.js"></script>
+<script src="resource/semantic/semantic.min.js"></script>
+<script src="resource/qz-common.js"></script>
+<script src="resource/qz-install.js"></script>
+</body>
+</html>
