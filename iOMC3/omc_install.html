@@ -59,32 +59,32 @@
         <div class="ui segment">
           <!--[LIST] start-->      
           <div class="ui relaxed divided list">
-            <div class="item">
-              <i class="large checkmark middle aligned green icon"></i>
+            <div class="item" id="qz-s1-f1">
+              <i class="large middle aligned wait grey icon"></i>
               <div class="content">
                 <a class="header">检查安装锁定</a>
-                <div class="description">未锁定</div>
+                <div class="description">等待检查</div>
               </div>
             </div>
-            <div class="item">
-              <i class="large checkmark middle aligned green icon"></i>
+            <div class="item" id="qz-s1-f2">
+              <i class="large middle aligned wait grey icon"></i>
               <div class="content">
                 <a class="header">检查操作系统</a>
-                <div class="description">符合要求</div>
+                <div class="description">等待检查</div>
               </div>
             </div>
-            <div class="item">
-              <i class="large checkmark middle aligned green icon"></i>
+            <div class="item" id="qz-s1-f3">
+              <i class="large middle aligned wait grey icon"></i>
               <div class="content">
                 <a class="header">检查运行环境</a>
-                <div class="description">符合要求</div>
+                <div class="description">等待检查</div>
               </div>
             </div>
-            <div class="item">
-              <i class="large checkmark middle aligned green icon"></i>
+            <div class="item" id="qz-s1-f4">
+              <i class="large middle aligned wait grey icon"></i>
               <div class="content">
                 <a class="header">检查运行环境组件</a>
-                <div class="description">符合要求</div>
+                <div class="description">等待检查</div>
               </div>
             </div>
           </div>      
@@ -99,7 +99,9 @@
           </div>
         </div>
         <!--[PROGRESS] end-->
+        <button class="ui button" id="qz-s1-btn-recheck">重新检查</button>
         <button class="ui button primary" id="qz-s1-btn-next">下一步</button>
+        <button class="ui button red" id="qz-btn-model">FIXME: DBG_MODAL</button>
         <div class="ui divider"></div>
         <div class="ui segment">
           <!--[FORM] start-->
@@ -260,6 +262,14 @@
   <!--[STEP] end-->
   </div>
 </div>
+
+<div class="ui tiny modal" id="qz-s4-congrates">
+  <div class="ui icon header"><i class="diamond icon"></i>恭喜！您已经成功安装了iOMC3服务</div>
+  <div class="actions">
+    <a class="ui green ok inverted button" href="/iOMC3/"><i class="checkmark icon"></i>开始使用</a>
+  </div>
+</div>
+
 <!--Powered by Qige from 6Harmonics/6WiLink-->
 <script src="resource/jquery-3.1.1.min.js"></script>
 <script src="resource/semantic/semantic.min.js"></script>

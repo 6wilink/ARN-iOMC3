@@ -1,6 +1,14 @@
 /*
 * by Qige <qigezhao@gmail.com>
 * 2017.09.07 SementicUI|$.App|$.SementicUI|$.Install
+*
+* TODO:
+*     1. Remove "DBG_MODAL" button;
+*     2. Read & valid "input:text" before send Ajax requests;
+*
+* Fixed:
+*     1. Step_II.Prev takes too much time; Qige@2017.09.08
+*     2. Progress bar: invalid after "reset"; Qige@2017.09.08
 */
 (function($) {
   $.App = {
@@ -15,51 +23,54 @@
     },
     bind: function() {
       // buttons, hide & show sth.
+      /*
       $("#qz-btn-env-ok").click(function() {
         $('#qz-env-h5js').hide();
         $("#qz-app").show();
       });
-      $("#qz-s1-btn-next").click(function(){
-        console.log('STEP_I.Next');
-        $.Install.step_II();
-      });
-      $("#qz-s2-btn-next").click(function(){
-        console.log('STEP_II.Next');
-        $.Install.step_III();
+      */
+      $("#qz-btn-model").click(function() {
+        $("#qz-s4-congrates").modal('show');
+      }),
+      $("#qz-s1-btn-recheck").click(function(){
+        $.Install.recheck();
       });
       $("#qz-s2-btn-prev").click(function() {
         console.log('STEP_II.Prev');
         $.Install.step_I();
       });
-      $("#qz-s3-btn-next").click(function(){
-        console.log('STEP_III.Next');
-        $.Install.step_done();
+      $("#qz-s1-btn-reinstall").click(function() {
+        $.SementicUI.btn_disable($(this));
+        $.Install.reinstall();
+      });
+      $("#qz-s1-btn-next").click(function(){
+        console.log('STEP_I.Next');
+        $.Install.step_II();
       });
       $("#qz-s3-btn-prev").click(function() {
         console.log('STEP_III.Prev');
         $.Install.step_II();
       });
-      $("#qz-s1-btn-reinstall").click(function() {
-        $.SementicUI.btn_disable($(this));
-        $.Install.reinstall();
-      });
       $("#qz-s2-btn-copy").click(function() {
-        $.SementicUI.btn_disable($(this));
         $.Install.copy_files();
       });
       $("#qz-s2-btn-default").click(function() {
-        $.SementicUI.btn_disable($(this));
-        $.SementicUI.step_II_default();
+        $.Install.copy_files_default();
         $("#qz-s2-btn-copy").trigger('click');
       });
+      $("#qz-s2-btn-next").click(function(){
+        console.log('STEP_II.Next');
+        $.Install.step_III();
+      });
+      $("#qz-s3-btn-next").click(function(){
+        console.log('STEP_III.Next');
+        $.Install.step_done();
+      });
       $("#qz-s3-btn-import").click(function() {
-        $.SementicUI.btn_disable($(this));
         $.Install.database_import();
       });
       $("#qz-s3-btn-default").click(function() {
-        $.SementicUI.btn_disable($(this));
-        $.SementicUI.step_III_default();
-        $("#qz-s3-btn-import").trigger('click');
+        $.Install.database_import_default();
       });
     }
   }
@@ -76,16 +87,14 @@
     },
     start: function() {
       $.Install.step_I();
+      $.ajax.step_I();
+    },
+    recheck: function() {
+      $.Install.start();
     },
     step_I: function() {
       console.log('$.Install.step_I');
-      $.SementicUI.tips_info($("#qz-s1-info"), '请确认下列检查均已经成功完成，然后点击“下一步”');
-      $.SementicUI.progress_increase($("#qz-s1-progress"));
-      $.SementicUI.progress_increase($("#qz-s1-progress"));
-      $.SementicUI.progress_increase($("#qz-s1-progress"));
-      $.SementicUI.progress_increase($("#qz-s1-progress"));
       $.SementicUI.step_I();
-      $.ajax.step_I();
     },
     step_II: function() {
       console.log('$.Install.step_II');
@@ -97,8 +106,15 @@
     },
     step_done: function() {
       console.log('Installation completed! Redirect to index.html in 30 seconds');
+      $("#qz-s4-congrates").modal('show');
+    },
+    reinstall: function() {
+      console.log('$.Install.reinstall()');
     },
     copy_files: function() {
+      $.SementicUI.btn_disable($("#qz-s2-btn-copy"));
+      $.SementicUI.btn_disable($("#qz-s2-btn-default"));
+      
       $.ajax.step_II();
 
       // if all ok
@@ -115,26 +131,25 @@
       setTimeout(function() {
         {
           $.SementicUI.progress_increase($("#qz-s2-progress"));
-          $.SementicUI.btn_enable($("#qz-s2-btn-next"));
-          $.SementicUI.btn_primary($("#qz-s2-btn-next"));
-          $.SementicUI.btn_normal($("#qz-s2-btn-copy"));
         }
       }, 600);
       
       // something wrong
     },
-    reinstall: function() {
-      console.log('$.Install.reinstall()');
+    copy_files_default: function() {
+      $.SementicUI.text_val($("#qz-s2-app-path"), '/var/www/html/iOMC3/');
+      $.Install.copy_files();
     },
     database_import: function() {
+      $.SementicUI.btn_disable($("#qz-s3-btn-import"));
+      $.SementicUI.btn_disable($("#qz-s3-btn-default"));
       $.ajax.step_III();
-      $.SementicUI.btn_enable($("#qz-s3-btn-next"));
-      $.SementicUI.btn_primary($("#qz-s3-btn-next"));
-      $.SementicUI.btn_normal($("#qz-s3-btn-import"));
-      $.SementicUI.progress_increase($("#qz-s3-progress"));
-      $.SementicUI.progress_increase($("#qz-s3-progress"));
-      $.SementicUI.progress_increase($("#qz-s3-progress"));
-      $.SementicUI.progress_increase($("#qz-s3-progress"));
+    },
+    database_import_default: function() {
+      $.SementicUI.text_val($("#qz-s3-db-ip"), '127.0.0.1');
+      $.SementicUI.text_val($("#qz-s3-db-user"), 'root');
+      $.SementicUI.text_val($("#qz-s3-db-passwd"), '');
+      $.Install.database_import();
     }
   }
 }) (jQuery);
@@ -142,6 +157,51 @@
 // Handle all SementicUI operations
 (function($) {
   $.SementicUI = {
+    init: function() {
+      console.log('$.SementicUI.init()');
+      $.SementicUI.progress_reset($("#qz-s1-progress"));
+      $.SementicUI.btn_disable($("#qz-s1-btn-next"));
+      $.SementicUI.progress_reset($("#qz-s2-progress"));
+      $.SementicUI.btn_disable($("#qz-s2-btn-next"));
+      $.SementicUI.progress_reset($("#qz-s3-progress"));
+      $.SementicUI.btn_disable($("#qz-s3-btn-next"));
+      $('.ui.model').modal({
+        inverted: true
+      }).modal('hide');
+    },
+    step_I: function() {
+      console.log('$.SementicUI.step_I()');
+      $.SementicUI.progress_reset($("#qz-s1-progress"));
+      $("#qz-nav-s1").removeClass("disabled").addClass("active");
+      $("#qz-nav-s2").removeClass("active").addClass("disabled");
+      $("#qz-nav-s3").removeClass("active").addClass("disabled");
+      $("#qz-block-s1").show();
+      $("#qz-block-s2").hide();
+      $("#qz-block-s3").hide();
+    },
+    step_II: function() {
+      $.SementicUI.progress_reset($("#qz-s2-progress"));
+      $("#qz-nav-s1").removeClass("disabled active");
+      $("#qz-nav-s2").removeClass("disabled").addClass("active");
+      $("#qz-nav-s3").removeClass("active").addClass("disabled");
+      $("#qz-block-s1").hide();
+      $("#qz-block-s2").show();
+      $("#qz-block-s3").hide();
+    },
+    step_III: function() {
+      $.SementicUI.progress_reset($("#qz-s3-progress"));
+      $("#qz-nav-s1").removeClass("disabled active");
+      $("#qz-nav-s2").removeClass("disabled active");
+      $("#qz-nav-s3").removeClass("disabled").addClass("active");
+      $("#qz-block-s1").hide();
+      $("#qz-block-s2").hide();
+      $("#qz-block-s3").show();
+    },
+    progress_reset: function(obj) {
+      if (obj) {
+        obj.removeClass('success').addClass('active').progress('reset');
+      }
+    },
     progress_increase: function(obj) {
       if (obj) {
         obj.progress('increment');
@@ -152,45 +212,28 @@
         obj.progress('decrement');
       }
     },
-    init: function() {
-      console.log('$.SementicUI.init()');
-      $.SementicUI.btn_disable($("#qz-s2-btn-next"));
-      $.SementicUI.btn_disable($("#qz-s3-btn-next"));
+    text_val: function(obj, val) {
+      if (obj) {
+        obj.val(val);
+      }
     },
-    step_I: function() {
-      console.log('$.SementicUI.step_I()');
-      $("#qz-nav-s1").removeClass("disabled").addClass("active");
-      $("#qz-nav-s2").removeClass("active").addClass("disabled");
-      $("#qz-nav-s3").removeClass("active").addClass("disabled");
-      $("#qz-block-s1").show();
-      $("#qz-block-s2").hide();
-      $("#qz-block-s3").hide();
-      $.SementicUI.btn_enable($("#qz-s2-btn-copy"));
+    item_wait: function(obj, text) {
+      if (obj) {
+        obj.find('.icon').removeClass('remove red checkmark green').addClass('wait grey');
+        obj.find('.description').html(text);
+      }
     },
-    step_II: function() {
-      $("#qz-nav-s1").removeClass("disabled active");
-      $("#qz-nav-s2").removeClass("disabled").addClass("active");
-      $("#qz-nav-s3").removeClass("active").addClass("disabled");
-      $("#qz-block-s1").hide();
-      $("#qz-block-s2").show();
-      $("#qz-block-s3").hide();
-      $.SementicUI.btn_enable($("#qz-s3-btn-import"));
+    item_pass: function(obj, text) {
+      if (obj) {
+        obj.find('.icon').removeClass('wait grey remove red').addClass('checkmark green');
+        obj.find('.description').html(text);
+      }
     },
-    step_II_default: function() {
-      $("#qz-s2-app-path").val('/var/html/www/iOMC3/');
-    },
-    step_III: function() {
-      $("#qz-nav-s1").removeClass("disabled active");
-      $("#qz-nav-s2").removeClass("disabled active");
-      $("#qz-nav-s3").removeClass("disabled").addClass("active");
-      $("#qz-block-s1").hide();
-      $("#qz-block-s2").hide();
-      $("#qz-block-s3").show();
-    },
-    step_III_default: function() {
-      $("#qz-s3-db-ip").val('127.0.0.1');
-      $("#qz-s3-db-user").val('root');
-      $("#qz-s3-db-passwd").val('');
+    item_failed: function(obj, text) {
+      if (obj) {
+        obj.find('.icon').removeClass('wait grey checkmark green').addClass('remove red');
+        obj.find('.description').html(text);
+      }
     },
     btn_primary: function(obj) {
       if (obj) {
@@ -246,8 +289,16 @@
       $("#qz-s1-mask").addClass('active');
       setTimeout(function() {
         {
+          $.SementicUI.tips_info($("#qz-s1-info"), '请确认下列检查均已经成功完成，然后点击“下一步”');
+          $.SementicUI.item_pass($("#qz-s1-f1"), '未锁定');
+          $.SementicUI.progress_increase($("#qz-s1-progress"));
+          $.SementicUI.item_failed($("#qz-s1-f2"), '不符合要求：缺少组件“php_gd2”');
+          $.SementicUI.progress_increase($("#qz-s1-progress"));
+          $.SementicUI.item_wait($("#qz-s1-f3"), '由于条件不满足，停止检查');
           $("#qz-s1-mask").removeClass('active');
           $.SementicUI.tips_success($("#qz-s1-info"), '检查全部符合要求，请点击“下一步”');
+          $.SementicUI.btn_enable($("#qz-s1-btn-next"));
+          //$.SementicUI.btn_enable($("#qz-s2-btn-copy"));
         }
       }, 1000);
     },
@@ -258,6 +309,11 @@
         {
           $("#qz-s2-mask").removeClass('active');
           $.SementicUI.tips_success($("#qz-s2-info"), '文件全部拷贝完成，请点击“下一步”');
+          $.SementicUI.btn_enable($("#qz-s2-btn-next"));
+          //$.SementicUI.btn_enable($("#qz-s3-btn-import"));
+          $.SementicUI.btn_primary($("#qz-s2-btn-next"));
+          $.SementicUI.btn_normal($("#qz-s2-btn-copy"));
+          $.SementicUI.btn_normal($("#qz-s2-btn-default"));
         }
       }, 1000);
     },
@@ -267,7 +323,16 @@
       setTimeout(function() {
         {
           $("#qz-s3-mask").removeClass('active');
-          $.SementicUI.tips_success($("#qz-s2-info"), '数据库初始化成功，iOMC3服务已就绪。请点击“开始使用”');
+          $.SementicUI.tips_success($("#qz-s3-info"), '数据库初始化成功，iOMC3服务已就绪。请点击“开始使用”');
+          $.SementicUI.btn_enable($("#qz-s3-btn-next"));
+          $.SementicUI.btn_primary($("#qz-s3-btn-next"));
+          $.SementicUI.btn_normal($("#qz-s3-btn-import"));
+          $.SementicUI.progress_increase($("#qz-s3-progress"));
+          $.SementicUI.progress_increase($("#qz-s3-progress"));
+          $.SementicUI.progress_increase($("#qz-s3-progress"));
+          $.SementicUI.progress_increase($("#qz-s3-progress"));
+          $.SementicUI.btn_primary($("#qz-s3-btn-next"));
+          $.SementicUI.btn_normal($("#qz-s3-btn-default"));
         }
       }, 1000);
     }
