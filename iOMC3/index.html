@@ -21,7 +21,6 @@
 .qz-content-box {
   margin-top: -26px;
   padding-top: 26px;
-  overflow-y:scroll;
 }
 .qz-max {
   position: relative;
@@ -33,10 +32,17 @@
   border:#eee 1px solid;
 }
 .qz-scroll {
-  overflow: scroll;
+  overflow-y:scroll;
 }
 .qz-detail {
   border:#eee 1px solid;
+}
+
+#qz-vcenter-box {
+  position: relative;
+}
+#qz-signin-vcenter {
+  margin-top: 120px; 
 }
 #qz-maps-box {
   width: 75%;
@@ -61,7 +67,7 @@
 <div class="ui pointing inverted small menu" id="qz-nav">
   <a class="item" href="mailto: admin@6wilink.com"><img title="北京六维畅联科技有限公司" src="resource/6WiLink.png" /></a>
   <a class="item">ARN网管中心 iOMC3</a>
-  <a class="item" id="qz-nav-devices">设备管理<div class="ui red label">24</div></a>
+  <a class="item" id="qz-nav-devices">设备管理<div class="ui green label">-</div></a>
   <a class="item" id="qz-nav-maps">地图模式</a>
   <a class="item" id="qz-nav-options">系统与工具</a>
   <div class="item">
@@ -76,6 +82,55 @@
     <a class="item" id="qz-nav-btn-signout"><i class="close icon"></i>退出</a>
   </div>
 </div>
+
+
+<!--[Signin] start-->
+<div class="qz-max qz-max-box" id="qz-signin">
+  <div class="ui segment qz-max">
+    <div class="ui top attached indicating progress" id="qz-signin-progress">
+      <div class="bar"></div>
+    </div>
+    <div class="ui horizontal bulleted list">
+        <div class="item header">当前位置</div>
+        <a class="item">首页</a>
+      <a class="item">登录</a>
+    </div>
+    <div class="qz-max qz-content-box">
+      <div class="ui qz-fit" id="qz-signin-box">
+        <div class="ui inverted dimmer" id="qz-signin-mask">
+          <div class="ui text loader">正在载入，请稍候……</div>
+        </div>
+        <div class="ui two column centered grid qz-max">
+          <div class="column" id="qz-vcenter-box">
+            <div class="ui form segment" id="qz-signin-vcenter">
+              <!--[INFO] start-->
+              <div class="ui active info message" id="qz-signin-message">
+                <p>请正确填写用户名和密码，然后点击“登录”。</p>
+                <p>如果使用默认参数安装，请直接点击“首次使用”。</p>
+              </div>
+              <!--[INFO] end-->
+              <div class="field">
+                <label>用户名</label>
+                <input placeholder="仅支持字母、数字组合" type="text" value="" id="qz-signin-user">
+              </div>
+              <div class="field">
+                <label>用户名</label>
+                <input placeholder="仅支持字母、数字组合" type="password" value="" id="qz-signin-passwd">
+              </div>
+              <div class="field">
+                <button class="ui button primary" id="qz-signin-btn-go" disabled="">登录</button>
+                <button class="ui button" data-tooltip="仅使用默认参数安装时可用" data-position="top center" id="qz-signin-btn-default">首次使用</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--[Signin] end-->
+
+<!--[Devices] start-->
 <div class="qz-max qz-max-box" id="qz-devices">
   <div class="ui segment qz-max">
     <div class="ui top attached indicating progress" id="qz-devices-progress">
@@ -92,70 +147,46 @@
       <div class="ui" id="qz-devices-list">
         <div class="ui fluid vertical right pointing menu">
           <div class="item">
-            <div class="ui icon input loading">
+            <div class="ui icon input" id="qz-devices-search">
               <input type="text" placeholder="查找……" id="qz-devices-text-keyword">
               <i class="search link icon" id="qz-devices-btn-search"></i>
             </div>
           </div>
           <div class="ui dropdown item">
             <i class="dropdown icon"></i>数据控制与过滤
-            <div class="menu">
+            <div class="menu" id="qz-devices-filter">
               <div class="header">请选择</div>
               <div class="divider"></div>
-              <a class="item">离线设备</a>
-              <a class="item">在线设备</a>
-              <a class="item">有告警设备</a>
+              <a class="item" alt=":offline">离线设备</a>
+              <a class="item" alt=":online">在线设备</a>
+              <a class="item" alt=":alarm">有告警设备</a>
+              <a class="item" alt=":all">所有设备</a>
               <div class="divider"></div>
-              <a class="item">载入更多设备</a>
+              <a class="item" alt="+ip">按IP地址排序</a>
+              <a class="item" alt="+name">按设备名称排序</a>
               <div class="divider"></div>
-              <a class="item">按IP地址排序</a>
-              <a class="item">按设备名称排序</a>
+              <a class="item" alt="+search">按搜索次数排序</a>
               <div class="divider"></div>
-              <a class="item">按搜索次数排序</a>
+              <a class="item" alt="+more">载入更多设备</a>
             </div>
           </div>
-          <div class="header item">设备列表<div class="ui green label">共144</div></div>
-          <a class="item active">1. 珠海电视塔124#塔底基站<div class="ui red label">4</div></a>
-          <a class="item">2. 珠海电视塔1#塔底基站</a>
-          <a class="item">3. 珠海电视塔5#塔底基站</a>
-          <a class="item">4. 珠海电视塔6#塔底基站</a>
-          <a class="item">5. 珠海电视塔122#塔底基站</a>
-          <a class="item">6. 珠海电视塔6#塔底基站</a>
-          <a class="item">7. 珠海电视塔122#塔底基站</a>
-          <a class="item">8. 珠海电视塔6#塔底基站</a>
-          <a class="item">9. 珠海电视塔122#塔底基站<div class="ui red label">20</div></a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
+        <!--</div>
+        <div class="ui fluid vertical right pointing menu">-->
+          <div class="header item" id="qz-devices-list-header">
+            设备列表<div class="ui green label">-</div>
+          </div>
+          <a class="item">正在载入，请稍候……</a>
+        </div>
+        <div class="ui message" id="qz-devices-status">
+          <p>正在载入，请稍候……</p>
         </div>
       </div>
       <div class="ui qz-detail" id="qz-device-detail">
         <div class="ui inverted dimmer" id="qz-device-mask">
-          <div class="ui text loader">正在载入地图，请稍候……</div>
+          <div class="ui text loader">正在载入，请稍候……</div>
         </div>
         <div class="ui" id="qz-device-details">
-          <div class="ui error message">
-            <i class="close icon"></i>
-            <div class="header">设备列表获取失败</div>
-            <ul class="list">
-              <li>设备可能已经离线</li>
-            </ul>
-          </div>
-          <div class="ui warning message">
+          <div class="ui warning message" id="qz-devices-alarms">
             <div class="header">珠海电视塔124#塔底基站</div>
             <ul class="list">
               <li>磁盘空间低</li>
@@ -313,6 +344,7 @@
     </div>
   </div>
 </div>
+<!--[Devices] end-->
 
 <!--[Maps] start-->
 <div class="qz-max qz-max-box" id="qz-maps">
