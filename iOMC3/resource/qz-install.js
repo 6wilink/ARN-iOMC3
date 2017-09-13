@@ -1,27 +1,29 @@
 /*
 * by Qige <qigezhao@gmail.com>
 * 2017.09.07 SementicUI|$.App|$.SementicUI|$.Install
+* 2017.09.13 re-format naming rules
 *
 * TODO:
 *     1. Remove "DBG_MODAL" button;
 *     2. Read & valid "input:text" before send Ajax requests;
 *
 * Fixed:
-*     1. Step_II.Prev takes too much time; Qige@2017.09.08
+*     1. StepII.Prev takes too much time; Qige@2017.09.08
 *     2. Progress bar: invalid after "reset"; Qige@2017.09.08
+*     3. Re-format with jQuery.fn.exnted(); Qige@2017.09.13
 */
 (function($) {
   $.App = {
-    init: function() {
-      console.log('$.App.init()');
+    Init: function() {
+      console.log('$.App.Init()');
       // hide & show sth.
-      $.Install.init();
+      $.Install.Init();
     },
-    start: function() {
+    Start: function() {
       // start step_I
-      $.Install.start();
+      $.Install.Start();
     },
-    bind: function() {
+    Bind: function() {
       // buttons, hide & show sth.
       /*
       $("#qz-btn-env-ok").click(function() {
@@ -33,44 +35,45 @@
         $("#qz-s4-congrates").modal('show');
       }),
       $("#qz-s1-btn-recheck").click(function(){
-        $.Install.recheck();
+        $.Install.Recheck();
       });
       $("#qz-s2-btn-prev").click(function() {
-        console.log('STEP_II.Prev');
-        $.Install.step_I();
+        console.log('StepII.Prev');
+        $.Install.StepI();
       });
       $("#qz-s1-btn-reinstall").click(function() {
-        $.SementicUI.btn_disable($(this));
-        $.Install.reinstall();
+        $.SementicUI.BtnDisable($(this));
+        $.Install.Reinstall();
       });
       $("#qz-s1-btn-next").click(function(){
-        console.log('STEP_I.Next');
-        $.Install.step_II();
+        console.log('StepI.Next');
+        $.Install.StepII();
       });
       $("#qz-s3-btn-prev").click(function() {
-        console.log('STEP_III.Prev');
-        $.Install.step_II();
+        console.log('StepIII.Prev');
+        $.Install.StepII();
       });
       $("#qz-s2-btn-copy").click(function() {
-        $.Install.copy_files();
+        $.Install.CopyFiles();
       });
       $("#qz-s2-btn-default").click(function() {
-        $.Install.copy_files_default();
+        $.Install.CopyFilesDefault();
         $("#qz-s2-btn-copy").trigger('click');
       });
       $("#qz-s2-btn-next").click(function(){
-        console.log('STEP_II.Next');
-        $.Install.step_III();
+        console.log('StepII.Next');
+        $.Install.StepIII();
       });
       $("#qz-s3-btn-next").click(function(){
-        console.log('STEP_III.Next');
-        $.Install.step_done();
+        console.log('StepIII.Next');
+        $.Install.StepIV();
       });
       $("#qz-s3-btn-import").click(function() {
-        $.Install.database_import();
+        $.Install.DatabaseImport();
       });
       $("#qz-s3-btn-default").click(function() {
-        $.Install.database_import_default();
+        $.Install.DatabaseImportDefault();
+        $("#qz-s3-btn-import").trigger('click');
       });
     }
   }
@@ -79,262 +82,358 @@
 // Handle all ARN.OMC3.Install processes
 (function($) {
   $.Install = {
-    init: function() {
-      console.log('$.Install.init()');
+    Init: function() {
+      console.log('$.Install.Init()');
       console.log('(todo) hide html5/javascript, show app');
-      
-      $.SementicUI.init();
-    },
-    start: function() {
-      $.Install.step_I();
-      $.ajax.step_I();
-    },
-    recheck: function() {
-      $.Install.start();
-    },
-    step_I: function() {
-      console.log('$.Install.step_I');
-      $.SementicUI.step_I();
-    },
-    step_II: function() {
-      console.log('$.Install.step_II');
-      $.SementicUI.step_II();
-    },
-    step_III: function() {
-      console.log('$.Install.step_III');
-      $.SementicUI.step_III();
-    },
-    step_done: function() {
-      console.log('Installation completed! Redirect to index.html in 30 seconds');
-      $("#qz-s4-congrates").modal('show');
-    },
-    reinstall: function() {
-      console.log('$.Install.reinstall()');
-    },
-    copy_files: function() {
-      $.SementicUI.btn_disable($("#qz-s2-btn-copy"));
-      $.SementicUI.btn_disable($("#qz-s2-btn-default"));
-      
-      $.ajax.step_II();
 
-      // if all ok
-      // simulate Ajax requests, parse result
-      setTimeout(function() {
-        $.SementicUI.progress_increase($("#qz-s2-progress"));
-      }, 100);
-      setTimeout(function() {
-        $.SementicUI.progress_increase($("#qz-s2-progress"));
-      }, 200);
-      setTimeout(function() {
-        $.SementicUI.progress_increase($("#qz-s2-progress"));
-      }, 300);
-      setTimeout(function() {
-        {
-          $.SementicUI.progress_increase($("#qz-s2-progress"));
-        }
-      }, 600);
-      
-      // something wrong
-    },
-    copy_files_default: function() {
-      $.SementicUI.text_val($("#qz-s2-app-path"), '/var/www/html/iOMC3/');
-      $.Install.copy_files();
-    },
-    database_import: function() {
-      $.SementicUI.btn_disable($("#qz-s3-btn-import"));
-      $.SementicUI.btn_disable($("#qz-s3-btn-default"));
-      $.ajax.step_III();
-    },
-    database_import_default: function() {
-      $.SementicUI.text_val($("#qz-s3-db-ip"), '127.0.0.1');
-      $.SementicUI.text_val($("#qz-s3-db-user"), 'root');
-      $.SementicUI.text_val($("#qz-s3-db-passwd"), '');
-      $.Install.database_import();
-    }
-  }
-}) (jQuery);
+      $.SUIInit();
 
-// Handle all SementicUI operations
-(function($) {
-  $.SementicUI = {
-    init: function() {
-      console.log('$.SementicUI.init()');
-      $.SementicUI.progress_reset($("#qz-s1-progress"));
-      $.SementicUI.btn_disable($("#qz-s1-btn-next"));
-      $.SementicUI.progress_reset($("#qz-s2-progress"));
-      $.SementicUI.btn_disable($("#qz-s2-btn-next"));
-      $.SementicUI.progress_reset($("#qz-s3-progress"));
-      $.SementicUI.btn_disable($("#qz-s3-btn-next"));
-      $('.ui.model').modal({
-        inverted: true
-      }).modal('hide');
+      $("#qz-s1-progress,#qz-s2-progress,#qz-s3-progress").SUIProgressReset();
+      $("#qz-s1-btn-next,#qz-s2-btn-next,#qz-s3-btn-next").BtnDisable();      
     },
-    step_I: function() {
-      console.log('$.SementicUI.step_I()');
-      $.SementicUI.progress_reset($("#qz-s1-progress"));
+    Start: function() {
+      $.Install.StepI();
+      $.Request.StepI();
+    },
+    Recheck: function() {
+      $.Install.Start();
+    },
+    StepI: function() {
+      console.log('$.Install.StepI');
       $("#qz-nav-s1").removeClass("disabled").addClass("active");
-      $("#qz-nav-s2").removeClass("active").addClass("disabled");
-      $("#qz-nav-s3").removeClass("active").addClass("disabled");
+      $("#qz-nav-s2,#qz-nav-s3").removeClass("active").addClass("disabled");
+      $("#qz-block-s2,#qz-block-s3").hide();
       $("#qz-block-s1").show();
-      $("#qz-block-s2").hide();
-      $("#qz-block-s3").hide();
     },
-    step_II: function() {
-      $.SementicUI.progress_reset($("#qz-s2-progress"));
+    StepII: function() {
+      console.log('$.Install.StepII');
       $("#qz-nav-s1").removeClass("disabled active");
       $("#qz-nav-s2").removeClass("disabled").addClass("active");
       $("#qz-nav-s3").removeClass("active").addClass("disabled");
-      $("#qz-block-s1").hide();
+      $("#qz-block-s1,#qz-block-s3").hide();
       $("#qz-block-s2").show();
-      $("#qz-block-s3").hide();
     },
-    step_III: function() {
-      $.SementicUI.progress_reset($("#qz-s3-progress"));
-      $("#qz-nav-s1").removeClass("disabled active");
-      $("#qz-nav-s2").removeClass("disabled active");
+    StepIII: function() {
+      console.log('$.Install.StepIII');
+      $("#qz-nav-s1,#qz-nav-s2").removeClass("disabled active");
       $("#qz-nav-s3").removeClass("disabled").addClass("active");
-      $("#qz-block-s1").hide();
-      $("#qz-block-s2").hide();
+      $("#qz-block-s1,#qz-block-s2").hide();
       $("#qz-block-s3").show();
     },
-    progress_reset: function(obj) {
-      if (obj) {
-        obj.removeClass('success').addClass('active').progress('reset');
-      }
+    StepIV: function() {
+      console.log('Installation completed! Redirect to index.html in 30 seconds');
+      $("#qz-s4-congrates").modal('show');
     },
-    progress_increase: function(obj) {
-      if (obj) {
-        obj.progress('increment');
-      }
+    Reinstall: function() {
+      console.log('$.Install.Reinstall()');
     },
-    progress_decrease: function(obj) {
-      if (obj) {
-        obj.progress('decrement');
-      }
+    CopyFiles: function() {
+      $.Install.StepII();
+      $.Request.StepII();
     },
-    text_val: function(obj, val) {
-      if (obj) {
-        obj.val(val);
-      }
+    CopyFilesDefault: function() {
+      $("#qz-s2-app-path").val('/var/www/html/iOMC3/');
+      $("#qz-s2-app-user").val('admin');
+      $("#qz-s2-app-passwd").val('6wilink');
+      //$.Install.CopyFiles();
     },
-    item_wait: function(obj, text) {
-      if (obj) {
-        obj.find('.icon').removeClass('remove red checkmark green').addClass('wait grey');
-        obj.find('.description').html(text);
-      }
+    DatabaseImport: function() {
+      $.Install.StepIII();
+      $.Request.StepIII();
     },
-    item_pass: function(obj, text) {
-      if (obj) {
-        obj.find('.icon').removeClass('wait grey remove red').addClass('checkmark green');
-        obj.find('.description').html(text);
-      }
-    },
-    item_failed: function(obj, text) {
-      if (obj) {
-        obj.find('.icon').removeClass('wait grey checkmark green').addClass('remove red');
-        obj.find('.description').html(text);
-      }
-    },
-    btn_primary: function(obj) {
-      if (obj) {
-        obj.addClass('primary');
-      }
-    },
-    btn_normal: function(obj) {
-      if (obj) {
-        obj.removeClass('primary');
-      }
-    },
-    btn_enable: function(obj) {      
-      if (obj) {
-        obj.attr('disabled', false);
-      }
-    },
-    btn_disable: function(obj) {
-      if (obj) {
-        obj.attr('disabled', true);
-      }
-    },
-    tips_success: function(obj, msg) {      
-      if (obj) {
-        obj.html('<p>' + msg + '</p>');
-        obj.removeClass('info error warning').addClass('success');
-      }      
-    },
-    tips_error: function(obj, msg) {      
-      if (obj) {
-        obj.html('<p>' + msg + '</p>');
-        obj.removeClass('info warning success').addClass('error');
-      }      
-    },
-    tips_warning: function(obj, msg) {
-      if (obj) {
-        obj.html('<p>' + msg + '</p>');
-        obj.removeClass('info error success').addClass('warning');
-      }      
-    },
-    tips_info: function(obj, msg) {
-      if (obj) {
-        obj.html('<p>' + msg + '</p>');
-        obj.removeClass('warning error success').addClass('info');
-      }
+    DatabaseImportDefault: function() {
+      $("#qz-s3-db-ip").val('127.0.0.1');
+      $("#qz-s3-db-user").val('root');
+      $("#qz-s3-db-passwd").val('');
+      //$.Install.DatabaseImport(); // TODO? 
     }
   }
 }) (jQuery);
 
+
+/*
+* 1 loading mask; 
+* 2 do Ajax request; 
+* 2.1 if error, unmask, print error; 
+* 2.2 if done, parse result;
+* 2.2.1 if any step error, unmask, print error;
+* 2.2.2 if all done, unmask, print done;
+* 3. enable buttons;
+*/
 (function($) {
-  $.ajax = {
-    step_I: function() {
-      console.log('$.ajax.step_I()');
-      $("#qz-s1-mask").addClass('active');
-      setTimeout(function() {
-        {
-          $.SementicUI.tips_info($("#qz-s1-info"), '请确认下列检查均已经成功完成，然后点击“下一步”');
-          $.SementicUI.item_pass($("#qz-s1-f1"), '未锁定');
-          $.SementicUI.progress_increase($("#qz-s1-progress"));
-          $.SementicUI.item_failed($("#qz-s1-f2"), '不符合要求：缺少组件“php_gd2”');
-          $.SementicUI.progress_increase($("#qz-s1-progress"));
-          $.SementicUI.item_wait($("#qz-s1-f3"), '由于条件不满足，停止检查');
-          $("#qz-s1-mask").removeClass('active');
-          $.SementicUI.tips_success($("#qz-s1-info"), '检查全部符合要求，请点击“下一步”');
-          $.SementicUI.btn_enable($("#qz-s1-btn-next"));
-          //$.SementicUI.btn_enable($("#qz-s2-btn-copy"));
-        }
-      }, 1000);
+  $.Request = {
+    Query: function(url, data, done_cb, error_cb) {
+      $.ajax({
+        url: url, data: data, method: 'post',
+        success: done_cb, error: error_cb,
+        timeout: 5000, dataType: 'json'
+      })
     },
-    step_II: function() {
-      console.log('$.ajax.step_II')
-      $("#qz-s2-mask").addClass('active');
-      setTimeout(function() {
-        {
-          $("#qz-s2-mask").removeClass('active');
-          $.SementicUI.tips_success($("#qz-s2-info"), '文件全部拷贝完成，请点击“下一步”');
-          $.SementicUI.btn_enable($("#qz-s2-btn-next"));
-          //$.SementicUI.btn_enable($("#qz-s3-btn-import"));
-          $.SementicUI.btn_primary($("#qz-s2-btn-next"));
-          $.SementicUI.btn_normal($("#qz-s2-btn-copy"));
-          $.SementicUI.btn_normal($("#qz-s2-btn-default"));
-        }
-      }, 1000);
+    StepI: function() {
+      console.log('$.Request.StepI()');
+      $("#qz-s1-mask").SUILoaderShow(); // hide when Ajax done/error
+      $("#qz-s1-btn-recheck").BtnDisable();
+      $("#qz-s1-progress").SUIProgressReset();
+      $.Request.Query(
+        '/iOMC3/install.php?step=I', '', 
+        $.Request.CB_WhenStepIReply, $.Request.CB_WhenStepIFailed
+      );
     },
-    step_III: function() {
-      console.log('$.ajax.step_III')
-      $("#qz-s3-mask").addClass('active');
-      setTimeout(function() {
-        {
-          $("#qz-s3-mask").removeClass('active');
-          $.SementicUI.tips_success($("#qz-s3-info"), '数据库初始化成功，iOMC3服务已就绪。请点击“开始使用”');
-          $.SementicUI.btn_enable($("#qz-s3-btn-next"));
-          $.SementicUI.btn_primary($("#qz-s3-btn-next"));
-          $.SementicUI.btn_normal($("#qz-s3-btn-import"));
-          $.SementicUI.progress_increase($("#qz-s3-progress"));
-          $.SementicUI.progress_increase($("#qz-s3-progress"));
-          $.SementicUI.progress_increase($("#qz-s3-progress"));
-          $.SementicUI.progress_increase($("#qz-s3-progress"));
-          $.SementicUI.btn_primary($("#qz-s3-btn-next"));
-          $.SementicUI.btn_normal($("#qz-s3-btn-default"));
-        }
-      }, 1000);
+    CB_WhenStepIReply: function(resp) {
+      console.log('$.Request.CB_WhenStepIReply()');
+      var error = (resp && resp.error) ? resp.error : '404';
+      console.log('error =', error);
+      switch(error) {
+        case '404':
+          $.Request.CB_WhenStepIFailed(null, 'error', 'Bad Result');
+          break;
+        case 'env_lock': // FIXME: Even installed, do all checks
+          $("#qz-s1-info").SUIMessageError('下列检查有错误，请联络管理员后，点击“重新检查”');
+          $("#qz-s1-f1").SUIListItemFailed('安装被锁定');
+          $("#qz-s1-f2").SUIListItemWait('安装被锁定，停止检查');
+          $("#qz-s1-f3").SUIListItemWait('等待检查');
+          $("#qz-s1-f4").SUIListItemWait('等待检查');
+          break;
+        case 'env_os':
+          $("#qz-s1-info").SUIMessageError('下列检查有错误，请联络管理员后，点击“重新检查”');
+          $("#qz-s1-f1").SUIListItemSuccess('安装未锁定');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f2").SUIListItemFailed('条件不符合');
+          $("#qz-s1-f3").SUIListItemWait('由于条件不满足，停止检查');
+          $("#qz-s1-f4").SUIListItemWait('等待检查');
+          break;
+        case 'env_amp':
+          $("#qz-s1-info").SUIMessageError('下列检查有错误，请联络管理员后，点击“重新检查”');
+          $("#qz-s1-f1").SUIListItemSuccess('安装未锁定');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f2").SUIListItemSuccess('条件符合');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f3").SUIListItemFailed('环境不符合');
+          $("#qz-s1-f4").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          break;
+        case 'env_dep':
+          $("#qz-s1-info").SUIMessageError('下列检查有错误，请联络管理员后，点击“重新检查”');
+          $("#qz-s1-f1").SUIListItemSuccess('安装未锁定');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f2").SUIListItemSuccess('条件符合');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f3").SUIListItemSuccess('环境符合');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f4").SUIListItemFailed('依赖包不符合');
+          break;
+        case 'none':
+        default: // FIXME: DEBUG USE ONLY! when bad response, do nothing
+          $("#qz-s1-info").SUIMessageSuccess('请确认下列检查均已经成功完成，然后点击“下一步”');
+          $("#qz-s1-f1").SUIListItemSuccess('安装未锁定');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f2").SUIListItemSuccess('条件符合');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f3").SUIListItemSuccess('环境符合');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-f4").SUIListItemSuccess('依赖包符合');
+          $("#qz-s1-progress").SUIProgressIncrease();
+          $("#qz-s1-btn-next").BtnEnable();
+          break;
+        //default: // TODO
+        //  break;
+      }
+      $("#qz-s1-btn-recheck").BtnEnable();
+      $("#qz-s1-mask").SUILoaderHide();
+    },
+    CB_WhenStepIFailed: function(xhr, status, error) {
+      console.log('$.Request.CB_WhenStepIFailed()', status, error);
+      $("#qz-s1-info").SUIMessageError('下列检查有错误，请联络管理员后，点击“重新检查”');
+      $("#qz-s1-f1").SUIListItemFailed('检查失败');
+      $("#qz-s1-f2").SUIListItemWait('安装被锁定，停止检查');
+      $("#qz-s1-f3").SUIListItemWait('等待检查');
+      $("#qz-s1-f4").SUIListItemWait('等待检查');
+      
+      $("#qz-s1-btn-recheck").BtnEnable();
+      $("#qz-s1-btn-next").BtnDisable();
+      $("#qz-s1-mask").SUILoaderHide();
+    },
+    StepII: function() {
+      console.log('$.Request.StepII')
+      $("#qz-s2-mask").SUILoaderShow();
+      $("#qz-s2-btn-copy,#qz-s2-btn-default").BtnDisable();
+      $("#qz-s2-progress").SUIProgressReset();
+      // TODO: collect path/user/passwd from input:text
+      $.Request.Query(
+        '/iOMC3/install.php?step=II', 
+        { path: '/var/html/www/iOMC3/', user: 'admin', passwd: '6wilink' }, 
+        $.Request.CB_WhenStepIIReply, $.Request.CB_WhenStepIIFailed
+      );
+    },
+    CB_WhenStepIIReply: function(resp) {
+      console.log('$.Request.CB_WhenStepIIReply()');
+      var error = (resp && resp.error) ? resp.error : '404';
+      console.log('error =', error);      
+      switch(error) {
+        case '404':
+          $.Request.CB_WhenStepIIFailed(null, 'error', 'Bad Result');
+          break;
+        case 'file_rw':
+          $("#qz-s2-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s2-f1").SUIListItemFailed('文件读写失败');
+          $("#qz-s2-f2").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          $("#qz-s2-f3").SUIListItemWait('等待检查');
+          $("#qz-s2-f4").SUIListItemWait('等待检查');
+          $("#qz-s2-btn-copy").SUIBtnPrimary().BtnEnable();
+          $("#qz-s2-btn-default").SUIBtnNormal().BtnEnable();
+          break;
+        case 'file_cp':
+          $("#qz-s2-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s2-f1").SUIListItemSuccess('权限符合');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f2").SUIListItemFailed('复制失败');
+          $("#qz-s2-f3").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          $("#qz-s2-f4").SUIListItemWait('等待检查');
+          $("#qz-s2-btn-copy").SUIBtnPrimary().BtnEnable();
+          $("#qz-s2-btn-default").SUIBtnNormal().BtnEnable();
+          break;
+        case 'file_conf':
+          $("#qz-s2-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s2-f1").SUIListItemSuccess('权限符合');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f2").SUIListItemSuccess('复制完成');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f3").SUIListItemFailed('保存失败');
+          $("#qz-s2-f4").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          $("#qz-s2-btn-copy").SUIBtnPrimary().BtnEnable();
+          $("#qz-s2-btn-default").SUIBtnNormal().BtnEnable();
+          break;
+        case 'http_visit':
+          $("#qz-s2-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s2-f1").SUIListItemSuccess('权限符合');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f2").SUIListItemSuccess('复制完成');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f3").SUIListItemSuccess('权限符合');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f4").SUIListItemFailed('测试失败');
+          $("#qz-s2-btn-copy").SUIBtnPrimary().BtnEnable();
+          $("#qz-s2-btn-default").SUIBtnNormal().BtnEnable();
+          break;
+        case 'none':
+        default: // FIXME: DEBUG USE ONLY! when bad response, do nothing
+          $("#qz-s2-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s2-f1").SUIListItemSuccess('权限符合');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f2").SUIListItemSuccess('复制完成');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f3").SUIListItemSuccess('权限符合');
+          $("#qz-s2-progress").SUIProgressIncrease();
+          $("#qz-s2-f4").SUIListItemSuccess('测试完成');
+          $("#qz-s2-progress").SUIProgressIncrease();
+
+          $("#qz-s2-btn-copy,#qz-s2-btn-default").SUIBtnNormal().BtnDisable();
+          $("#qz-s2-btn-next").SUIBtnPrimary().BtnEnable();
+          break;
+        //default: // TODO
+        //  break;
+      }
+      $("#qz-s2-mask").SUILoaderHide();
+    },
+    CB_WhenStepIIFailed: function(xhr, status, error) {
+      console.log('$.Request.CB_WhenStepIIFailed()', status, error);
+      $("#qz-s2-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+      $("#qz-s2-f1").SUIListItemFailed('检查失败');
+      $("#qz-s2-f2").SUIListItemWait('等待检查由于条件不满足，停止检查');
+      $("#qz-s2-f3").SUIListItemWait('等待检查');
+      $("#qz-s2-f4").SUIListItemWait('等待检查');
+
+      $("#qz-s2-btn-copy").SUIBtnPrimary().BtnEnable();
+      $("#qz-s2-btn-default").SUIBtnNormal().BtnEnable();
+      $("#qz-s2-btn-next").SUIBtnPrimary().BtnDisable();
+      
+      $("#qz-s2-mask").SUILoaderHide();
+    },
+    StepIII: function() {
+      console.log('$.Request.StepIII')
+      $("#qz-s3-mask").SUILoaderShow();
+      $("#qz-s3-btn-import,#qz-s3-btn-default").BtnDisable();
+      $("#qz-s3-progress").SUIProgressReset();
+      $.Request.Query('/iOMC3/install.php?step=III', 
+        { db_host: '127.0.0.1', db_user: 'root', db_passwd: '' }, 
+        $.Request.CB_WhenStepIIIReply, $.Request.CB_WhenStepIIIFailed
+      );
+    },
+    CB_WhenStepIIIReply: function(resp) {
+      console.log('$.Request.CB_WhenStepIIIReply()');
+      var error = (resp && resp.error) ? resp.error : '404';
+      console.log('error =', error);      
+      switch(error) {
+        case '404':
+          $.Request.CB_WhenStepIIIFailed(null, 'error', 'Bad Result');
+          break;
+        case 'db_host':
+          $("#qz-s3-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s3-f1").SUIListItemFailed('连接失败');
+          $("#qz-s3-f2").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          $("#qz-s3-f3").SUIListItemWait('等待检查');
+          $("#qz-s3-btn-import").SUIBtnPrimary().BtnEnable();
+          $("#qz-s3-btn-import").SUIBtnNormal().BtnEnable();
+          break;
+        case 'db_auth':
+          $("#qz-s3-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-f1").SUIListItemFailed('连接失败');
+          $("#qz-s3-f2").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          $("#qz-s3-f3").SUIListItemWait('等待检查');
+          $("#qz-s3-btn-import").SUIBtnPrimary().BtnEnable();
+          $("#qz-s3-btn-import").SUIBtnNormal().BtnEnable();
+          break;
+        case 'db_init':
+          $("#qz-s3-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s3-f1").SUIListItemSuccess('连接成功');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-f2").SUIListItemFailed('初始化数据库失败');
+          $("#qz-s3-f3").SUIListItemWait('等待检查由于条件不满足，停止检查');
+          $("#qz-s3-btn-import").SUIBtnPrimary().BtnEnable();
+          $("#qz-s3-btn-import").SUIBtnNormal().BtnEnable();
+          break;
+        case 'db_select':
+          $("#qz-s3-info").SUIMessageError('下列检查有错误，请联络管理员后重试');
+          $("#qz-s3-f1").SUIListItemSuccess('连接成功');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-f2").SUIListItemSuccess('初始化成功');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-f3").SUIListItemFailed('尝试使用数据库失败');
+          $("#qz-s3-btn-import").SUIBtnPrimary().BtnEnable();
+          $("#qz-s3-btn-import").SUIBtnNormal().BtnEnable();
+          break;
+        case 'none':
+        default:
+          $("#qz-s3-info").SUIMessageSuccess('数据库初始化完成，请点击“开始使用”');
+          $("#qz-s3-f1").SUIListItemSuccess('连接成功');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-f2").SUIListItemSuccess('初始化成功');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          $("#qz-s3-f3").SUIListItemSuccess('尝试使用数据库成功');
+          $("#qz-s3-progress").SUIProgressIncrease();
+          
+          $("#qz-s3-btn-import,#qz-s3-btn-default").SUIBtnNormal().BtnDisable();
+          $("#qz-s3-btn-next").SUIBtnPrimary().BtnEnable();
+          break;
+      };
+
+      $("#qz-s3-mask").SUILoaderHide();
+    },
+    CB_WhenStepIIIFailed: function(xhr, status, error) {
+      console.log('$.ajax.step_III_error()', status, error);
+      $("#qz-s3-info").SUIMessageError('下列检查有错误，请联络管理员后，点击“开始初始化”');
+      $("#qz-s3-f1").SUIListItemFailed('检查失败');
+      $("#qz-s3-f2").SUIListItemWait('等待检查由于条件不满足，停止检查');
+      $("#qz-s3-f3").SUIListItemWait('等待检查');
+
+      $("#qz-s3-btn-import").SUIBtnPrimary().BtnEnable();
+      $("#qz-s3-btn-default").SUIBtnNormal().BtnEnable();
+      $("#qz-s3-btn-next").SUIBtnPrimary().BtnDisable();
+      
+      $("#qz-s3-mask").SUILoaderHide();
     }
   }
 }) (jQuery);
@@ -342,10 +441,10 @@
 // ARN.OMC3.Install
 $(function() {
   // call App, then wait for user click/input
-  $.App.init();
-  // bind events
-  $.App.bind();
-  $.App.start();
+  $.App.Init();
+  // Bind events
+  $.App.Bind();
+  $.App.Start();
   
   // now wait for user click/input
 });

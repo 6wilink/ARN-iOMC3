@@ -100,7 +100,7 @@
         </div>
         <!--[PROGRESS] end-->
         <button class="ui button" id="qz-s1-btn-recheck">重新检查</button>
-        <button class="ui button primary" id="qz-s1-btn-next">下一步</button>
+        <button class="ui button primary" id="qz-s1-btn-next" disabled="disabled">下一步</button>
         <button class="ui button red" id="qz-btn-model">FIXME: DBG_MODAL</button>
         <div class="ui divider"></div>
         <div class="ui segment">
@@ -142,9 +142,19 @@
                 <label>iOMC3安装路径</label>
                 <input type="text" placeholder="默认是 /var/www/html/iOMC3/，请注意大小写" id="qz-s2-app-path">
             </div>
+            <div class="fields two">
+            <div class="field">
+                <label>iOMC3登录用户名</label>
+                <input type="text" placeholder="默认是 admin，请注意大小写" id="qz-s2-app-user">
+            </div>
+            <div class="field">
+                <label>iOMC3登录密码</label>
+                <input type="text" placeholder="默认是 6wilink，请注意大小写" id="qz-s2-app-passwd">
+            </div>
+            </div>
             <div class="field">
               <button class="ui button" id="qz-s2-btn-copy">开始安装</button>
-              <button class="ui button primary" id="qz-s2-btn-default">使用默认位置安装</button>
+              <button class="ui button primary" id="qz-s2-btn-default">使用默认配置安装</button>
             </div>
           </div>
           <!--[FORM] end-->
@@ -152,21 +162,28 @@
         <div class="ui segment">
           <!--[LIST] start-->
           <div class="ui relaxed divided list">
-            <div class="item">
-              <i class="large checkmark middle aligned green icon"></i>
+            <div class="item" id="qz-s2-f1">
+              <i class="large wait middle aligned grey icon"></i>
               <div class="content">
                 <a class="header">检查读写权限</a>
-                <div class="description">写失败</div>
+                <div class="description">等待检查</div>
               </div>
             </div>
-            <div class="item">
-              <i class="large remove middle aligned red icon"></i>
+            <div class="item" id="qz-s2-f2">
+              <i class="large wait middle aligned grey icon"></i>
               <div class="content">
                 <a class="header">复制所有文件</a>
-                <div class="description">复制失败</div>
+                <div class="description">等待复制</div>
               </div>
             </div>
-            <div class="item">
+            <div class="item" id="qz-s2-f3">
+              <i class="large wait middle aligned grey icon"></i>
+              <div class="content">
+                <a class="header">保存配置</a>
+                <div class="description">等待保存</div>
+              </div>
+            </div>
+            <div class="item" id="qz-s2-f4">
               <i class="large wait middle aligned grey icon"></i>
               <div class="content">
                 <a class="header">测试服务</a>
@@ -187,7 +204,7 @@
         <!--[PROGRESS] end-->
 
         <button class="ui button" id="qz-s2-btn-prev">上一步</button>
-        <button class="ui button" id="qz-s2-btn-next">下一步</button>
+        <button class="ui button" id="qz-s2-btn-next" disabled="disabled">下一步</button>
       </div>
       <!--[STEP].[ATTACHED] end-->
       <!--[STEP].[ATTACHED] start-->
@@ -228,18 +245,25 @@
         <div class="ui segment">
           <!--[LIST] start-->
           <div class="ui relaxed divided list">
-            <div class="item">
-              <i class="large checkmark middle aligned green icon"></i>
+            <div class="item" id="qz-s3-f1">
+              <i class="large wait middle aligned grey icon"></i>
               <div class="content">
                 <a class="header">尝试连接数据库</a>
-                <div class="description">连接成功</div>
+                <div class="description">等待连接</div>
               </div>
             </div>
-            <div class="item">
-              <i class="large remove middle aligned red icon"></i>
+            <div class="item" id="qz-s3-f2">
+              <i class="large wait middle aligned grey icon"></i>
               <div class="content">
                 <a class="header">初始化数据表</a>
-                <div class="description">初始化失败</div>
+                <div class="description">等待初始化</div>
+              </div>
+            </div>
+            <div class="item" id="qz-s3-f3">
+              <i class="large wait middle aligned grey icon"></i>
+              <div class="content">
+                <a class="header">尝试使用数据库</a>
+                <div class="description">等待连接</div>
               </div>
             </div>
           </div>
@@ -254,7 +278,7 @@
         </div>
         <!--[PROGRESS] end-->    
         <button class="ui button" id="qz-s3-btn-prev">上一步</button>
-        <button class="ui button" id="qz-s3-btn-next">开始使用</button>
+        <button class="ui button" id="qz-s3-btn-next" disabled="disabled">开始使用</button>
       </div>
       <!--[STEP].[ATTACHED] end-->
       <div class="ui secondary segment">Copyright &copy; 2017. All rights reserved.</div>
