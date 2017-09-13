@@ -28,14 +28,39 @@
 	};
 }) (jQuery);
 
+
+// Ajax Requests
+// 2017.09.13 pickup $.Ajax.Query
+(function($) {
+  $.Ajax = {
+    // done_cb: function(resp);
+    // error_cb: function(xhr, status, error);
+    Query: function(url, data, done_cb, error_cb, timeout) {
+      $.ajax({
+        url: url, data: data || null, method: 'post',
+        success: done_cb, error: error_cb,
+        timeout: timeout || 5000, dataType: 'json',
+        //scriptCharset: 'utf-8',
+        //contentType: "application/x-www-form-urlencoded; charset=utf-8",
+      })
+    }
+  }
+}) (jQuery);
+
 // 2017.09.13 re-write SemanticUI into jQuery.fn.extend
 // Handle all SemanticUI operations
 (function($) {
   $.extend({
     SUIInit: function() {
+      console.log('SematicUI init');
       $('.ui.model').modal({
         inverted: true
       }).modal('hide');
+
+      $(".ui.dropdown").dropdown({
+        useLabels: false
+      });
+      $('.ui.accordion').accordion();      
       
       return this;
     }    

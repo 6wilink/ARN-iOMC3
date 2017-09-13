@@ -162,19 +162,12 @@
 */
 (function($) {
   $.Request = {
-    Query: function(url, data, done_cb, error_cb) {
-      $.ajax({
-        url: url, data: data, method: 'post',
-        success: done_cb, error: error_cb,
-        timeout: 5000, dataType: 'json'
-      })
-    },
     StepI: function() {
       console.log('$.Request.StepI()');
       $("#qz-s1-mask").SUILoaderShow(); // hide when Ajax done/error
       $("#qz-s1-btn-recheck").BtnDisable();
       $("#qz-s1-progress").SUIProgressReset();
-      $.Request.Query(
+      $.Ajax.Query(
         '/iOMC3/install.php?step=I', '', 
         $.Request.CB_WhenStepIReply, $.Request.CB_WhenStepIFailed
       );
@@ -258,7 +251,7 @@
       $("#qz-s2-btn-copy,#qz-s2-btn-default").BtnDisable();
       $("#qz-s2-progress").SUIProgressReset();
       // TODO: collect path/user/passwd from input:text
-      $.Request.Query(
+      $.Ajax.Query(
         '/iOMC3/install.php?step=II', 
         { path: '/var/html/www/iOMC3/', user: 'admin', passwd: '6wilink' }, 
         $.Request.CB_WhenStepIIReply, $.Request.CB_WhenStepIIFailed
@@ -353,7 +346,7 @@
       $("#qz-s3-mask").SUILoaderShow();
       $("#qz-s3-btn-import,#qz-s3-btn-default").BtnDisable();
       $("#qz-s3-progress").SUIProgressReset();
-      $.Request.Query('/iOMC3/install.php?step=III', 
+      $.Ajax.Query('/iOMC3/install.php?step=III', 
         { db_host: '127.0.0.1', db_user: 'root', db_passwd: '' }, 
         $.Request.CB_WhenStepIIIReply, $.Request.CB_WhenStepIIIFailed
       );
