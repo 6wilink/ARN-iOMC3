@@ -182,23 +182,22 @@
         </div>
       </div>
       <div class="ui qz-detail" id="qz-device-detail">
-        <div class="ui inverted dimmer" id="qz-device-mask">
-          <div class="ui text loader">正在载入，请稍候……</div>
+        <div class="ui active inverted dimmer" id="qz-device-mask">
+          <div class="ui text loader">正在更新，请稍候……</div>
         </div>
         <div class="ui" id="qz-device-details">
           <div class="ui warning message" id="qz-devices-alarms">
-            <div class="header">珠海电视塔124#塔底基站</div>
+            <div class="header" id="qz-devices-device-name-alarm">正在读取，请稍候……</div>
             <ul class="list">
-              <li>磁盘空间低</li>
-              <li>没有启用二层通信服务</li>
-              <li>设备无线空闲</li>
+              <li>正在读取，请稍候……</li>
             </ul>
           </div>
           <div class="ui top attached tabular menu">
             <a class="item" id="qz-device-base">基本信息</a>
-            <a class="item" id="qz-device-wireless">无线配置<div class="ui green label">666</div></a>
-            <a class="item" id="qz-device-network">网络<div class="ui green label">192.168.1.24</div></a>
+            <a class="item" id="qz-device-wireless">无线配置<div class="ui yellow label" id="qz-devices-device-freq-icon">-</div></a>
+            <a class="item" id="qz-device-network">网络<div class="ui green label" id="qz-devices-device-ip-icon">-</div></a>
             <div class="right menu">
+              <a class="item" id="qz-device-btn-update"><i class="refresh icon"></i>刷新</a>
               <a class="item" id="qz-device-btn-maps"><i class="map icon"></i>地图</a>
               <a class="item" id="qz-device-btn-config"><i class="settings icon"></i>配置</a>
             </div>
@@ -207,34 +206,36 @@
             <div class="ui form">
               <div class="two fields">
                 <div class="field">
-                  <label>设备地址</label>
-                  <input placeholder="出厂默认为192.168.1.100" readonly="" type="text" value="192.168.1.24">
+                  <label>设备名称</label>
+                  <input placeholder="" readonly="" type="text" value="-" id="qz-devices-device-name">
                 </div>
                 <div class="field">
                   <label>设备标识 MAC地址</label>
-                  <input placeholder="正在读取" readonly="" type="text" value="00:5E:AC:00:5E:AC | 00:5E:AC:00:5E:AE">
+                  <input placeholder="MAC地址" readonly="" type="text" value="-" id="qz-devices-device-id">
                 </div>
               </div>
             </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-wireless-detail">
             <div class="ui form">
-              <div class="field">
-                <label>工作模式</label>
-                <input placeholder="支持基站、子站、自组网" readonly="" type="text" value="基站 / 子站 / 自组网">
+              <div class="three fields">
+                <div class="field">
+                  <label>工作模式</label>
+                  <input placeholder="支持基站、子站、自组网" readonly="" type="text" value="-" id="qz-devices-device-mode">
+                </div>
               </div>
               <div class="three fields">
                 <div class="field">
                   <label>工作频率</label>
-                  <input placeholder="仅支持UHF频道" readonly="" type="text" value="R1 / 43频道 / 650 MHz">
+                  <input placeholder="仅支持UHF频道" readonly="" type="text" value="-" id="qz-devices-device-freq">
                 </div>
                 <div class="field">
                   <label>发射功率</label>
-                  <input placeholder="30 dBm等于1瓦" readonly="" type="text" value="31 dBm / 1 Watt">
+                  <input placeholder="30 dBm等于1瓦" readonly="" type="text" value="-" id="qz-devices-device-txpower">
                 </div>
                 <div class="field">
                   <label>调制参数</label>
-                  <input placeholder="支持6/8/10/16/20/24 MHz" readonly="" type="text" value="16 MHz">
+                  <input placeholder="支持6/8/10/16/20/24 MHz" readonly="" type="text" value="-" id="qz-devices-device-chanbw">
                 </div>
               </div>
             </div>
@@ -244,17 +245,17 @@
               <div class="two fields">
                 <div class="field">
                   <label>设备地址</label>
-                  <input placeholder="出厂默认为192.168.1.100" readonly="" type="text" value="192.168.1.24">
+                  <input placeholder="出厂默认为192.168.1.100" readonly="" type="text" value="-" id="qz-devices-device-ip">
                 </div>
                 <div class="field">
                   <label>设备标识 MAC地址</label>
-                  <input placeholder="正在读取" readonly="" type="text" value="00:5E:AC:00:5E:AC | 00:5E:AC:00:5E:AE">
+                  <input placeholder="正在读取" readonly="" type="text" value="" id="qz-devices-device-netmask">
                 </div>
               </div>
               <div class="two fields">
                 <div class="field">
                   <label>网关 / DNS</label>
-                  <input placeholder="正在读取" readonly="" type="text" value="192.168.1.1 / 192.168.1.1, 8.8.8.8">
+                  <input placeholder="正在读取" readonly="" type="text" value="-" id="qz-devices-device-gw">
                 </div>
               </div>
             </div>
@@ -265,10 +266,12 @@
           <div class="ui top attached tabular menu">
             <a class="item active" id="qz-device-config-basic">基本配置</a>
             <a class="item" id="qz-device-config-wireless">无线配置</a>
-            <a class="item" id="qz-device-config-advanced">高级配置<div class="ui yellow label">Lite</div></a>
+            <a class="item" id="qz-device-config-advanced">高级配置<div class="ui teal label">Lite</div></a>
             <div class="right menu">
               <a class="item" id="qz-device-btn-config-update"><i class="refresh icon"></i>刷新</a>
               <a class="item" id="qz-device-btn-config-save"><i class="save icon"></i>保存</a>
+              <a class="item"><i class="circle notched loading icon"></i>保存中</a>
+              <a class="item"><i class="save icon"></i>已保存</a>
               <a class="item" id="qz-device-btn-config-done"><i class="close icon"></i>关闭</a>
             </div>
           </div>
@@ -276,21 +279,24 @@
             <div class="ui form">
               <div class="field">
                 <label>设备名称</label>
-                <input placeholder="支持汉字、字母、数字组合" type="text" value="珠海电视塔124#塔底基站">
+                <input placeholder="支持汉字、字母、数字组合" type="text" value="-" id="qz-device-config-name">
               </div>
               <div class="three fields">
                 <div class="field">
                   <label>设备地址</label>
-                  <input placeholder="出厂默认为192.168.1.100" type="text" value="192.168.1.24">
+                  <input placeholder="出厂默认为192.168.1.100" type="text" value="-" id="qz-device-config-ip">
                 </div>
                 <div class="field">
                   <label>子网掩码</label>
-                  <input placeholder="默认为24/255.255.255.0" type="text" value="255.255.255.0">
+                  <input placeholder="默认为24/255.255.255.0" type="text" value="-" id="qz-device-config-netmask">
                 </div>
                 <div class="field">
                   <label>网关 / DNS</label>
-                  <input placeholder="DNS默认为网关" type="text" value="192.168.1.1">
+                  <input placeholder="DNS默认为网关" type="text" value="-" id="qz-device-config-gw">
                 </div>
+              </div>
+              <div class="field">
+                <button class="ui button">重置网络</button>
               </div>
             </div>
           </div>
@@ -319,6 +325,10 @@
                   <label>发射功率</label>
                   <input placeholder="30 dBm等于1瓦" type="text" value="30 dBm = 1瓦">
                 </div>
+              </div>
+              <div class="field">
+                <button class="ui button">重置无线</button>
+                <button class="ui button">无线工具</button>
               </div>
             </div>
           </div>
@@ -368,7 +378,7 @@
           <div class="header item">基本信息</div>
           <div class="item">珠海电视塔124#塔底基站</div>
           <div class="item">基站 192.168.1.24 / 255.255.255.0</div>
-          <div class="item">00:5E:AC:00:5E:AC / 666 MHz / 16 MHz</div>
+          <div class="item">00:5E:AC / 666 MHz / 16 MHz</div>
         </div>
         <div class="ui fluid vertical menu">
           <div class="item">
@@ -377,7 +387,9 @@
               <i class="search link icon" id="qz-maps-btn-search"></i>
             </div>
           </div>
-          <div class="header item">设备列表</div>
+          <div class="header item" id="qz-maps-list-header">
+            设备列表<div class="ui green label">-</div>
+          </div>
           <a class="item active">1. 珠海电视塔124#塔底基站<div class="ui red label">4</div></a>
           <a class="item">2. 珠海电视塔1#塔底基站</a>
           <a class="item">3. 珠海电视塔5#塔底基站</a>
@@ -421,10 +433,15 @@
         </div>
       </div>
       <div class="ui bottom attached segment" id="qz-options-tools-detail">
-        <p>诊断工具</p>
+        <p>扫频工具</p>
+        <p>扫描BEANCON工具</p>
+        <p>PING工具</p>
+        <p>UDP Flooding工具</p>
       </div>
       <div class="ui bottom attached segment" id="qz-options-services-detail">
         <p>设备安装包与服务配置</p>
+        <p>地图起始位置，放大级别</p>
+        <p>高级功能包括：“地图模式设备跟随”、“拓扑关系”、“历史流量图表”、“历史连接图表”</p>
       </div>
     </div>
   </div>
@@ -438,6 +455,6 @@
 <!--<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>
 <!--script type='text/javascript' src='https://cn.bing.com/api/maps/mapcontrol'></script>-->
 <script type='text/javascript' src='resource/qz-lite.js'></script>
-
+<script type='text/javascript' src='resource/qz-lite-autotest.js'></script>
 </body>
 </html>

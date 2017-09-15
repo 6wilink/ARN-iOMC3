@@ -9,288 +9,368 @@
 * Fixed:
 *     1. Step_II.Prev takes too much time; Qige@2017.09.08
 *     2. Progress bar: invalid after "reset"; Qige@2017.09.08
+*     3. Add "autotest" script; Qige@2017.09.15
 */
 
 // Handle url/signin/token/devices/maps/options
 (function($) {
   $.Lite = {
     // TOKEN/Timer handles
-    data: {
-    },
-    Init: function() {
-      $.LiteUI.Init();
-    },
+    data: {},
+    // Web Application Starts here
     Start: function() {
-      $.Lite.Init();
-      $.Lite.Signin();
+      $.LiteUI.Init();
+      $.Lite.Run.Signin();
     },
-    Signin: function() {
-      $.LiteUI.Nav.Signin();
+    // Goto [*] Blocks
+    Run: {
+      Signin: function() {
+        $.LiteUI.Nav.Signin();
+      },
+      // TODO: display Devices/Maps/Options after valid [TOKEN]
+      Devices: function(flagAutoLoad) {
+        $.LiteUI.Nav.Devices();
+        if (flagAutoLoad && flagAutoLoad != 'undefined') {
+          $.Request.DevicesList();
+        }
+      },
+      Maps: function(flagAutoLoad) {
+        $.LiteUI.Nav.Maps();
+        if (flagAutoLoad && flagAutoLoad != 'undefined') {
+          $.Request.MapsDevicesList();
+        }
+      },
+      Options: function(flagAutoLoad) {
+        $.LiteUI.Nav.Options();
+        if (flagAutoLoad && flagAutoLoad != 'undefined') {
+          $.Request.Options();
+        }
+      },
     },
-    // display Devices/Maps/Options after valid [TOKEN]
-    Devices: function() {
-      $.LiteUI.Nav.Devices();
-    },
-    DevicesStatus: function() {      
-      var ts = new Date().toTimeString();
-      $("#qz-devices-status").SUIMessageSuccess('设备列表已更新 @'+ts).show();
-    },
-    // Update device details via Ajax
-    DeviceUpdate: function(did) {
-      console.log('$.Lite.DeviceUpdate() did=', did);
-      if (did) {
-        
+    Update: {
+      DevicesStatus: function(msg) {      
+        $("#qz-devices-status").SUIMessageSuccess(msg).show();
+      },      
+      // Update device details via Ajax
+      Device: function(did) {
+        console.log('$.Lite.DeviceUpdate() did=', did);
+        if (did) {
+          $("#qz-device-detail").attr('did', did);
+          $.Lite.Update.DeviceDetail();
+        }
+      },
+      DeviceDetail: function() {
+        var did = $("#qz-device-detail").attr('did');
+        if (did) {
+          $.Request.DeviceDetail(did);
+        }
+      },
+      DeviceConfig: function() {
+        var did = $("#qz-device-detail").attr('did');
+        if (did) {
+          $.Request.DeviceConfig(did);
+        }        
       }
     },
-    Maps: function() {
-      $.LiteUI.Nav.Maps();
-    },
-    Options: function() {
-      $.LiteUI.Nav.Options();
-    },
-    CB_SigninError: function(xhr, status, error) {
-      console.log('$.Request.CB_SigninError()');
-      $("#qz-signin-message").SUIMessageError('通信错误，请重试').show();
-      $("#qz-signin-mask").SUILoaderHide();
-      $("#qz-signin-btn-go,#qz-signin-btn-default").BtnEnable();
-    },
-    CB_SigninDone: function(resp) {
-      var error = (resp && resp.error) ? resp.error : '404';
-      console.log('error =', error);      
-      switch(error) {
-        case 'epasswd':
-          $("#qz-signin-message").SUIMessageError('用户名或密码不正确，请重试').show();
-          break;
-        case 'none':
-          $("#qz-signin-message").SUIMessageSuccess('登录成功，正在载入数据').show();
-          var token = resp.auth.token;
-          console.log('token = ', token);
-          $.Lite.data.TOKEN = token;
-          setTimeout(function() {
-            $.Lite.Devices();            
-          }, 1000);
-          break;
-        case '404':
-        default:
-          $("#qz-signin-message").SUIMessageError('通信失败，请重试').show();
-          break;
-      }
-      $("#qz-signin-mask").SUILoaderHide();
-    },
-    Bind: function() {
-      $("#qz-nav-devices").click(function() {
-        $.Lite.Devices();
-      });
-      $("#qz-nav-options").click(function() {
-        $.Lite.Options();
-      });
-      $("#qz-nav-maps").click(function() {
-        $.Lite.Maps();
-      });
-      
-      // Signin
-      $("#qz-signin-user,#qz-signin-passwd").focus(function() {
-        $(this).select();
-      }).change(function() {
-        var user = $("#qz-signin-user").val();
-        var passwd = $("#qz-signin-passwd").val();
-        if (user == '' && passwd == '') {
-          $("#qz-signin-btn-go").BtnDisable();
-        } else {
-          $("#qz-signin-btn-go").BtnEnable();
+    CB: {
+      CB_SigninError: function(xhr, status, error) {
+        console.log('$.Request.CB_SigninError()');
+        $("#qz-signin-message").SUIMessageError('通信错误，请重试').show();
+        
+        $("#qz-signin-btn-go,#qz-signin-btn-default").BtnEnable();
+        $("#qz-signin-mask").SUILoaderHide();
+      },
+      CB_SigninDone: function(resp) {
+        var error = (resp && resp.error) ? resp.error : '404';
+        console.log('error =', error);      
+        switch(error) {
+          case 'epasswd':
+            $("#qz-signin-message").SUIMessageError('用户名或密码不正确，请重试').show();
+            break;
+          case 'none':
+            $("#qz-signin-message").SUIMessageSuccess('登录成功，正在载入数据').show();
+            var token = resp.auth.token;
+            console.log('token = ', token);
+            $.Lite.data.TOKEN = token;
+            setTimeout(function() {
+              var flagAutoLoad = true;
+              $.Lite.Run.Devices(flagAutoLoad);            
+            }, 1000);
+            break;
+          case '404':
+          default:
+            $("#qz-signin-message").SUIMessageError('通信失败，请重试').show();
+            break;
         }
-      })
-      $("#qz-signin-btn-go").click(function() {
-        var user = $("#qz-signin-user").val();
-        var passwd = $("#qz-signin-passwd").val();
-      $("#qz-signin-btn-go,#qz-signin-btn-default").BtnDisable();
-        $.Request.Signin(user, passwd, $.Lite.CB_SigninDone, $.Lite.CB_SigninError);
-      });
-      $("#qz-signin-btn-default").click(function() {
-        $("#qz-btn-signin-default").BtnDisable();
-        $("#qz-signin-user").val('admin');
-        $("#qz-signin-passwd").val('6wilink');
-        $("#qz-signin-btn-go").BtnEnable();
-        $("#qz-signin-btn-go").trigger('click');
-      });
+        $("#qz-signin-mask").SUILoaderHide();
+      },
+      CB_DevicesDone: function(resp) {
+        var error = resp && resp.error ? resp.error : '404';
+        switch(error) {
+          case 'none':
+            var data = resp.data;
+            $.LiteUI.Update.DevicesList(data.devices_total, data.devices_qty, data.devices);
+            break;
+          case '404':
+          default:
+            break;
+        }
+        
+        // update Timestamp
+        var ts = new Date().toTimeString();
+        $.Lite.Update.DevicesStatus('设备列表已更新 @'+ts);
 
-      // Nav [SEARCH]
-      $("#qz-nav-text-keyword").focus(function() {
-        $(this).select();
-      }).keydown(function(e) {
-        //console.log('search when hit ENTER');
-        if (e.keyCode == 13) {
-          $(this).select();
-          $("#qz-nav-btn-search").trigger('click');
-          $("#qz-devices-text-keyword").select();
-        }
-      });
-      // wrapper of Devices.Search
-      $("#qz-nav-btn-search").click(function() {
-        var keyword = $("#qz-nav-text-keyword").val();
-        console.log('qz-nav-text-keyword =', keyword);
-        // Devices.Search
-        $("#qz-nav-devices").trigger("click");
-        $("#qz-devices-text-keyword").val(keyword);
-        $("#qz-devices-btn-search").trigger('click');
-      });
-      
-      // search when keyword/pattern not empty
-      // Devices [SEARCH]
-      $("#qz-devices-text-keyword").focus(function() {
-        $(this).select();
-      }).keydown(function(e) {
-        //console.log('search when hit ENTER');
-        if (e.keyCode == 13) {
-          $(this).select();
-          $("#qz-devices-btn-search").trigger('click');
-        }
-      });
-      $("#qz-devices-btn-search").click(function() {
-        var keyword = $("#qz-devices-text-keyword").val();
-        console.log('qz-devices-text-keyword =', keyword);
-
-        // TODO: load devices list here
-        $("#qz-devices-search").addClass("loading");
-        $("#qz-devices-list-header").nextAll().remove();
-        // Ajax search keyword, then update Devices [LIST]
-        // qz-common.js: $.Ajax.Query(url, data, done_cb, error_cb);
-        //$.Ajax.Query();
-        $.Ajax.Query(
-          '/iOMC3/lite.php?do=devices&keyword='+keyword, null, 
-          $.Lite.CB_DevicesDone, $.Lite.CB_DevicesError
-        );
-      });
-      
-      // Devices.[Tab]
-      $("#qz-device-base").click(function() {
-        $.LiteUI.Device.Base();
-      });
-      $("#qz-device-wireless").click(function() {
-        $.LiteUI.Device.Wireless();
-      });
-      $("#qz-device-network").click(function() {
-        $.LiteUI.Device.Network();
-      });
-      $("#qz-device-links").click(function() {
-        $.LiteUI.KPI.Links();
-      });
-      $("#qz-device-thrpt").click(function() {
-        $.LiteUI.KPI.Thrpt();
-      });
-      $("#qz-device-btn-config").click(function() {
-        $.LiteUI.Config.Show();
-      });
-      $("#qz-device-btn-config-save").click(function() {
-        // save, prompt, hide
-        //$.LiteUI.Config.Save();
-      });
-      $("#qz-device-btn-config-done").click(function() {
-        // save, prompt, hide
-        $.LiteUI.Config.Hide();
-      });
-      $("#qz-device-config-basic").click(function() {
-        $.LiteUI.Config.Basic();
-      });
-      $("#qz-device-config-wireless").click(function() {
-        $.LiteUI.Config.Wireless();
-      });
-      $("#qz-device-config-advanced").click(function() {
-        $.LiteUI.Config.Advanced();
-      });
-      $("#qz-options-tools").click(function() {
-        $.LiteUI.Options.Tools();
-      });
-      $("#qz-options-services").click(function() {
-        $.LiteUI.Options.Services();
-      });
-      
-      // Combined keywords: 
-      // Status: :offline/:online/:alarms/:all
-      // Orderby: +ip/+name/+search
-      $("#qz-devices-filter").find(".item").click(function() {
-        var keyword = $("#qz-devices-text-keyword").val();
-        var keyword_selected = $(this).attr('alt');
-        var keyword_target = keyword_selected;
-        if (keyword.indexOf(':') > -1 && keyword.indexOf('+') > -1) {
-          //FIXME: replace equal keywords, not assign it directly
-          keyword_target = keyword_selected;
-        } else {
-          if (keyword.indexOf(':') > -1) {
-            if (keyword_selected.indexOf('+') > -1) {
-              keyword_target = keyword + ' ' + keyword_selected;
-            }
-          }
-          if (keyword.indexOf('+') > -1) {
-            if (keyword_selected.indexOf(':') > -1) {
-              keyword_target = keyword + ' ' + keyword_selected;
-            }
-          }
-        }
-        console.log(keyword, keyword_selected, keyword_target);
-        $("#qz-devices-text-keyword").val(keyword_target);
-        $("#qz-devices-btn-search").trigger('click');
-      });
-      
-      // Devices.[LSIT].item
-    },
-    DevicesListUpdate: function(total, qty, list) {
-      console.log('$.Lite.DevicesListUpdate()', total, qty);
-      if (total + qty > 0) {
-        // Update Nav.[DEVICES].Qty
-        $("#qz-nav-devices").find('.label').text(total);
-        
-        // update Devices.[LIST]
-        var list_header = $("#qz-devices-list-header");
-        list_header.nextAll().remove();
-        
-        $.each(list, function() {
-          var $this =$(this)[0];
-          var id = $this.id, name = $this.name, alarms = $this.alarms, html = '';
-          if (alarms > 0) {
-            html = '<a class="item" id="'+ id +'">' + name + '</a>';
-          } else {
-            html = '<a class="item" id="'+ id +'">' + name + '</a>';
-          }
-          list_header.after(html);
-        });
-        
-        // update Device Qty
-        list_header.find(".label").text(qty);
         $("#qz-devices-search").removeClass("loading");
-        $.Lite.DevicesStatus();
+      },
+      CB_DevicesError: function(xhr, status, error) {
+        var ts = new Date().toTimeString();
+        $.Lite.Update.DevicesStatus('设备列表获取失败 @'+ts);
         
-        // Bind [CLICK] again
-        var devices = list_header.nextAll();
-        devices.click(function() {
-          $("#qz-devices-list-header").nextAll().removeClass('active');
-          $(this).addClass('active');
+        $("#qz-devices-search").removeClass("loading");
+      },
+      CB_DeviceDone: function(resp) {
+        var error = resp && resp.error ? resp.error : '404';
+        console.log('CB_DeviceDone> error =', error);      
+        switch(error) {
+          case 'none':
+            if ($.LiteUI.Update.Device(resp.data)) {        
+              // update Timestamp
+              var ts = new Date().toTimeString();
+              $.Lite.Update.DevicesStatus('设备信息已更新 @'+ts);
+            } else {
+              $.Lite.CB.CB_DeviceError();
+            }
+            break;
+          case '404':
+          default:
+            $.Lite.CB.CB_DeviceError();
+            break;
+        }
 
-          var id = $(this).attr('id');
-          console.log('try first child > id=', id);
-          $.Lite.DeviceUpdate(id);
+        $("#qz-device-mask").SUILoaderHide();
+      },
+      CB_DeviceError: function(xhr, status, error) {
+        var ts = new Date().toTimeString();
+        $("#qz-devices-status").SUIMessageError('设备信息获取失败 @'+ts).show();
+        
+        $("#qz-device-mask").SUILoaderHide();
+      },
+      CB_DeviceConfigDone: function(resp) {
+        var error = resp && resp.error ? resp.error : '404';
+        console.log('CB_DeviceConfigDone> error =', error);      
+        switch(error) {
+          case 'none':
+            if ($.LiteUI.Update.DeviceConfig(resp.data)) {        
+              var ts = new Date().toTimeString();
+              $.Lite.Update.DevicesStatus('设备配置已更新 @'+ts);
+            } else {
+              $.Lite.CB.CB_DeviceConfigError();
+            }
+            break;
+          case '404':
+          default:
+            $.Lite.CB.CB_DeviceConfigError();
+            break;
+        }
+
+        $("#qz-device-mask").SUILoaderHide();
+      },
+      CB_DeviceConfigError: function(xhr, status, error) {
+        var ts = new Date().toTimeString();
+        $("#qz-devices-status").SUIMessageError('设备配置获取失败 @'+ts).show();
+        
+        $("#qz-device-mask").SUILoaderHide();
+      },
+      CB_MapsDeviceDone: function(resp) {
+        var error = resp && resp.error ? resp.error : '404';
+        switch(error) {
+          case 'none':
+            var data = resp.data;
+            $.LiteUI.Update.MapsDevicesList(data.devices_total, data.devices_qty, data.devices);
+            break;
+          case '404':
+          default:
+            break;
+        }
+        
+        // update Timestamp
+        var ts = new Date().toTimeString();
+        $.Lite.Update.MapsDevicesStatus('设备列表已更新 @'+ts);
+
+        $("#qz-maps-search").removeClass("loading");
+        $("#qz-device-mask").SUILoaderHide();
+      },
+      CB_MapsDevicesError: function(xhr, status, error) {
+        var ts = new Date().toTimeString();
+        $.Lite.Update.MapsDevicesStatus('设备列表获取失败 @'+ts);
+        
+        $("#qz-maps-search").removeClass("loading");
+      },
+    },
+    Init: {
+      Nav: function() {
+        $("#qz-nav-devices").click(function() {
+          var flagAutoLoad = true;
+          $("#qz-devices-text-keyword").val('').focus();
+          $.Lite.Run.Devices(flagAutoLoad);
+        });
+        $("#qz-nav-maps").click(function() {
+          var flagAutoLoad = true;
+          $.Lite.Run.Maps(flagAutoLoad);
+        });
+        $("#qz-nav-options").click(function() {
+          var flagAutoLoad = true;
+          $.Lite.Run.Options(flagAutoLoad);
         });
 
-        // select first result when done
-        devices.first().trigger('click');      
+        // Nav [SEARCH]
+        $("#qz-nav-text-keyword").focus(function() {
+          $(this).select();
+        }).keydown(function(e) {
+          //console.log('search when hit ENTER');
+          if (e.keyCode == 13) {
+            $(this).select();
+            $("#qz-nav-btn-search").trigger('click');
+            $("#qz-devices-text-keyword").select(); // focus
+          }
+        });
+        // wrapper of Devices.Search
+        $("#qz-nav-btn-search").click(function() {
+          var keyword = $("#qz-nav-text-keyword").val();
+          console.log('qz-nav-text-keyword =', keyword);
+          // Devices.Search
+          var flagAutoLoad = false;
+          $.Lite.Run.Devices(flagAutoLoad);
+          $("#qz-devices-text-keyword").val(keyword).select(); // focus
+          $("#qz-devices-btn-search").trigger('click');
+        });
+      },
+      Signin: function() {        
+        // Signin
+        $("#qz-signin-user,#qz-signin-passwd").focus(function() {
+          $(this).select();
+        }).change(function() {
+          var user = $("#qz-signin-user").val();
+          var passwd = $("#qz-signin-passwd").val();
+          if (user == '' && passwd == '') {
+            $("#qz-signin-btn-go").BtnDisable();
+          } else {
+            $("#qz-signin-btn-go").BtnEnable();
+          }
+        })
+        $("#qz-signin-btn-go").click(function() {
+          var user = $("#qz-signin-user").val();
+          var passwd = $("#qz-signin-passwd").val();
+        $("#qz-signin-btn-go,#qz-signin-btn-default").BtnDisable();
+          $.Request.Signin(user, passwd, $.Lite.CB.CB_SigninDone, $.Lite.CB.CB_SigninError);
+        });
+        $("#qz-signin-btn-default").click(function() {
+          $("#qz-btn-signin-default").BtnDisable();
+          $("#qz-signin-user").val('admin');
+          $("#qz-signin-passwd").val('6wilink');
+          $("#qz-signin-btn-go").BtnEnable();
+          $("#qz-signin-btn-go").trigger('click');
+        });
+      },
+      Devices: function() {
+        // Devices.[FILTER]: Combined keywords: 
+        // Status: :offline/:online/:alarms/:all
+        // Orderby: +ip/+name/+search
+        $("#qz-devices-filter").find(".item").click(function() {
+          var keyword = $("#qz-devices-text-keyword").val();
+          var keyword_selected = $(this).attr('alt');
+          var keyword_target = keyword_selected;
+          if (keyword.indexOf(':') > -1 && keyword.indexOf('+') > -1) {
+            //FIXME: replace equal keywords, not assign it directly
+            keyword_target = keyword_selected;
+          } else {
+            if (keyword.indexOf(':') > -1) {
+              if (keyword_selected.indexOf('+') > -1) {
+                keyword_target = keyword + ' ' + keyword_selected;
+              }
+            }
+            if (keyword.indexOf('+') > -1) {
+              if (keyword_selected.indexOf(':') > -1) {
+                keyword_target = keyword + ' ' + keyword_selected;
+              }
+            }
+          }
+          console.log(keyword, keyword_selected, keyword_target);
+          $("#qz-devices-text-keyword").val(keyword_target);
+          $("#qz-devices-btn-search").trigger('click');
+        });
+        
+        // search when keyword/pattern not empty
+        // Devices [SEARCH]
+        $("#qz-devices-text-keyword").focus(function() {
+          $(this).select();
+        }).keydown(function(e) {
+          //console.log('search when hit ENTER');
+          if (e.keyCode == 13) {
+            //$(this).select();
+            $("#qz-devices-btn-search").trigger('click');
+          }
+        });
+        $("#qz-devices-btn-search").click(function() {
+          var keyword = $("#qz-devices-text-keyword").val();
+          console.log('qz-devices-text-keyword =', keyword);
+          $.Request.DevicesList(keyword);
+        });
+
+        
+        // Devices.[Tab]
+        $("#qz-device-base").click(function() {
+          $.LiteUI.Device.Base();
+        });
+        $("#qz-device-wireless").click(function() {
+          $.LiteUI.Device.Wireless();
+        });
+        $("#qz-device-network").click(function() {
+          $.LiteUI.Device.Network();
+        });
+        $("#qz-device-links").click(function() {
+          $.LiteUI.KPI.Links();
+        });
+        $("#qz-device-thrpt").click(function() {
+          $.LiteUI.KPI.Thrpt();
+        });
+        $("#qz-device-btn-update").click(function() {
+          $.Lite.Update.DeviceDetail();
+        });
+        $("#qz-device-btn-config,#qz-device-btn-config-update").click(function() {
+          $.LiteUI.Config.Show();
+          $.Lite.Update.DeviceConfig();
+        });
+        $("#qz-device-btn-config-done").click(function() {
+          // save, prompt, hide
+          $.LiteUI.Config.Hide();
+        });
+        // save, prompt, hide
+        $("#qz-device-btn-config-save").click(function() {
+          //$.LiteUI.Config.Save();
+        });
+        $("#qz-device-config-basic").click(function() {
+          $.LiteUI.Config.Basic();
+        });
+        $("#qz-device-config-wireless").click(function() {
+          $.LiteUI.Config.Wireless();
+        });
+        $("#qz-device-config-advanced").click(function() {
+          $.LiteUI.Config.Advanced();
+        });
+      },
+      Maps: function() {
+        
+      },
+      Options: function() {
+        $("#qz-options-tools").click(function() {
+          $.LiteUI.Options.Tools();
+        });
+        $("#qz-options-services").click(function() {
+          $.LiteUI.Options.Services();
+        });
       }
     },
-    CB_DevicesDone: function(resp) {
-      var error = resp && resp.error ? resp.error : '404';
-      switch(error) {
-        case 'none':
-          var data = resp.data;
-          $.Lite.DevicesListUpdate(data.devices_total, data.devices_qty, data.devices);
-          break;
-        case '404':
-        default:
-          break;
-      }
-    },
-    CB_DevicesError: function(xhr, status, error) {
-      $("#qz-devices-status").SUIMessageError('设备列表获取失败').show();
-      $("#qz-devices-search").removeClass("loading");
-    }
   }
 }) (jQuery);
 
@@ -334,8 +414,10 @@
       Options: function() {
         $.LiteUI.Nav.Init();
         $("#qz-nav-options").addClass('active');
-        $("#qz-signin,#qz-devices,#qz-maps").hide();      
         $("#qz-options").show();
+        
+        $.LiteUI.Options.Init();
+        $.LiteUI.Options.Tools();
       }
     },
     Config: {
@@ -425,6 +507,83 @@
         $("#qz-options-services").addClass('active');
         $("#qz-options-services-detail").show();        
       }
+    },
+    Update: {
+      Device: function(data) {
+        console.log(data.device, data.device.mac);
+        if (data && data.device && data.device.mac) {
+          var device = data.device;
+          $("#qz-devices-device-name").val(device.name);
+          $("#qz-devices-device-id").val(device.mac + ' / ' + device.wmac);
+          
+          $("#qz-devices-device-mode").val($.GWS.Mode(device.base.mode));
+          $("#qz-devices-device-freq").val($.GWS.Freq(device.wireless.region, device.wireless.channel, device.wireless.freq));
+          $("#qz-devices-device-txpower").val($.GWS.Txpower(device.wireless.txpower, device.wireless.watt));
+          $("#qz-devices-device-chanbw").val(device.wireless.chanbw + ' MHz');
+
+          $("#qz-devices-device-ip").val(device.ip);
+          $("#qz-devices-device-netmask").val(device.network.netmask);
+          $("#qz-devices-device-gw").val(device.network.gateway);
+
+          // update Devices.Device.[ICON]
+          $("#qz-devices-device-ip-icon").text(device.ip);
+          $("#qz-devices-device-name-alarm").text(device.name);
+          $("#qz-devices-device-freq-icon").text(device.wireless.freq);
+          return true;
+        }
+        return false;
+      },
+      DevicesList: function(total, qty, list) {
+        console.log('$.Lite.DevicesListUpdate()', total, qty);
+        if (total + qty > 0) {
+          // Update Nav.[DEVICES].Qty
+          $("#qz-nav-devices").find('.label').text(total);
+          
+          // update Devices.[LIST]
+          var list_header = $("#qz-devices-list-header");
+          list_header.nextAll().remove();
+          
+          $.each(list, function() {
+            var $this =$(this)[0];
+            var id = $this.id, name = $this.name, alarms = $this.alarms, html = '';
+            if (alarms > 0) {
+              html = '<a class="item" id="'+ id +'">' + name + '<div class="ui yellow label">'+alarms+'</div></a>';
+            } else {
+              html = '<a class="item" id="'+ id +'">' + name + '</a>';
+            }
+            list_header.after(html);
+          });
+          
+          // update Device Qty
+          list_header.find(".label").text(qty);
+                    
+          // Bind [CLICK] again
+          var devices = list_header.nextAll();
+          devices.click(function() {
+            $("#qz-devices-list-header").nextAll().removeClass('active');
+            $(this).addClass('active');
+
+            var id = $(this).attr('id');
+            console.log('try first child > id=', id);
+            $.Lite.Update.Device(id);
+          });
+
+          // select first result when done
+          devices.first().trigger('click');      
+        }
+      },
+      DeviceConfig: function(data) {
+        console.log(data.device, data.device.name);
+        if (data && data.device && data.device.name) {
+          var device = data.device;
+          $("#qz-device-config-name").val(device.name);
+          $("#qz-device-config-ip").val(device.network.ip);
+          $("#qz-device-config-netmask").val(device.network.netmask);
+          $("#qz-device-config-gw").val(device.network.gateway);
+          return true;
+        }
+        return false;
+      }
     }
   }
 }) (jQuery);
@@ -442,6 +601,82 @@
           done_cb, error_cb
         );
       }
+    },
+    DevicesList: function(keyword) {
+      var kw = keyword;
+      if (kw == 'undefined') {
+        kw = '';
+      };
+      console.log('keyword of before request =', kw, keyword);
+      // TODO: load devices list here
+      $("#qz-devices-search").SUILoaderShow();
+      // Ajax search keyword, then update Devices [LIST]
+      $.Ajax.Query( // qz-common.js: $.Ajax.Query(url, data, done_cb, error_cb);
+        '/iOMC3/lite.php?do=devices&keyword='+kw, null, 
+        $.Lite.CB.CB_DevicesDone, $.Lite.CB.CB_DevicesError
+      );
+    },
+    DeviceDetail: function(did) {
+      $("#qz-device-mask").SUILoaderShow();
+      $.Ajax.Query(
+        '/iOMC3/lite.php?do=device&did='+did, null,
+        $.Lite.CB.CB_DeviceDone, $.Lite.CB.CB_DevicesError
+      );
+    },
+    DeviceConfig: function(did) {
+      $("#qz-device-mask").SUILoaderShow();
+      $.Ajax.Query(
+        '/iOMC3/lite.php?do=config&did='+did, null,
+        $.Lite.CB.CB_DeviceConfigDone, $.Lite.CB.CB_DeviceConfigError
+      );
+    },
+    MapsDevicesList: function(keyword) {
+      var kw = keyword;
+      if (kw == 'undefined') {
+        kw = '';
+      };
+      console.log('keyword of before request =', kw, keyword);
+      // TODO: load devices list here
+      $("#qz-maps-search").SUILoaderShow();
+      // Ajax search keyword, then update Devices [LIST]
+      $.Ajax.Query( // qz-common.js: $.Ajax.Query(url, data, done_cb, error_cb);
+        '/iOMC3/lite.php?do=devices&keyword='+kw, null, 
+        $.Lite.CB.CB_MapsDevicesDone, $.Lite.CB.CB_MapsDevicesError
+      );
+    },
+    Options: function() {
+      
+    }
+  }
+}) (jQuery);
+
+(function($) {
+  $.GWS = {
+    Mode: function(mode) {
+      var mode_str = '子站';
+      switch(mode) {
+        case 'mesh':
+        case 'adhoc':
+        case 'ad-hoc':
+          mode_str = '自组网';
+          break;
+        case 'car':
+        case 'ap':
+          mode_str = '基站';
+          break;
+        case 'ear':
+        case 'sta':
+        default:
+          mode_str = '子站';
+          break;
+      }
+      return mode_str;
+    },
+    Freq: function(region, channel, freq) {
+      return '区域' + region + ' / 频道' + channel + ' / ' + freq + ' MHz';
+    },
+    Txpower: function(dbm, watt) {
+      return dbm + ' dBm / ' + watt + '瓦';
     }
   }
 }) (jQuery);
@@ -473,7 +708,12 @@
 var loadMap = $.BingMaps.init; // FIXME: Microsoft Bing Maps Wrapper
 $(function() {
   // Application start (lite version)
-  $.Lite.Bind();
+  $.Lite.Init.Nav();
+  $.Lite.Init.Signin();
+  $.Lite.Init.Devices();
+  $.Lite.Init.Maps();
+  $.Lite.Init.Options();
+  
   $.Lite.Start();
   // now wait for user click/input/timer
 });
