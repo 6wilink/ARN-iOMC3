@@ -29,6 +29,8 @@
 }
 .qz-fit {
   height: 100%;
+}
+.qz-border {
   border:#eee 1px solid;
 }
 .qz-scroll {
@@ -44,13 +46,16 @@
 #qz-signin-vcenter {
   margin-top: 120px; 
 }
+#qz-devices-qrcode-img {
+  width: 99px; height: 99px;
+}
 #qz-maps-box {
   width: 75%;
 }
 #qz-maps-devices {
   width: 24.5%;
   position: absolute;
-  top: 26px; right: 0;
+  top: 0; right: 0;
 }
 #qz-devices-list {
   width: 24.5%;
@@ -69,7 +74,7 @@
   <a class="item">ARN网管中心 iOMC3</a>
   <a class="item" id="qz-nav-devices">设备管理<div class="ui green label">-</div></a>
   <a class="item" id="qz-nav-maps">地图模式</a>
-  <a class="item" id="qz-nav-options">系统与工具</a>
+  <a class="item" id="qz-nav-tools">系统与工具</a>
   <div class="item">
     <div class="ui icon input">
       <input type="text" placeholder="查找……" id="qz-nav-text-keyword">
@@ -82,7 +87,6 @@
     <a class="item" id="qz-nav-btn-signout"><i class="close icon"></i>退出</a>
   </div>
 </div>
-
 
 <!--[Signin] start-->
 <div class="qz-max qz-max-box" id="qz-signin">
@@ -132,7 +136,7 @@
 
 <!--[Devices] start-->
 <div class="qz-max qz-max-box" id="qz-devices">
-  <div class="ui segment qz-max">
+  <div class="ui segment qz-max qz-scroll">
     <div class="ui top attached indicating progress" id="qz-devices-progress">
       <div class="bar"></div>
     </div>
@@ -179,6 +183,16 @@
         </div>
         <div class="ui message" id="qz-devices-status">
           <p>正在载入，请稍候……</p>
+        </div>
+        <div class="ui fluid vertical menu">
+          <div class="item" id="qz-devices-qrcode"><i class="ui qrcode icon"></i>分享URL</div>
+          <!--[Popup] start-->
+          <div class="ui flowing popup bottom left transition hidden">
+            <div class="header">拍照共享URL</div>
+            <div class="ui"><img src="resource/6WiLink.png" id="qz-devices-qrcode-img" /></div>
+          </div>
+          <!--[Popup] end-->
+          <div class="item"><a href="help.html#qrcode" target="_blank">无法看到二维码？</a></div>
         </div>
       </div>
       <div class="ui qz-detail" id="qz-device-detail">
@@ -368,12 +382,12 @@
       <a class="item">地图模式</a>
     </div>
     <div class="qz-max qz-content-box">
-      <div class="ui qz-fit" id="qz-maps-box">
+      <div class="ui qz-fit qz-border" id="qz-maps-box">
         <div class="ui active inverted dimmer" id="qz-maps-mask">
           <div class="ui text loader">正在载入地图，请稍候……</div>
         </div>
       </div>
-      <div class="ui" id="qz-maps-devices">
+      <div class="ui qz-fit qz-scroll" id="qz-maps-devices">
         <div class="ui fluid vertical menu">
           <div class="header item">基本信息</div>
           <div class="item">珠海电视塔124#塔底基站</div>
@@ -400,6 +414,10 @@
           <a class="item">8. 珠海电视塔6#塔底基站</a>
           <a class="item">9. 珠海电视塔122#塔底基站<div class="ui red label">20</div></a>
           <a class="item">10. 珠海电视塔6#塔底基站</a>
+          <a class="item">11. 珠海电视塔6#塔底基站</a>
+          <a class="item">12. 珠海电视塔6#塔底基站</a>
+          <a class="item">13. 珠海电视塔6#塔底基站</a>
+          <a class="item">14. 珠海电视塔6#塔底基站</a>
           <a class="item"><i class="angle double right icon"></i>更多</a>
         </div>
       </div>
@@ -409,9 +427,9 @@
 <!--[Maps] start-->
 
 
-<!--[Options] start-->
-<div class="qz-max qz-max-box" id="qz-options">
-  <div class="ui segment qz-max">
+<!--[Tools] start-->
+<div class="qz-max qz-max-box" id="qz-tools">
+  <div class="ui segment qz-max qz-scroll">
     <div class="ui">
       <div class="ui horizontal bulleted list">
         <div class="item header">当前位置</div>
@@ -421,8 +439,8 @@
     </div>
     <div class="ui qz-detail">
       <div class="ui top attached tabular menu">
-        <a class="item" id="qz-options-tools">诊断工具</a>
-        <a class="item" id="qz-options-services">安装包与服务配置</a>
+        <a class="item" id="qz-tools-tools">诊断工具</a>
+        <a class="item" id="qz-tools-services">安装包与服务配置</a>
         <div class="right menu">
           <div class="item">
             <div class="ui icon input">
@@ -432,13 +450,13 @@
           </div>
         </div>
       </div>
-      <div class="ui bottom attached segment" id="qz-options-tools-detail">
+      <div class="ui bottom attached segment" id="qz-tools-tools-detail">
         <p>扫频工具</p>
         <p>扫描BEANCON工具</p>
         <p>PING工具</p>
         <p>UDP Flooding工具</p>
       </div>
-      <div class="ui bottom attached segment" id="qz-options-services-detail">
+      <div class="ui bottom attached segment" id="qz-tools-services-detail">
         <p>设备安装包与服务配置</p>
         <p>地图起始位置，放大级别</p>
         <p>高级功能包括：“地图模式设备跟随”、“拓扑关系”、“历史流量图表”、“历史连接图表”</p>
@@ -446,7 +464,7 @@
     </div>
   </div>
 </div>
-<!--[Options] end-->
+<!--[Tools] end-->
 
 <!--Powered by Qige from 6Harmonics/6WiLink-->
 <script type="text/javascript" src="resource/jquery-3.1.1.min.js"></script>
@@ -455,6 +473,6 @@
 <!--<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>
 <!--script type='text/javascript' src='https://cn.bing.com/api/maps/mapcontrol'></script>-->
 <script type='text/javascript' src='resource/qz-lite.js'></script>
-<script type='text/javascript' src='resource/qz-lite-autotest.js'></script>
+<!--<script type='text/javascript' src='resource/qz-lite-autotest-dev.js'></script>-->
 </body>
 </html>

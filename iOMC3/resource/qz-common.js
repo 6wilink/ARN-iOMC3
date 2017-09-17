@@ -2,6 +2,21 @@
 // @2016.12.31
 (function($) {
 	$.Url = {
+	    PageWithParams: function() {
+	      var url = window.location.href;
+	      var page = url.split('/');
+	      return page[page.length-1];
+	    },
+	    // index.html?x=a or ?x=a
+	    // index.html#token or #token
+	    PageOnly: function() {
+	      var url = $.Url.PageWithParams();
+	      var page = url.split('#');
+	      if (page.length < 1) {
+	        page = url.split('?');
+	      }
+	      return page[0];
+	    },
 		// get value by key from url
 		Get: function(key) {
 			var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
@@ -9,11 +24,9 @@
 			if (r != null) return unescape(r[2]); return null;
 		},
 		// redirect
-		Goto: function(url, reason) {
-			if (confirm('Will leave current page due to ' + reason)) {
-					$(window.location).attr('href', url);
-			}
-		}
+		Goto: function(url) {
+      $(window.location).attr('href', url);
+    }
   },
   $.Tab = {
 		// "F5" refresh
@@ -27,7 +40,6 @@
 		}
 	};
 }) (jQuery);
-
 
 // Ajax Requests
 // 2017.09.13 pickup $.Ajax.Query
@@ -61,10 +73,11 @@
       $(".ui.dropdown").dropdown({
         useLabels: false
       });
-      $('.ui.accordion').accordion();      
-      
+      $('.ui.accordion').accordion();
+      //$('.ui.popup').popup({ inline: true });
+
       return this;
-    }    
+    }
   });
   $.fn.extend({
     BtnEnable: function() {
@@ -93,19 +106,19 @@
     },
     SUIProgressReset: function() {
       this.each(function() {
-        $(this).removeClass('success').addClass('active').progress('reset');          
+        $(this).removeClass('success').addClass('active').progress('reset');
       });
       return this;
     },
     SUIProgressIncrease: function(obj) {
       this.each(function() {
-        $(this).progress('increment');          
+        $(this).progress('increment');
       });
       return this;
     },
     SUIProgressDecrease: function(obj) {
       this.each(function() {
-        $(this).progress('decrement');          
+        $(this).progress('decrement');
       });
       return this;
     },
@@ -130,14 +143,14 @@
       });
       return this;
     },
-    SUIMessageSuccess: function(msg) {      
+    SUIMessageSuccess: function(msg) {
       this.each(function() {
         $(this).html('<p>' + msg + '</p>');
         $(this).removeClass('info error warning').addClass('success');
       });
       return this;
     },
-    SUIMessageError: function(msg) {      
+    SUIMessageError: function(msg) {
       this.each(function() {
         $(this).html('<p>' + msg + '</p>');
         $(this).removeClass('info warning success').addClass('error');

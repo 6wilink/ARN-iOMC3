@@ -9,41 +9,118 @@
 * Fixed:
 *     1. Step_II.Prev takes too much time; Qige@2017.09.08
 *     2. Progress bar: invalid after "reset"; Qige@2017.09.08
-*     3. Add "autotest" script; Qige@2017.09.15
+*     3. Add "$.AutoTest.Start()" script; Qige@2017.09.15
+*     4. Parse URL; Qige@2017.09.15
 */
 
-// Handle url/signin/token/devices/maps/options
+// Handle url/signin/token/devices/maps/tools
 (function($) {
   $.Lite = {
     // TOKEN/Timer handles
     data: {},
+    
     // Web Application Starts here
+    // #list: Devices
+    // #maps: Maps
+    // #tools: Tools
+    // #maps+211+a1b2c3d4f5a1b2c3
+    Url: {
+      parser: function(idx) {
+        var paramAll = null, param = null;
+        var url = $.Url.PageWithParams();
+        var sections = url.split('#', 2);
+        if (sections && sections.length >= 2) {
+          paramAll = sections[1].split('+', 3);
+          if (idx >= 0 && paramAll && paramAll.length > idx) {
+            param = paramAll[idx];
+          }
+        }
+        return param;
+      },
+      TOKEN: function() {
+        var token = $.Lite.Url.parser(0);
+        return token;
+      },
+      Section: function() {
+        var section = $.Lite.Url.parser(1);
+        return section;
+      },
+      DeviceID: function() {
+        var did = $.Lite.Url.parser(2);
+        return did;
+      },
+      Set: function(sec, did) {
+        var token = $.Lite.Url.TOKEN(), section = null, deviceid = null;
+        var page = $.Url.PageOnly();
+        if (sec && sec != 'undefined') {
+          section = sec;
+        } else {
+          section = $.Lite.Url.Section();
+        }
+        if (did && did != 'undefined') {
+          deviceid = did;
+        } else {
+          deviceid = $.Lite.Url.DeviceID();
+        }
+        var url = page + '#' + token + '+' + section + '+' + deviceid;
+        $.Url.Goto(url);
+      }
+    },
     Start: function() {
       $.LiteUI.Init();
-      $.Lite.Run.Signin();
+      
+      // #TOKEN+maps+122
+      var token = $.Lite.Url.TOKEN();
+      var section = $.Lite.Url.Section();
+      var did = $.Lite.Url.DeviceID();
+      console.log('did =', did);
+      
+      if (token && token != 'undefined' && token != 'null') {
+        // TODO: valid TOKEN right away
+        
+        // Which iOMC3 Section to display
+        switch(section) {
+          case 'tools':
+          case 'options':
+            $.Lite.Run.Tools();
+            break;
+          case 'maps':
+            $.Lite.Run.Maps(did);
+            break;
+          case 'devices':
+          case 'device':
+          default: 
+            var flagAutoLoad = true;
+            $.Lite.Run.Devices(flagAutoLoad, did);
+            break;
+        }
+      } else {
+        $.Lite.Run.Signin();
+      }
     },
     // Goto [*] Blocks
     Run: {
       Signin: function() {
-        $.LiteUI.Nav.Signin();
+        $.LiteUI.Display.Signin();
       },
-      // TODO: display Devices/Maps/Options after valid [TOKEN]
+      // TODO: display Devices/Maps/Tools after valid [TOKEN]
       Devices: function(flagAutoLoad) {
-        $.LiteUI.Nav.Devices();
+        $.LiteUI.Display.Devices();
         if (flagAutoLoad && flagAutoLoad != 'undefined') {
-          $.Request.DevicesList();
+          var deviceid = $.Lite.Url.DeviceID();
+          $.Request.DevicesList(deviceid);
         }
       },
       Maps: function(flagAutoLoad) {
-        $.LiteUI.Nav.Maps();
+        $.LiteUI.Display.Maps();
         if (flagAutoLoad && flagAutoLoad != 'undefined') {
           $.Request.MapsDevicesList();
         }
       },
-      Options: function(flagAutoLoad) {
-        $.LiteUI.Nav.Options();
+      Tools: function(flagAutoLoad) {
+        $.LiteUI.Display.Tools();
         if (flagAutoLoad && flagAutoLoad != 'undefined') {
-          $.Request.Options();
+          $.Request.Tools();
         }
       },
     },
@@ -91,10 +168,13 @@
             $("#qz-signin-message").SUIMessageSuccess('登录成功，正在载入数据').show();
             var token = resp.auth.token;
             console.log('token = ', token);
-            $.Lite.data.TOKEN = token;
+            var page = $.Url.PageOnly();
+            var url = page + '#'+token;
             setTimeout(function() {
+              console.log('* url after signin> ', url);
               var flagAutoLoad = true;
-              $.Lite.Run.Devices(flagAutoLoad);            
+              $.Url.Goto(url);
+              $.Lite.Run.Devices(flagAutoLoad);
             }, 1000);
             break;
           case '404':
@@ -133,7 +213,10 @@
         console.log('CB_DeviceDone> error =', error);      
         switch(error) {
           case 'none':
-            if ($.LiteUI.Update.Device(resp.data)) {        
+            if ($.LiteUI.Update.Device(resp.data)) {
+              var did = $("#qz-device-detail").attr('did');
+              $.Lite.Url.Set('device', did);
+              
               // update Timestamp
               var ts = new Date().toTimeString();
               $.Lite.Update.DevicesStatus('设备信息已更新 @'+ts);
@@ -210,17 +293,20 @@
     Init: {
       Nav: function() {
         $("#qz-nav-devices").click(function() {
+          var url = $.Lite.Url.Set('devices');
+          $.Url.Goto(url);
           var flagAutoLoad = true;
-          $("#qz-devices-text-keyword").val('').focus();
           $.Lite.Run.Devices(flagAutoLoad);
         });
         $("#qz-nav-maps").click(function() {
-          var flagAutoLoad = true;
-          $.Lite.Run.Maps(flagAutoLoad);
+          var url = $.Lite.Url.Set('maps');
+          $.Url.Goto(url);
+          $.Lite.Run.Maps();
         });
-        $("#qz-nav-options").click(function() {
-          var flagAutoLoad = true;
-          $.Lite.Run.Options(flagAutoLoad);
+        $("#qz-nav-tools").click(function() {
+          var url = $.Lite.Url.Set('tools');
+          $.Url.Goto(url);
+          $.Lite.Run.Tools();
         });
 
         // Nav [SEARCH]
@@ -243,6 +329,11 @@
           $.Lite.Run.Devices(flagAutoLoad);
           $("#qz-devices-text-keyword").val(keyword).select(); // focus
           $("#qz-devices-btn-search").trigger('click');
+        });
+        
+        $("#qz-nav-btn-signout").click(function() {
+          var url = '/iOMC3/';
+          $.Url.Goto(url);
         });
       },
       Signin: function() {        
@@ -316,6 +407,11 @@
           console.log('qz-devices-text-keyword =', keyword);
           $.Request.DevicesList(keyword);
         });
+        
+        $("#qz-devices-qrcode").popup({
+          position: 'right center',
+          target: '#qz-devices-qrcode',
+        });
 
         
         // Devices.[Tab]
@@ -349,6 +445,12 @@
         $("#qz-device-btn-config-save").click(function() {
           //$.LiteUI.Config.Save();
         });
+        $("#qz-device-btn-maps").click(function() {
+          var did = $("#qz-device-detail").attr('did');
+          $.Lite.Url.Set('maps', did);
+          $.Lite.Run.Maps();
+          //$.Tab.Reload();
+        });
         $("#qz-device-config-basic").click(function() {
           $.LiteUI.Config.Basic();
         });
@@ -362,12 +464,12 @@
       Maps: function() {
         
       },
-      Options: function() {
-        $("#qz-options-tools").click(function() {
-          $.LiteUI.Options.Tools();
+      Tools: function() {
+        $("#qz-tools-tools").click(function() {
+          $.LiteUI.Tools.Tools();
         });
-        $("#qz-options-services").click(function() {
-          $.LiteUI.Options.Services();
+        $("#qz-tools-services").click(function() {
+          $.LiteUI.Tools.Services();
         });
       }
     },
@@ -379,17 +481,17 @@
     Init: function() {
       $.SUIInit();
     },
-    Nav: {
-      Init: function() {
-        $("#qz-signin,#qz-devices,#qz-maps,#qz-options").hide();
-        $("#qz-nav-devices,#qz-nav-maps,#qz-nav-options").removeClass('active');
+    Display: {
+      init: function() {
+        $("#qz-signin,#qz-devices,#qz-maps,#qz-tools").hide();
+        $("#qz-nav-devices,#qz-nav-maps,#qz-nav-tools").removeClass('active');
       },
       Signin: function() {
-        $.LiteUI.Nav.Init();
+        $.LiteUI.Display.init();
         $("#qz-signin").show();
       },
       Devices: function() {
-        $.LiteUI.Nav.Init();
+        $.LiteUI.Display.init();
         $("#qz-nav-devices").addClass('active');
         
         // init tabs
@@ -401,7 +503,7 @@
         $("#qz-devices").show();
       },
       Maps: function() {
-        $.LiteUI.Nav.Init();
+        $.LiteUI.Display.init();
         $("#qz-nav-maps").addClass('active');
         $("#qz-maps").show();
         
@@ -411,13 +513,13 @@
           $("#qz-maps-mask").hide();
         }, 200);
       },
-      Options: function() {
-        $.LiteUI.Nav.Init();
-        $("#qz-nav-options").addClass('active');
-        $("#qz-options").show();
+      Tools: function() {
+        $.LiteUI.Display.init();
+        $("#qz-nav-tools").addClass('active');
+        $("#qz-tools").show();
         
-        $.LiteUI.Options.Init();
-        $.LiteUI.Options.Tools();
+        $.LiteUI.Tools.Init();
+        $.LiteUI.Tools.Tools();
       }
     },
     Config: {
@@ -492,20 +594,20 @@
         $("#qz-device-thrpt-detail").show();               
       }
     },
-    Options: {
+    Tools: {
       Init: function() {
-        $("#qz-options-tools-detail,#qz-options-services-detail").hide();
-        $("#qz-options-tools,#qz-options-services").removeClass('active');
+        $("#qz-tools-tools-detail,#qz-tools-services-detail").hide();
+        $("#qz-tools-tools,#qz-tools-services").removeClass('active');
       },
       Tools: function() {
-        $.LiteUI.Options.Init();
-        $("#qz-options-tools").addClass('active');
-        $("#qz-options-tools-detail").show();
+        $.LiteUI.Tools.Init();
+        $("#qz-tools-tools").addClass('active');
+        $("#qz-tools-tools-detail").show();
       },
       Services: function() {
-        $.LiteUI.Options.Init();
-        $("#qz-options-services").addClass('active');
-        $("#qz-options-services-detail").show();        
+        $.LiteUI.Tools.Init();
+        $("#qz-tools-services").addClass('active');
+        $("#qz-tools-services-detail").show();        
       }
     },
     Update: {
@@ -603,16 +705,17 @@
       }
     },
     DevicesList: function(keyword) {
-      var kw = keyword;
-      if (kw == 'undefined') {
-        kw = '';
+      var kw = '', url = '/iOMC3/lite.php?do=devices';
+      if (keyword && keyword != 'undefined') {
+        kw = keyword.toString();
+        url += ('&keyword='+kw);
       };
       console.log('keyword of before request =', kw, keyword);
       // TODO: load devices list here
       $("#qz-devices-search").SUILoaderShow();
       // Ajax search keyword, then update Devices [LIST]
       $.Ajax.Query( // qz-common.js: $.Ajax.Query(url, data, done_cb, error_cb);
-        '/iOMC3/lite.php?do=devices&keyword='+kw, null, 
+        url, null, 
         $.Lite.CB.CB_DevicesDone, $.Lite.CB.CB_DevicesError
       );
     },
@@ -644,7 +747,7 @@
         $.Lite.CB.CB_MapsDevicesDone, $.Lite.CB.CB_MapsDevicesError
       );
     },
-    Options: function() {
+    Tools: function() {
       
     }
   }
@@ -712,7 +815,7 @@ $(function() {
   $.Lite.Init.Signin();
   $.Lite.Init.Devices();
   $.Lite.Init.Maps();
-  $.Lite.Init.Options();
+  $.Lite.Init.Tools();
   
   $.Lite.Start();
   // now wait for user click/input/timer
