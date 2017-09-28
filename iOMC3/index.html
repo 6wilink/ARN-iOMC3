@@ -2,79 +2,39 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
-	<title>iOMC3网络管理软件（v3.0-alpha-110917</title>
+	<title>iOMC3网络管理软件（v3.0-alpha-280917）</title>
   <link rel="stylesheet" type="text/css" href="resource/semantic/semantic.min.css"  media="screen,projection" />
   <style>
-#qz-nav {
-  position: absolute;
-  z-index: 666;
-  width: 100%;
-}
-.qz-max-box {
-  position: absolute;
-  z-index: 600;
-  margin-top: 0;
-  padding-top: 65px;
-}
-.qz-content-box {
-  margin-top: -26px;
-  padding-top: 26px;
-}
-.qz-max {
-  position: relative;
-  width: 100%;
-  height:100%;
-}
-.qz-fit {
-  height: 100%;
-}
-.qz-border {
-  border:#eee 1px solid;
-}
-.qz-scroll {
-  overflow-y:scroll;
-}
-.qz-detail {
-  border:#eee 1px solid;
-}
+#qz-nav { position: absolute; z-index: 666; width: 100%; }
+.qz-max-box { position: absolute; z-index: 600; margin-top: 0; padding-top: 65px; }
+.qz-content-box { margin-top: -26px; padding-top: 26px; }
+.qz-max { position: relative; width: 100%; height:100%; }
+.qz-vfit { height: 100%; }
+.qz-border { border:#eee 1px solid; }
+.qz-scroll { overflow-y:scroll; }
+.qz-detail { border:#eee 1px solid; }
 
-#qz-vcenter-box {
-  position: relative;
-}
-#qz-signin-vcenter {
-  margin-top: 120px; 
-}
-#qz-devices-qrcode-img {
-  width: 99px; height: 99px;
-}
-#qz-maps-box {
-  width: 75%;
-}
-#qz-maps-devices {
-  width: 24.5%;
-  position: absolute;
-  top: 0; right: 0;
-}
-#qz-devices-list {
-  width: 24.5%;
-}
-#qz-device-detail {
-  width: 75%;
-  position: absolute;
-  top: 26px; right: 0;
-}
+#qz-vcenter-box { position: relative; }
+#qz-signin-vcenter { margin-top: 120px; }
+#qz-devices-qrcode-img { width: 99px; height: 99px; }
+#qz-maps-box { width: 75%; }
+#qz-maps-devices { width: 24.5%; position: absolute; top: 0; right: 0; }
+#qz-devices-list { width: 24.5%; }
+#qz-device-detail { width: 75%; position: absolute; top: 26px; right: 0; }
   </style>
 </head>
 <body>
+<!--[1 TAB] = [2 SPACEs] -->
 
+<!--[Nav] start | verified@2017.09.25-->
 <div class="ui pointing inverted small menu" id="qz-nav">
   <a class="item" href="mailto: admin@6wilink.com"><img title="北京六维畅联科技有限公司" src="resource/6WiLink.png" /></a>
-  <a class="item">ARN网管中心 iOMC3</a>
+  <a class="item" id="qz-nav-dashboard">ARN网管中心 iOMC3 <div class="ui yellow label">Lite</div></a>
   <a class="item" id="qz-nav-devices">设备管理<div class="ui green label">-</div></a>
   <a class="item" id="qz-nav-maps">地图模式</a>
-  <a class="item" id="qz-nav-tools">系统与工具</a>
+  <a class="item" id="qz-nav-tools">诊断与工具<div class="ui yellow label">-</div></a>
   <div class="item">
     <div class="ui icon input">
       <input type="text" placeholder="查找……" id="qz-nav-text-keyword">
@@ -82,29 +42,34 @@
     </div>
   </div>
   <div class="right menu">
+    <!--TODO: enable maximize.min.js
     <a class="item" id="qz-nav-btn-maximize"><i class="maximize icon"></i>最大化</a>
+    -->
     <a class="item" href="help.html" target="_blank">帮助</a>
     <a class="item" id="qz-nav-btn-signout"><i class="close icon"></i>退出</a>
   </div>
 </div>
+<!--[Nav] end-->
 
-<!--[Signin] start-->
+<!--[Signin] start | verified@2017.09.25-->
 <div class="qz-max qz-max-box" id="qz-signin">
   <div class="ui segment qz-max">
+    <!--
     <div class="ui top attached indicating progress" id="qz-signin-progress">
       <div class="bar"></div>
     </div>
+    -->
     <div class="ui horizontal bulleted list">
-        <div class="item header">当前位置</div>
-        <a class="item">首页</a>
+      <div class="item header">当前位置</div>
+      <a class="item">首页</a>
       <a class="item">登录</a>
     </div>
     <div class="qz-max qz-content-box">
-      <div class="ui qz-fit" id="qz-signin-box">
+      <div class="ui qz-vfit" id="qz-signin-box">
         <div class="ui inverted dimmer" id="qz-signin-mask">
           <div class="ui text loader">正在载入，请稍候……</div>
         </div>
-        <div class="ui two column centered grid qz-max">
+        <div class="ui three column centered grid qz-max">
           <div class="column" id="qz-vcenter-box">
             <div class="ui form segment" id="qz-signin-vcenter">
               <!--[INFO] start-->
@@ -118,12 +83,12 @@
                 <input placeholder="仅支持字母、数字组合" type="text" value="" id="qz-signin-user">
               </div>
               <div class="field">
-                <label>用户名</label>
+                <label>密码</label>
                 <input placeholder="仅支持字母、数字组合" type="password" value="" id="qz-signin-passwd">
               </div>
               <div class="field">
                 <button class="ui button primary" id="qz-signin-btn-go" disabled="">登录</button>
-                <button class="ui button" data-tooltip="仅使用默认参数安装时可用" data-position="top center" id="qz-signin-btn-default">首次使用</button>
+                <button class="ui button" data-tooltip="仅使用默认参数安装时可用" data-position="bottom center" id="qz-signin-btn-default">首次使用</button>
               </div>
             </div>
           </div>
@@ -166,50 +131,68 @@
               <a class="item" alt=":alarm">有告警设备</a>
               <a class="item" alt=":all">所有设备</a>
               <div class="divider"></div>
-              <a class="item" alt="+ip">按IP地址排序</a>
-              <a class="item" alt="+name">按设备名称排序</a>
+              <a class="item disabled" alt="+ip">按IP地址排序</a>
+              <a class="item disabled" alt="+name">按设备名称排序</a>
               <div class="divider"></div>
-              <a class="item" alt="+search">按搜索次数排序</a>
+              <a class="item disabled" alt="+search">按搜索次数排序</a>
               <div class="divider"></div>
-              <a class="item" alt="+more">载入更多设备</a>
+              <a class="item disabled" alt="+more">载入更多设备</a>
             </div>
           </div>
-        <!--</div>
-        <div class="ui fluid vertical right pointing menu">-->
+        <!--
+        </div>
+        <div class="ui fluid vertical right pointing menu">
+        -->
           <div class="header item" id="qz-devices-list-header">
-            设备列表<div class="ui green label">-</div>
+            设备列表<div class="ui green label">-/-/-</div>
           </div>
           <a class="item">正在载入，请稍候……</a>
         </div>
         <div class="ui message" id="qz-devices-status">
           <p>正在载入，请稍候……</p>
         </div>
+        <!--[QRCode] start-->
+        <!--
         <div class="ui fluid vertical menu">
           <div class="item" id="qz-devices-qrcode"><i class="ui qrcode icon"></i>分享URL</div>
-          <!--[Popup] start-->
           <div class="ui flowing popup bottom left transition hidden">
             <div class="header">拍照共享URL</div>
-            <div class="ui"><img src="resource/6WiLink.png" id="qz-devices-qrcode-img" /></div>
+            <div class="ui"><img src="qrcode.php?do=" id="qz-devices-qrcode-img" /></div>
           </div>
-          <!--[Popup] end-->
           <div class="item"><a href="help.html#qrcode" target="_blank">无法看到二维码？</a></div>
         </div>
+        -->
+        <!--[QRCode] end-->
       </div>
       <div class="ui qz-detail" id="qz-device-detail">
+        <!--[Modal] start-->
+        <div class="ui tiny modal" id="qz-device-config-confirm">
+          <div class="ui icon header">
+            <i class="warning sign yellow icon"></i>
+            <p>您当前的操作将有可能会中断当前所有无线连接</p>
+          </div>
+          <div class="actions">
+            <button class="ui yellow button" id="qz-device-config-confirm-yes"><i class="checkmark icon"></i>继续</button>
+            <button class="ui button" id="qz-device-config-confirm-no"><i class="remove icon"></i>取消</button>
+          </div>
+        </div>
+        <!--[Modal] end-->
         <div class="ui active inverted dimmer" id="qz-device-mask">
           <div class="ui text loader">正在更新，请稍候……</div>
         </div>
         <div class="ui" id="qz-device-details">
           <div class="ui warning message" id="qz-devices-alarms">
             <div class="header" id="qz-devices-device-name-alarm">正在读取，请稍候……</div>
+            <!--
             <ul class="list">
               <li>正在读取，请稍候……</li>
             </ul>
+            -->
           </div>
           <div class="ui top attached tabular menu">
             <a class="item" id="qz-device-base">基本信息</a>
-            <a class="item" id="qz-device-wireless">无线配置<div class="ui yellow label" id="qz-devices-device-freq-icon">-</div></a>
-            <a class="item" id="qz-device-network">网络<div class="ui green label" id="qz-devices-device-ip-icon">-</div></a>
+            <a class="item" id="qz-device-wireless">无线配置<div class="ui yellow label">-</div></a>
+            <a class="item" id="qz-device-network">网络<div class="ui green label">-</div></a>
             <div class="right menu">
               <a class="item" id="qz-device-btn-update"><i class="refresh icon"></i>刷新</a>
               <a class="item" id="qz-device-btn-maps"><i class="map icon"></i>地图</a>
@@ -218,7 +201,7 @@
           </div>
           <div class="ui bottom attached segment" id="qz-device-base-detail">
             <div class="ui form">
-              <div class="two fields">
+              <div class="three fields">
                 <div class="field">
                   <label>设备名称</label>
                   <input placeholder="" readonly="" type="text" value="-" id="qz-devices-device-name">
@@ -226,6 +209,16 @@
                 <div class="field">
                   <label>设备标识 MAC地址</label>
                   <input placeholder="MAC地址" readonly="" type="text" value="-" id="qz-devices-device-id">
+                </div>
+              </div>
+              <div class="three fields">
+                <div class="field">
+                  <label>设备固件版本</label>
+                  <input placeholder="" readonly="" type="text" value="-" id="qz-devices-device-fwver">
+                </div>
+                <div class="field">
+                  <label>设备硬件版本</label>
+                  <input placeholder="" readonly="" type="text" value="-" id="qz-devices-device-hwver">
                 </div>
               </div>
             </div>
@@ -236,6 +229,10 @@
                 <div class="field">
                   <label>工作模式</label>
                   <input placeholder="支持基站、子站、自组网" readonly="" type="text" value="-" id="qz-devices-device-mode">
+                </div>
+                <div class="field">
+                  <label>网络ID</label>
+                  <input placeholder="默认为gws5031" readonly="" type="text" value="-" id="qz-devices-device-ssid">
                 </div>
               </div>
               <div class="three fields">
@@ -256,7 +253,17 @@
           </div>
           <div class="ui bottom attached segment" id="qz-device-network-detail">
             <div class="ui form">
-              <div class="two fields">
+              <div class="field">
+                <label>网络接口</label>
+                <input placeholder="默认仅eth0" readonly="" type="text" value="-" id="qz-devices-device-ifname">
+              </div>
+              <div class="three fields">
+                <div class="field">
+                  <label>VLAN标识</label>
+                  <input placeholder="正在读取" readonly="" type="text" value="" id="qz-devices-device-vlan">
+                </div>
+              </div>
+              <div class="three fields">
                 <div class="field">
                   <label>设备地址</label>
                   <input placeholder="出厂默认为192.168.1.100" readonly="" type="text" value="-" id="qz-devices-device-ip">
@@ -265,8 +272,6 @@
                   <label>设备标识 MAC地址</label>
                   <input placeholder="正在读取" readonly="" type="text" value="" id="qz-devices-device-netmask">
                 </div>
-              </div>
-              <div class="two fields">
                 <div class="field">
                   <label>网关 / DNS</label>
                   <input placeholder="正在读取" readonly="" type="text" value="-" id="qz-devices-device-gw">
@@ -284,16 +289,20 @@
             <div class="right menu">
               <a class="item" id="qz-device-btn-config-update"><i class="refresh icon"></i>刷新</a>
               <a class="item" id="qz-device-btn-config-save"><i class="save icon"></i>保存</a>
-              <a class="item"><i class="circle notched loading icon"></i>保存中</a>
-              <a class="item"><i class="save icon"></i>已保存</a>
               <a class="item" id="qz-device-btn-config-done"><i class="close icon"></i>关闭</a>
             </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-config-basic-detail">
             <div class="ui form">
-              <div class="field">
-                <label>设备名称</label>
-                <input placeholder="支持汉字、字母、数字组合" type="text" value="-" id="qz-device-config-name">
+              <div class="three fields">
+                <div class="field">
+                  <label>设备名称</label>
+                  <input placeholder="支持汉字、字母、数字组合" type="text" value="-" id="qz-device-config-name">
+                </div>
+                <div class="field">
+                  <label>设备位置</label>
+                  <input placeholder="地图中的经度、纬度" type="text" value="-" id="qz-device-config-latlng">
+                </div>
               </div>
               <div class="three fields">
                 <div class="field">
@@ -310,58 +319,159 @@
                 </div>
               </div>
               <div class="field">
-                <button class="ui button">重置网络</button>
+                <button class="ui yellow button" id="qz-device-btn-reset-network">重置网络</button>
               </div>
             </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-config-wireless-detail">
             <div class="ui form">
               <div class="field">
-                <label>工作模式</label>
-                <input placeholder="支持基站、子站、自组网" type="text" value="基站">
+                <label>无线描述</label>
+                <input placeholder="区域0：14至51频道，区域1：21至51频道" type="text" value="---正在载入---" disabled="" id="qz-device-config-channel-detail">
               </div>
               <div class="three fields">
                 <div class="field">
-                  <label>区域</label>
-                  <input placeholder="区域0：6 MHz每频道，区域1：8 MHz每频道" type="text" value="区域1">
+                  <label>工作模式</label>
+                  <div class="ui search selection dropdown" id="qz-device-config-mode">
+                    <input type="hidden" name="mode" value="">
+                    <div class="default text">---请选择---</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                      <div class="item" data-value="ear"><i class="signal icon"></i>子站</div>
+                      <div class="item" data-value="car"><i class="sitemap icon"></i>基站</div>
+                      <div class="item" data-value="mesh"><i class="share alternate icon"></i>自组网</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>网络ID</label>
+                  <input placeholder="仅支持字母、数字组合" type="text" value="---正在载入---" id="qz-device-config-ssid">
+                </div>
+              </div>
+              <div class="three fields">
+                <div class="field">
+                  <label>区域码</label>
+                  <div class="ui search selection dropdown" id="qz-device-config-region">
+                    <input type="hidden" name="region" value="">
+                    <div class="default text">---请选择---</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                      <div class="item" data-value="0"><i class="us flag"></i>区域0：14至48频道</div>
+                      <div class="item" data-value="1"><i class="cn flag"></i>区域1：21至48频道</div>
+                    </div>
+                  </div>
                 </div>
                 <div class="field">
                   <label>工作频道</label>
-                  <input placeholder="区域0：14至51频道，区域1：21至51频道" type="text" value="区域1，45频道，频率650 MHz">
+                  <div class="ui input right labeled">
+                    <input placeholder="" name="channel" value="-" id="qz-device-config-channel">
+                    <div class="ui basic label">频道</div>
+                  </div>
                 </div>
                 <div class="field">
                   <label>中心频率</label>
-                  <input placeholder="请选择中心频率，将自动转换为当前区域的频道号" type="text" value="650 MHz">
+                  <div class="ui input right labeled">
+                    <input class="" placeholder="请选择中心频率，将自动转换为当前区域的频道号" type="text" value="-" id="qz-device-config-freq">
+                    <div class="ui basic label">MHz</div>
+                  </div>
                 </div>
               </div>
               <div class="three fields">
                 <div class="field">
+                  <label>调制带宽</label>
+                  <div class="ui search selection dropdown" id="qz-device-config-chanbw">
+                    <input type="hidden" name="chanbw" value="">
+                    <div class="default text">---请选择---</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                      <div class="item" data-value="5"><i class="signal icon"></i>5 MHz</div>
+                      <div class="item" data-value="6"><i class="rss icon"></i>6 MHz</div>
+                      <div class="item" data-value="8"><i class="share alternate icon"></i>8 MHz</div>
+                      <div class="item" data-value="10"><i class="signal icon"></i>10 MHz</div>
+                      <div class="item" data-value="12"><i class="rss icon"></i>12 MHz</div>
+                      <div class="item" data-value="16"><i class="share alternate icon"></i>16 MHz</div>
+                      <div class="item" data-value="20"><i class="signal icon"></i>20 MHz</div>
+                      <div class="item" data-value="24"><i class="share alternate icon"></i>24 MHz</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
                   <label>发射功率</label>
-                  <input placeholder="30 dBm等于1瓦" type="text" value="30 dBm = 1瓦">
+                  <div class="ui search selection dropdown" id="qz-device-config-txpower">
+                    <input type="hidden" name="txpower" value="">
+                    <div class="default text">---请选择---</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                      <div class="item" data-value="10">10 dBm，10毫瓦</div>
+                      <div class="item" data-value="13">13 dBm，20毫瓦</div>
+                      <div class="item" data-value="14">14 dBm，25毫瓦</div>
+                      <div class="item" data-value="17">17 dBm，50毫瓦</div>
+                      <div class="item" data-value="20">20 dBm，100毫瓦</div>
+                      <div class="item" data-value="23">23 dBm，200毫瓦</div>
+                      <div class="item" data-value="24">24 dBm，250毫瓦</div>
+                      <div class="item" data-value="27">27 dBm，500毫瓦</div>
+                      <div class="item" data-value="30">30 dBm，1瓦</div>
+                      <div class="item" data-value="31">31 dBm，1.2瓦</div>
+                      <div class="item" data-value="32">32 dBm，1.6瓦</div>
+                      <div class="item" data-value="33">33 dBm，2瓦</div>
+                      <div class="item" data-value="max">最大发射功率</div>
+                      <div class="item" data-value="min">最小发射功率</div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="field">
-                <button class="ui button">重置无线</button>
-                <button class="ui button">无线工具</button>
+                <button class="ui yellow button" id="qz-device-config-reset-wireless">重置无线</button>
+                <button class="ui button" id="qz-device-config-wireless-tools">无线工具</button>
               </div>
             </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-config-advanced-detail">
             <p><i class="download icon"></i>请联络厂家升级至高级配置来激活此功能。</p>
-            <p>高级功能包括：“网络同步设置”、“发射功率控制”、“二层设备发现与控制”等高级功能。</p>
+            <p>高级功能包括但不限于：</p>
+            <p>“恢复出厂设置”、“网络同步设置”、“发射功率控制”</p>
+            <p>“ATF发射控制”、“TDMA发射控制”、“二层设备发现与控制”等高级功能。</p>
           </div>
         </div>
         <h4 class="ui horizontal divider header" id="qz-device-kpi-title"><i class="bar chart icon"></i>性能数据</h4>
         <div class="ui" id="qz-device-kpi">
           <div class="ui top attached tabular menu">
-            <a class="item" id="qz-device-links">无线连接<div class="ui green label">4</div></a>
-            <a class="item active" id="qz-device-thrpt">数据流量<div class="ui green label">1.53+10.66 Kbps</div></a>
+            <a class="item" id="qz-device-links">无线连接<div class="ui green label">-</div></a>
+            <a class="item active" id="qz-device-thrpt">数据流量<div class="ui green label">-</div></a>
           </div>
           <div class="ui bottom attached segment" id="qz-device-links-detail">
-            <p>无线连接</p>
+            <table class="ui celled table">
+              <thead>
+                <tr>
+                  <th>设备标识</th>
+                  <th>无线接收质量</th>
+                  <th>无线发射质量</th>
+                  <th>备注</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="disabled">
+                  <td colspan="4">暂未连接</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           <div class="ui bottom attached segment" id="qz-device-thrpt-detail">
-            <p>数据流量</p>
+            <table class="ui celled table">
+              <thead>
+                <tr>
+                  <th>设备标识</th>
+                  <th>总速率</th>
+                  <th>下行速率</th>
+                  <th>上行速率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="disabled">
+                  <td colspan="4">正在读取，请稍候……</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -373,26 +483,26 @@
 <!--[Maps] start-->
 <div class="qz-max qz-max-box" id="qz-maps">
   <div class="ui segment qz-max">
+    <!--
     <div class="ui top attached indicating progress" id="qz-maps-progress">
       <div class="bar"></div>
     </div>
+    -->
     <div class="ui horizontal bulleted list">
-        <div class="item header">当前位置</div>
-        <a class="item">首页</a>
+      <div class="item header">当前位置</div>
+      <a class="item">首页</a>
       <a class="item">地图模式</a>
     </div>
     <div class="qz-max qz-content-box">
-      <div class="ui qz-fit qz-border" id="qz-maps-box">
+      <div class="ui qz-vfit qz-border" id="qz-maps-box">
         <div class="ui active inverted dimmer" id="qz-maps-mask">
           <div class="ui text loader">正在载入地图，请稍候……</div>
         </div>
       </div>
-      <div class="ui qz-fit qz-scroll" id="qz-maps-devices">
+      <div class="ui qz-vfit qz-scroll" id="qz-maps-devices">
         <div class="ui fluid vertical menu">
           <div class="header item">基本信息</div>
-          <div class="item">珠海电视塔124#塔底基站</div>
-          <div class="item">基站 192.168.1.24 / 255.255.255.0</div>
-          <div class="item">00:5E:AC / 666 MHz / 16 MHz</div>
+          <div class="item">正在读取，请稍候……</div>
         </div>
         <div class="ui fluid vertical menu">
           <div class="item">
@@ -402,30 +512,15 @@
             </div>
           </div>
           <div class="header item" id="qz-maps-list-header">
-            设备列表<div class="ui green label">-</div>
+            设备列表<div class="ui green label">-/-/-</div>
           </div>
-          <a class="item active">1. 珠海电视塔124#塔底基站<div class="ui red label">4</div></a>
-          <a class="item">2. 珠海电视塔1#塔底基站</a>
-          <a class="item">3. 珠海电视塔5#塔底基站</a>
-          <a class="item">4. 珠海电视塔6#塔底基站</a>
-          <a class="item">5. 珠海电视塔122#塔底基站</a>
-          <a class="item">6. 珠海电视塔6#塔底基站</a>
-          <a class="item">7. 珠海电视塔122#塔底基站</a>
-          <a class="item">8. 珠海电视塔6#塔底基站</a>
-          <a class="item">9. 珠海电视塔122#塔底基站<div class="ui red label">20</div></a>
-          <a class="item">10. 珠海电视塔6#塔底基站</a>
-          <a class="item">11. 珠海电视塔6#塔底基站</a>
-          <a class="item">12. 珠海电视塔6#塔底基站</a>
-          <a class="item">13. 珠海电视塔6#塔底基站</a>
-          <a class="item">14. 珠海电视塔6#塔底基站</a>
-          <a class="item"><i class="angle double right icon"></i>更多</a>
+          <a class="item">正在载入，请稍候……</a>
         </div>
       </div>
     </div>
   </div>
 </div>
 <!--[Maps] start-->
-
 
 <!--[Tools] start-->
 <div class="qz-max qz-max-box" id="qz-tools">
@@ -443,9 +538,9 @@
         <a class="item" id="qz-tools-services">安装包与服务配置</a>
         <div class="right menu">
           <div class="item">
-            <div class="ui icon input">
-              <input type="text" placeholder="查找……">
-              <i class="search link icon"></i>
+            <div class="ui icon input" id="qz-maps-search">
+              <input type="text" placeholder="查找……" id="qz-maps-text-keyword">
+              <i class="search link icon" id="qz-maps-btn-search"></i>
             </div>
           </div>
         </div>
@@ -466,13 +561,20 @@
 </div>
 <!--[Tools] end-->
 
-<!--Powered by Qige from 6Harmonics/6WiLink-->
+<!--Powered by Qige <qigezhao@gmail.com-->
 <script type="text/javascript" src="resource/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="resource/semantic/semantic.min.js"></script>
+<script type="text/javascript" src="resource/qz-gws.js"></script>
 <script type="text/javascript" src="resource/qz-common.js"></script>
-<!--<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>
-<!--script type='text/javascript' src='https://cn.bing.com/api/maps/mapcontrol'></script>-->
+<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>
+<!--
+// FIXME: load Microsoft Bing Maps
+<script type='text/javascript' src='https://cn.bing.com/api/maps/mapcontrol'></script>
+-->
 <script type='text/javascript' src='resource/qz-lite.js'></script>
-<!--<script type='text/javascript' src='resource/qz-lite-autotest-dev.js'></script>-->
+<!--
+// FIXME: import AutoTest
+<script type='text/javascript' src='resource/qz-lite-autotest.js'></script>
+-->
 </body>
 </html>

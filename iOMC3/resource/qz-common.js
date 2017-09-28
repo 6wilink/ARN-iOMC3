@@ -2,21 +2,21 @@
 // @2016.12.31
 (function($) {
 	$.Url = {
-	    PageWithParams: function() {
-	      var url = window.location.href;
-	      var page = url.split('/');
-	      return page[page.length-1];
-	    },
-	    // index.html?x=a or ?x=a
-	    // index.html#token or #token
-	    PageOnly: function() {
-	      var url = $.Url.PageWithParams();
-	      var page = url.split('#');
-	      if (page.length < 1) {
-	        page = url.split('?');
-	      }
-	      return page[0];
-	    },
+    PageWithParams: function() {
+      var url = window.location.href;
+      var page = url.split('/');
+      return page[page.length-1];
+    },
+    // index.html?x=a or ?x=a
+    // index.html#token or #token
+    PageOnly: function() {
+      var url = $.Url.PageWithParams();
+      var page = url.split('#');
+      if (page.length < 1) {
+        page = url.split('?');
+      }
+      return page[0];
+    },
 		// get value by key from url
 		Get: function(key) {
 			var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
@@ -40,6 +40,34 @@
 		}
 	};
 }) (jQuery);
+
+
+// Check values
+(function($) {
+  $.Val = {
+    isValid: function(val) {
+      if (val && val != 'undefined' && val != 'null' && val != '') {
+        return true;
+      }
+      return false;
+    },
+    isArray: function(data) {
+      if ($Val.isValid(data)) {
+        if (data.length > 0) {
+          return true;
+        }
+      }
+      return false;
+    },
+    isNumber: function(val) {
+      return (val == (+val));
+    },
+    isString: function(val) {
+      return (val == val+'');
+    }
+  }
+}) (jQuery);
+
 
 // Ajax Requests
 // 2017.09.13 pickup $.Ajax.Query
