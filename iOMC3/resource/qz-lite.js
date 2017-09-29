@@ -177,7 +177,7 @@
       },
       DeviceCollectConfig: function(did) {
         if ($.Val.isValid(did)) {
-          $.LiteUI.Config.Saving();
+          $.LiteUI.DeviceConfig.Saving();
           var name = $("#qz-device-config-name").val();
           var ip = $("#qz-device-config-ip").val();
           var mask = $("#qz-device-config-netmask").val();
@@ -340,7 +340,7 @@
         });
 
 
-        // Devices.[Tab]
+        // Devices.Detail.[Tab]
         $("#qz-device-base").click(function() {
           $.LiteUI.Device.Base();
         });
@@ -350,6 +350,24 @@
         $("#qz-device-network").click(function() {
           $.LiteUI.Device.Network();
         });
+        
+        // Devices.Alarms.[Tab]
+        $("#qz-device-btn-alarms").click(function() {
+          $.LiteUI.DeviceAlarms.Show();
+        });
+        $("#qz-device-btn-alarms-close").click(function() {
+          $.LiteUI.DeviceAlarms.Hide();
+        });
+        $("#qz-device-alarms-all").click(function() {
+          $.LiteUI.DeviceAlarms.All();
+        });
+        $("#qz-device-alarms-tofix").click(function() {
+          $.LiteUI.DeviceAlarms.Tofix();
+        });
+        $("#qz-device-alarms-history").click(function() {
+          $.LiteUI.DeviceAlarms.History();
+        });
+        
         $("#qz-device-links").click(function() {
           $.LiteUI.KPI.Links();
         });
@@ -363,12 +381,12 @@
         $("#qz-device-btn-config,#qz-device-btn-config-update").click(function() {
           var did = $("#qz-device-detail").attr('did');
           $.Lite.Update.DeviceConfig(did, 'load-config');
-          $.LiteUI.Config.Show();
-          $.LiteUI.Config.Saved();
+          $.LiteUI.DeviceConfig.Show();
+          $.LiteUI.DeviceConfig.Saved();
         });
-        $("#qz-device-btn-config-done").click(function() {
+        $("#qz-device-btn-config-close").click(function() {
           // save, prompt, hide
-          $.LiteUI.Config.Hide();
+          $.LiteUI.DeviceConfig.Hide();
         });
         $("#qz-device-btn-maps").click(function() {
           var did = $("#qz-device-detail").attr('did');
@@ -376,34 +394,34 @@
           $.Lite.Run.Maps();
         });
         $("#qz-device-config-basic").click(function() {
-          $.LiteUI.Config.Basic();
+          $.LiteUI.DeviceConfig.Basic();
         });
         $("#qz-device-config-wireless").click(function() {
-          $.LiteUI.Config.Wireless();
+          $.LiteUI.DeviceConfig.Wireless();
         });
         $("#qz-device-config-advanced").click(function() {
-          $.LiteUI.Config.Advanced();
+          $.LiteUI.DeviceConfig.Advanced();
         });
 
         // Bind Region/Channel/Frequency calculation
         // TODO: support Model# in the future
         $("#qz-device-config-region").change(function() {
-          $.LiteUI.Config.GWS('region');
+          $.LiteUI.DeviceConfig.GWS('region');
         });
         $("#qz-device-config-channel").blur(function() {
-          $.LiteUI.Config.GWS('channel');
+          $.LiteUI.DeviceConfig.GWS('channel');
         }).keydown(function(e) {
           //console.log('search when hit ENTER');
           if (e.keyCode == 13) {
-            $.LiteUI.Config.GWS('channel');
+            $.LiteUI.DeviceConfig.GWS('channel');
           }
         });
         $("#qz-device-config-freq").blur(function() {
-          $.LiteUI.Config.GWS('freq');
+          $.LiteUI.DeviceConfig.GWS('freq');
         }).keydown(function(e) {
           //console.log('search when hit ENTER');
           if (e.keyCode == 13) {
-            $.LiteUI.Config.GWS('freq');
+            $.LiteUI.DeviceConfig.GWS('freq');
           }
         });
 
@@ -436,7 +454,7 @@
         });
         $("#qz-device-config-confirm-no").click(function() {
           $("#qz-device-config-confirm").modal('hide');
-          $.LiteUI.Config.SaveAbort();
+          $.LiteUI.DeviceConfig.SaveAbort();
         });
 
         $("#qz-device-config-wireless-tools").click(function() {
@@ -683,14 +701,14 @@
           break;
       }
 
-      $.LiteUI.Config.Saved()
+      $.LiteUI.DeviceConfig.Saved()
       $("#qz-device-mask").SUILoaderHide();
     },
     CB_DeviceSetError: function(xhr, status, error) {
       var ts = new Date().toTimeString();
       $("#qz-devices-status").SUIMessageError('设备操作失败 @'+ts).show();
 
-      $.LiteUI.Config.Saved()
+      $.LiteUI.DeviceConfig.Saved()
       $("#qz-device-mask").SUILoaderHide();
     },
     CB_MapsDeviceDone: function(resp) {
@@ -749,10 +767,11 @@
 
         // init tabs
         $.LiteUI.Device.Wireless();
-        $.LiteUI.Config.Wireless();;
+        $.LiteUI.DeviceAlarms.Hide();
+        $.LiteUI.DeviceConfig.Hide();
+        //$.LiteUI.DeviceConfig.Wireless();
         $.LiteUI.KPI.Thrpt();
-        $.LiteUI.Config.Hide();
-
+        
         $("#qz-devices").show();
       },
       DeviceAlarms: function() {
@@ -778,16 +797,16 @@
         $.LiteUI.Tools.Tools();
       }
     },
-    Config: {
+    DeviceConfig: {
       // TODO: container don't have enough space to display all
       // decide which block to display
       Show: function() {
-        $.LiteUI.Config.Wireless();
+        $.LiteUI.DeviceConfig.Wireless();
         $("#qz-device-config-title,#qz-device-config").show();
       },
       Hide: function() {
         $("#qz-device-config-title,#qz-device-config").hide();
-        $.LiteUI.Config.Saved();
+        $.LiteUI.DeviceConfig.Saved();
         //$("#qz-device-kpi-title,#qz-device-kpi").show();
         //$("#qz-device-details").show();
       },
@@ -799,17 +818,17 @@
         $("#qz-device-config-advanced").removeClass('active');
       },
       Basic: function() {
-        $.LiteUI.Config.Init();
+        $.LiteUI.DeviceConfig.Init();
         $("#qz-device-config-basic-detail").show();
         $("#qz-device-config-basic").addClass('active');
       },
       Wireless: function() {
-        $.LiteUI.Config.Init();
+        $.LiteUI.DeviceConfig.Init();
         $("#qz-device-config-wireless-detail").show();
         $("#qz-device-config-wireless").addClass('active');
       },
       Advanced: function() {
-        $.LiteUI.Config.Init();
+        $.LiteUI.DeviceConfig.Init();
         $("#qz-device-config-advanced-detail").show();
         $("#qz-device-config-advanced").addClass('active');
       },
@@ -826,7 +845,7 @@
           .removeClass('circle notched loading').addClass('close');
         // Restore save icon
         setTimeout(function() {
-          $.LiteUI.Config.Saved();
+          $.LiteUI.DeviceConfig.Saved();
         }, 3000);
       },
       GWS: function(by) {
@@ -877,6 +896,35 @@
         $.LiteUI.Device.Init();
         $("#qz-device-network").addClass('active');
         $("#qz-device-network-detail").show();
+      }
+    },
+    DeviceAlarms: {
+      init: function() {
+        //$("#qz-device-alarms-title,#qz-device-alarms-list").hide();
+        $("#qz-device-alarms-all,#qz-device-alarms-history,#qz-device-alarms-tofix").removeClass('active');
+      },
+      Show: function() {
+        $.LiteUI.DeviceAlarms.All();
+        $("#qz-device-alarms,#qz-device-alarms-title").show();
+      },
+      Hide: function() {
+        $.LiteUI.DeviceAlarms.init();
+        $("#qz-device-alarms,#qz-device-alarms-title").hide();
+      },
+      All: function() {
+        $.LiteUI.DeviceAlarms.init();
+        $("#qz-device-alarms-all").addClass('active');
+        $("#qz-device-alarms-list").show();
+      },
+      Tofix: function() {
+        $.LiteUI.DeviceAlarms.init();
+        $("#qz-device-alarms-tofix").addClass('active');
+        $("#qz-device-alarms-list").show();
+      },
+      History: function() {
+        $.LiteUI.DeviceAlarms.init();
+        $("#qz-device-alarms-history").addClass('active');
+        $("#qz-device-alarms-list").show();
       }
     },
     KPI: {
@@ -1094,7 +1142,7 @@
             $("#qz-device-config-txpower").dropdown(
               'set selected', device.radio.txpower
             );
-            $.LiteUI.Config.GWS('channel');
+            $.LiteUI.DeviceConfig.GWS('channel');
           }
           return true;
         }
@@ -1107,15 +1155,12 @@
 (function($) {
   $.Request = {
     Signin: function(user, passwd, done_cb, error_cb) {
+      var url = "/iOMC3/lite.php?do=signin";
       if ($.Val.isValid(user) && user.length >= 5 && $.Val.isValid(passwd) && passwd.length >= 5) {
         console.log('$.Request.Signin()> signin with user/passwd =', user, passwd);
         $("#qz-btn-signin").BtnDisable();
         $("#qz-signin-mask").SUILoaderShow();
-        $.Ajax.Query(
-          "/iOMC3/user.php?do=signin",
-          { user: user, passwd: passwd },
-          done_cb, error_cb
-        );
+        $.Ajax.Query(url, { user: user, passwd: passwd }, done_cb, error_cb);
       }
     },
     DevicesList: function(keyword) {
@@ -1131,10 +1176,7 @@
 
         // Ajax search keyword, then update Devices [LIST]
         $("#qz-devices-search").SUILoaderShow();
-        $.Ajax.Query( // qz-common.js: $.Ajax.Query(url, data, done_cb, error_cb);
-          url, null,
-          $.CB.CB_DevicesDone, $.CB.CB_DevicesError
-        );
+        $.Ajax.Query(url, null, $.CB.CB_DevicesDone, $.CB.CB_DevicesError);
       } else {
         $.Lite.Start();
       }
@@ -1144,32 +1186,25 @@
       if ($.Val.isValid(token) && $.Val.isValid(did)) {
         var url = '/iOMC3/lite.php?token='+token+'&do=device&did='+did;
         $("#qz-device-mask").SUILoaderShow();
-        $.Ajax.Query(
-          url, null,
-          $.CB.CB_DeviceDone, $.CB.CB_DevicesError
-        );
+        $.Ajax.Query(url, null, $.CB.CB_DeviceDone, $.CB.CB_DevicesError);
       } else {
         $.Lite.Start();
       }
     },
     DeviceConfig: function(did) {
       var token = $.Lite.Url.TOKEN();
-      if ($.Val.isValid(token)) {
+      if ($.Val.isValid(token) && $.Val.isValid(did)) {
+        var url = '/iOMC3/lite.php?token='+token+'&do=config&did='+did;
         $("#qz-device-mask").SUILoaderShow();
-        $.Ajax.Query(
-          '/iOMC3/lite.php?token='+token+'&do=config&did='+did, null,
-          $.CB.CB_DeviceConfigDone, $.CB.CB_DeviceConfigError
-        );
+        $.Ajax.Query(url, null, $.CB.CB_DeviceConfigDone, $.CB.CB_DeviceConfigError);
       }
     },
     DeviceSet: function(did, ops) {
       var token = $.Lite.Url.TOKEN();
       if ($.Val.isValid(token)) {
+        var url = '/iOMC3/lite.php?token='+token+'&do=set&did='+did;
         $("#qz-device-mask").SUILoaderShow();
-        $.Ajax.Query(
-          '/iOMC3/lite.php?token='+token+'&do=set&did='+did, ops,
-          $.CB.CB_DeviceSetDone, $.CB.CB_DeviceSetError
-        );
+        $.Ajax.Query(url, ops, $.CB.CB_DeviceSetDone, $.CB.CB_DeviceSetError);
       } else {
         $.Lite.Start();
       }
@@ -1185,13 +1220,9 @@
           kw = '';
         };
         console.log('keyword of before request =', kw, keyword);
-        // TODO: load devices list here
+        var url = '/iOMC3/lite.php?token='+token+'&do=devices&keyword='+kw;
         $("#qz-maps-search").SUILoaderShow();
-        // Ajax search keyword, then update Devices [LIST]
-        $.Ajax.Query( // qz-common.js: $.Ajax.Query(url, data, done_cb, error_cb);
-          '/iOMC3/lite.php?token='+token+'&do=devices&keyword='+kw, null,
-          $.CB.CB_MapsDevicesDone, $.CB.CB_MapsDevicesError
-        );
+        $.Ajax.Query(url, null, $.CB.CB_MapsDevicesDone, $.CB.CB_MapsDevicesError);
       } else {
         $.Lite.Start();
       }
@@ -1209,6 +1240,7 @@
   $.BingMaps = {
     init: function() {
       console.log('Loading Microsoft Bing Maps');
+      //*
       if (! $.Lite.data.map) {
         console.log('$.BingMaps.init()');
         $.Lite.data.map = new Microsoft.Maps.Map(document.getElementById('qz-maps-box'), {
@@ -1221,8 +1253,9 @@
           maxZoom: 16, minZoom: 10, zoom: 14
         });
       }
+      //*/
     },
-    start: function(id) {
+    UpdateIcons: function(icons) {
     }
   }
 }) (jQuery);

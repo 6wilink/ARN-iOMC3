@@ -34,7 +34,7 @@
   <a class="item" id="qz-nav-dashboard">ARN网管中心 iOMC3 <div class="ui yellow label">Lite</div></a>
   <a class="item" id="qz-nav-devices">设备管理<div class="ui green label">-</div></a>
   <a class="item" id="qz-nav-maps">地图模式</a>
-  <a class="item" id="qz-nav-tools">诊断与工具<div class="ui yellow label">-</div></a>
+  <a class="item" id="qz-nav-tools">系统与工具<div class="ui yellow label">-</div></a>
   <div class="item">
     <div class="ui icon input">
       <input type="text" placeholder="查找……" id="qz-nav-text-keyword">
@@ -194,9 +194,9 @@
             <a class="item" id="qz-device-wireless">无线配置<div class="ui yellow label">-</div></a>
             <a class="item" id="qz-device-network">网络<div class="ui green label">-</div></a>
             <div class="right menu">
-              <a class="item" id="qz-device-btn-update"><i class="refresh icon"></i>刷新</a>
-              <a class="item" id="qz-device-btn-maps"><i class="map icon"></i>地图</a>
+              <a class="item" id="qz-device-btn-alarms"><i class="warning sign icon"></i>告警<div class="ui yellow label">-</div></a>
               <a class="item" id="qz-device-btn-config"><i class="settings icon"></i>配置</a>
+              <a class="item" id="qz-device-btn-update"><i class="refresh icon"></i>刷新</a>
             </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-base-detail">
@@ -280,6 +280,35 @@
             </div>
           </div>
         </div>
+        <h4 class="ui horizontal divider header" id="qz-device-alarms-title"><i class="warning sign icon"></i>审计告警</h4>
+        <div class="ui" id="qz-device-alarms">
+          <div class="ui top attached tabular menu">
+            <a class="item active" id="qz-device-alarms-all">全部<div class="ui yellow label">-/-/-</div></a>
+            <a class="item" id="qz-device-alarms-tofix">未处理<div class="ui red label">-</div></a>
+            <a class="item" id="qz-device-alarms-history">已处理<div class="ui green label">-</div></a>
+            <div class="right menu">
+              <a class="item" id="qz-device-btn-alarms-update"><i class="refresh icon"></i>刷新</a>
+              <a class="item" id="qz-device-btn-alarms-close"><i class="close icon"></i>关闭</a>
+            </div>
+          </div>
+          <div class="ui bottom attached segment" id="qz-device-alarms-list">
+            <table class="ui celled table">
+              <thead>
+                <tr>
+                  <th>告警ID</th>
+                  <th>级别</th>
+                  <th>组件</th>
+                  <th>描述</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="disabled">
+                  <td colspan="4">设备一切正常，暂无告警</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
         <h4 class="ui horizontal divider header" id="qz-device-config-title"><i class="settings icon"></i>设备配置</h4>
         <div class="ui" id="qz-device-config">
           <div class="ui top attached tabular menu">
@@ -289,7 +318,7 @@
             <div class="right menu">
               <a class="item" id="qz-device-btn-config-update"><i class="refresh icon"></i>刷新</a>
               <a class="item" id="qz-device-btn-config-save"><i class="save icon"></i>保存</a>
-              <a class="item" id="qz-device-btn-config-done"><i class="close icon"></i>关闭</a>
+              <a class="item" id="qz-device-btn-config-close"><i class="close icon"></i>关闭</a>
             </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-config-basic-detail">
@@ -438,6 +467,9 @@
           <div class="ui top attached tabular menu">
             <a class="item" id="qz-device-links">无线连接<div class="ui green label">-</div></a>
             <a class="item active" id="qz-device-thrpt">数据流量<div class="ui green label">-</div></a>
+            <div class="right menu">
+              <a class="item" id="qz-device-btn-maps"><i class="map icon"></i>地图</a>
+            </div>
           </div>
           <div class="ui bottom attached segment" id="qz-device-links-detail">
             <table class="ui celled table">
