@@ -4,10 +4,11 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
-	<title>iOMC3网络管理软件（v3.0-alpha-280917）</title>
+	<title>iOMC3网络管理软件（v3.0-alpha-20171127）</title>
   <link rel="stylesheet" type="text/css" href="resource/semantic/semantic.min.css"  media="screen,projection" />
   <style>
 #qz-nav { position: absolute; z-index: 666; width: 100%; }
+#qz-logo { width: 32px; height: 32px; }
 .qz-max-box { position: absolute; z-index: 600; margin-top: 0; padding-top: 65px; }
 .qz-content-box { margin-top: -26px; padding-top: 26px; }
 .qz-max { position: relative; width: 100%; height:100%; }
@@ -28,9 +29,9 @@
 <body>
 <!--[1 TAB] = [2 SPACEs] -->
 
-<!--[Nav] start | verified@2017.09.25-->
+<!--[Nav] start-->
 <div class="ui pointing inverted small menu" id="qz-nav">
-  <a class="item" href="mailto: admin@6wilink.com"><img title="北京六维畅联科技有限公司" src="resource/6WiLink.png" /></a>
+  <a class="item" href="mailto: admin@6wilink.com"><img id="qz-logo" title="北京六维畅联科技有限公司" src="resource/6WiLink.png" /></a>
   <a class="item" id="qz-nav-dashboard">ARN网管中心 iOMC3 <div class="ui yellow label">Lite</div></a>
   <a class="item" id="qz-nav-devices">设备管理<div class="ui green label">-</div></a>
   <a class="item" id="qz-nav-maps">地图模式</a>
@@ -45,7 +46,7 @@
     <!--TODO: enable maximize.min.js
     <a class="item" id="qz-nav-btn-maximize"><i class="maximize icon"></i>最大化</a>
     -->
-    <a class="item" href="help.html" target="_blank">帮助</a>
+    <a class="item" href="mailto:qige.zhao@6wilink.com">帮助</a>
     <a class="item" id="qz-nav-btn-signout"><i class="close icon"></i>退出</a>
   </div>
 </div>
@@ -69,7 +70,7 @@
         <div class="ui inverted dimmer" id="qz-signin-mask">
           <div class="ui text loader">正在载入，请稍候……</div>
         </div>
-        <div class="ui three column centered grid qz-max">
+        <div class="ui two column centered grid qz-max">
           <div class="column" id="qz-vcenter-box">
             <div class="ui form segment" id="qz-signin-vcenter">
               <!--[INFO] start-->
@@ -431,6 +432,8 @@
                     <div class="default text">---请选择---</div>
                     <i class="dropdown icon"></i>
                     <div class="menu">
+                      <div class="item" data-value="max">最大发射功率</div>
+                      <div class="item" data-value="min">最小发射功率</div>
                       <div class="item" data-value="10">10 dBm，10毫瓦</div>
                       <div class="item" data-value="13">13 dBm，20毫瓦</div>
                       <div class="item" data-value="14">14 dBm，25毫瓦</div>
@@ -443,8 +446,6 @@
                       <div class="item" data-value="31">31 dBm，1.2瓦</div>
                       <div class="item" data-value="32">32 dBm，1.6瓦</div>
                       <div class="item" data-value="33">33 dBm，2瓦</div>
-                      <div class="item" data-value="max">最大发射功率</div>
-                      <div class="item" data-value="min">最小发射功率</div>
                     </div>
                   </div>
                 </div>
@@ -599,14 +600,7 @@
 <script type="text/javascript" src="resource/qz-gws.js"></script>
 <script type="text/javascript" src="resource/qz-common.js"></script>
 <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>
-<!--
-// FIXME: load Microsoft Bing Maps
-<script type='text/javascript' src='https://cn.bing.com/api/maps/mapcontrol'></script>
--->
 <script type='text/javascript' src='resource/qz-lite.js'></script>
-<!--
-// FIXME: import AutoTest
-<script type='text/javascript' src='resource/qz-lite-autotest.js'></script>
--->
+<!--<script type='text/javascript' src='resource/qz-lite-autotest.js'></script>-->
 </body>
 </html>
