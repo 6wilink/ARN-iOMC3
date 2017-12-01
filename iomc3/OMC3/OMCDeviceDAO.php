@@ -62,7 +62,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
     {
         if ($deviceId) {
             $now = date('Y-m-d H:i:s');
-            $updates = "ts='{$now}'";
+            $updates = "reachable='online',ts='{$now}'";
             if ($host) {
                 $updates .=",ipaddr='{$host}'";
             }
@@ -217,7 +217,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
         return NULL;
     }
     
-    static public function FetchDevicePeerQty($deviceQueryId = NULL)
+    static public function fetchDevicePeerQty($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
             $deviceQueryIdSafe = (int) $deviceQueryId;
@@ -228,11 +228,29 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 $sql = "select {$fields} from {$table} where {$conditions}";
                 $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
                 if ($records && is_array($records)) {
-                    return BaseFilter::SearchKey($records, 'qty');
+                    return count($records);
                 }
             }
         }
         return 0;
+    }
+    
+    static public function FetchDevicePeers($deviceQueryId = NULL)
+    {
+        if ($deviceQueryId) {
+            $deviceQueryIdSafe = (int) $deviceQueryId;
+            if ($deviceQueryIdSafe > 0) {
+                $table = self::$DB_DEVICE_PEER_TABLE;
+                $fields = 'count(id) as qty';
+                $conditions = "devid='{$deviceQueryId}'";
+                $sql = "select {$fields} from {$table} where {$conditions}";
+                $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+                if ($records && is_array($records)) {
+                    return $records;
+                }
+            }
+        }
+        return NULL;
     }
     
 }

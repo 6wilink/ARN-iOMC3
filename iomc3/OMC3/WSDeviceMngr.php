@@ -63,52 +63,70 @@ final class WSDeviceMngr
         
     static public function DeviceDetail($deviceQueryId = NULL)
     {
-        $devid = (int) $deviceQueryId + 10;
         if ($deviceQueryId) {
-            $reply = array();
-            $device = array(
-                'device' => array(
-                    'wmac' => '00:00:00:00:00:00',
-                    'name' => '山西现网#1',
-                    'hwver' => 'gws5kv2',
-                    'fwver' => 'v1.0.7',
-                    'wireless' => array(
-                        'mode' => 2,
-                        'rgn' => 1,
-                        'channel' => 43,
-                        'freq' => 650,
-                        'txpower' => 17,
-                        'watt' => 0.05,
-                        'chanbw' => 8
-                    ),
-                    'peer_qty' => self::devicePeerQty(1),
-                    'peers' => NULL,
-                    'network' => array(
-                        'ip' => "192.168.1.{$devid}",
-                        'netmask' => '255.255.255.0'
-                    ),
-                    'thrpt' => array(
-                        'qty' => 1,
-                        'ifname_rxtx' => array(
-                            array(
-                                'name' => 'eth0',
-                                'unit' => 'Mbps',
-                                'rx' => 1.386, 
-                                'tx' => 0.011
-                            )
-                        )
-                    )
-                )
+            
+            $device = self::deviceBasicDetail($deviceQueryId);
+            $device['wireless'] = self::deviceWirelessDetail($deviceQueryId);
+            $device['network'] = self::deviceNetworkDetail($deviceQueryId);
+            $device['thrpt'] = self::deviceThrptCalc($deviceQueryId);
+            
+            // fre-format
+            $data = array(
+                'device' => $device
             );
-            $reply['data'] = $device;
+            $reply = array(
+                'data' => $data
+            );
             return $reply;
         }
         return NULL;
     }
     
-    static private function devicePeerQty($deviceQueryId = NULL)
+    static private function deviceBasicDetail($deviceQueryId = NULL)
     {
-        return OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId);
+        return array(
+            'wmac' => '00:00:00:00:00:00',
+            'name' => '山西现网#1',
+            'hwver' => 'gws5kv2',
+            'fwver' => 'v1.0.7'
+        );
+    }
+    
+    static private function deviceWirelessDetail($deviceQueryId = NULL)
+    {
+        return array(
+            'peers' => self::deviceWirelessPeers(),
+            'peer_qty' => 0
+        );
+    }
+    
+    static private function deviceNetworkDetail($deviceQueryId = NULL)
+    {
+        $devid = (int) $deviceQueryId + rand(0, 10);
+        return array(
+            'ip' => "192.168.1.{$devid}",
+            'netmask' => '255.255.255.0'
+        );
+    }
+    
+    static private function deviceWirelessPeers($deviceQueryId = NULL)
+    {
+        return OMCDeviceDAO::FetchDevicePeers($deviceQueryId);
+    }
+    
+    static private function deviceThrptCalc($deviceQueryId = NULL)
+    {
+        return array(
+            'qty' => 1,
+            'ifname_rxtx' => array(
+                array(
+                    'name' => 'eth0',
+                    'unit' => 'Mbps',
+                    'rx' => 1.386,
+                    'tx' => 0.011 + rand(0, 10)
+                )
+            )
+        );
     }
     
     static private function DeviceStatistics()

@@ -21,7 +21,7 @@ final class WSAuth
                 $key = "{$host}+{$user}+{$passwd}";
                 $token = self::tokenMaker($key);
                 self::tokenSave($user, $token);
-                $reply = self::authResultMaker($token);
+                $reply = self::authResultMaker($token, $host);
             } else {
                 $reply = OMCError::GetErrorInArray(ERROR_BAD_AUTH_USRPWD, __FUNCTION__);
             }
@@ -49,7 +49,7 @@ final class WSAuth
     }
 
     // organize auth result in array
-    static private function authResultMaker($token = NULL)
+    static private function authResultMaker($token = NULL, $host = NULL)
     {
         $reply = NULL;
         if ($token) {
@@ -57,7 +57,8 @@ final class WSAuth
                 'data' => array(
                     'auth' => array(
                         'token' => $token,
-                        'timeout' => 3600 * 24
+                        'timeout' => 3600 * 24,
+                        'src' => ($host ? $host : '-')
                     )
                 )
             );
