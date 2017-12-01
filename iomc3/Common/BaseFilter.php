@@ -47,9 +47,11 @@ class BaseFilter
     
     static private function filterArray($data = null, $unsafeItems = null)
     {
-        if ($data) {
+        if ($data && is_array($data)) {
             // NOTE: "& $value", not "$value"
-            foreach ($data as $key => & $value) {
+            // FIXME: $key maybe not exists (by Qige 2017.11.29)
+            //foreach ($data as $key => & $value) {
+            foreach ($data as & $value) {
                 if ($value && is_array($value)) {
                     $value = self::filterArray($value, $unsafeItems);
                 } else {

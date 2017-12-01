@@ -15,7 +15,7 @@ abstract class OMCBaseDAO
             self::$DB_MYSQLI = $conn;
             if ($conn) {
                 $conn->select_db(OMC_DB_NAME);
-                $conn->query('set names "utf-8"');
+                $conn->query('SET NAMES UTF8');
             }
         }
     }
@@ -36,18 +36,28 @@ abstract class OMCBaseDAO
         return NULL;
     }
     
-    static public function OMCDbFetch($result = NULL)
+    static private function OMCDbFetch($result = NULL)
     {
         if ($result) {
-            $reply = NULL;
-            while($row = $result->fetch_array()) {
-                $reply = $row;
+            $reply = array();
+            while($row = $result->fetch_array(MYSQLI_ASSOC)) {
+                $reply[] = $row;
             }
             return $reply;
         }
         return NULL;
     }
 
+    // wrapper for fetch
+    static public function OMCDbFetchBySQL($sql = NULL, $from = NULL)
+    {
+        if ($sql) {
+            $result = self::OMCDbQuery($sql, $from);
+            $records = self::OMCDbFetch($result);
+            return $records;
+        }
+        return NULL;
+    }
 }
 
 ?>

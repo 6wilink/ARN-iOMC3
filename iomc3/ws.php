@@ -8,25 +8,14 @@ define('BPATH', dirname(__FILE__));
 require_once BPATH . "/Common/BaseEnv.php";
 require_once BPATH . "/OMC3/WSMngr.php";
 
-//
-$get = $_GET;
-$post = $_POST;
-
-// TODO: check UserAgent
-//var_dump($_SERVER);
-$ua = BaseEnv::RemoteUserAgent($_SERVER);
-$host = BaseEnv::RemoteIPAddr($_SERVER);
-
-// add host ip address
-$env = array(
-    'host' => $host,
-    'ua' => $ua
-);
-$get['host'] = $host;
+// raw data, filter them before use
+$envRaw = $_SERVER;
+$urlRaw = $_GET;
+$dataRaw = $_POST;
 
 // TODO: pass in ENVIRONMENT
 // call
-$response = OMCWebServiceMngr::Run($get, $post);
+$response = OMCWebServiceMngr::Run($envRaw, $urlRaw, $dataRaw);
 
 // control header here
 if ($response) {
