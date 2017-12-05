@@ -14,14 +14,14 @@ final class WSDeviceMngr
     static public function AuditAll()
     {
         // audit device offline
-        $devices = self::DeviceListFetchAll();
+        /*$devices = self::DeviceListFetchAll();
         foreach ($devices as $device) {
             // TODO: audit last ts, generate msg;
-        }
+        }*/
     }
 
     // --------- --------- Search Device by id, keyword or all --------- ---------
-    
+
     // wrapper for search by id, search by keyword & all, verified since 2017.12.05
     static public function DeviceSearch($keyword = NULL, $deviceQueryId = NULL)
     {
@@ -33,7 +33,7 @@ final class WSDeviceMngr
         } else {
             $devices = self::deviceListSearchByKeyword(':all');
         }
-        
+
         $reply = array(
             'data' => array(
                 'ds' => self::DeviceStatistics(),
@@ -70,7 +70,7 @@ final class WSDeviceMngr
                 $records = OMCDeviceDAO::DeviceListSearchByKeyword($keyword);
                 break;
         }
-        
+
         if ($records && is_array($records)) {
             $reply = array();
             foreach ($records as $record) {
@@ -87,7 +87,7 @@ final class WSDeviceMngr
             }
             return $reply;
         }
-        
+
         return $reply;
     }
 
@@ -100,7 +100,7 @@ final class WSDeviceMngr
     }
 
     // --------- --------- Fetch Device Details --------- --------- ---------
-    
+
     // TODO: fetch device thrpt, msg
     // including basic information, wireless, network, peers, thrpt
     static public function DeviceDetail($deviceQueryId = NULL)
@@ -111,7 +111,7 @@ final class WSDeviceMngr
             $device['wireless'] = self::deviceWirelessDetail($deviceQueryId);
             $device['thrpt'] = self::deviceThrptCalc($deviceQueryId);
             $device['msg_qty'] = self::deviceMsgQty($deviceQueryId);
-            
+
             // fre-format
             $reply = array(
                 'data' => array(
@@ -134,7 +134,7 @@ final class WSDeviceMngr
     {
         return OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
     }
-    
+
     // TODO: not verified since 2017.12.04
     static private function deviceWirelessDetail($deviceQueryId = NULL)
     {
