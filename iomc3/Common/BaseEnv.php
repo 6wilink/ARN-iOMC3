@@ -1,11 +1,12 @@
 <?php
+// by Qige <qigezhao@gmail.com>
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
 //
 final class BaseEnv
 {
-    
+
     static public function RemoteIPAddr($server = NULL)
     {
         if ($server && is_array($server)) {

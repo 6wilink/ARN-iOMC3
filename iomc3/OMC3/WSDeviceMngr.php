@@ -1,21 +1,37 @@
 <?php
-// by Qige <qigezhao@gmail.com> at 2017.11.29
-
+// by Qige <qigezhao@gmail.com> since 2017.11.29
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
-// 
+require_once BPATH . '/Common/BaseFilter.php';
+require_once BPATH . '/OMC3/OMCDeviceDAO.php';
+
+//
 final class WSDeviceMngr
 {
+
+    // TODO: audit device offline by last update ts
+    static public function AuditAll()
+    {
+        // audit device offline
+        $devices = self::DeviceListFetchAll();
+        foreach ($devices as $device) {
+            // TODO: audit last ts, generate msg;
+        }
+    }
+
+    // --------- --------- Search Device by id, keyword or all --------- ---------
+    
+    // wrapper for search by id, search by keyword & all, verified since 2017.12.05
     static public function DeviceSearch($keyword = NULL, $deviceQueryId = NULL)
     {
         // handle search by id or keyword
         if ($deviceQueryId) {
-            $devices = self::DeviceListSearchById($deviceQueryId);
+            $devices = self::deviceListSearchById($deviceQueryId);
         } else if ($keyword) {
-            $devices = self::DeviceListSearchByKeyword($keyword);
+            $devices = self::deviceListSearchByKeyword($keyword);
         } else {
-            $devices = self::DeviceListFetchAll();
+            $devices = self::deviceListSearchByKeyword(':all');
         }
         
         $reply = array(
@@ -27,100 +43,127 @@ final class WSDeviceMngr
         );
         return $reply;
     }
-    
+
     // reserved wrapper
-    static private function DeviceListSearchById($deviceQueryId = NULL)
+    static private function deviceListSearchById($deviceQueryId = NULL)
     {
         $reply = OMCDeviceDAO::DeviceListSearchById($deviceQueryId);
         return $reply;
     }
-    
-    static private function DeviceListSearchByKeyword($keyword = NULL)
+
+    // support search pattens
+    static private function deviceListSearchByKeyword($keyword = NULL)
     {
         $reply = NULL;
-        switch($keyword) {
+        $records = NULL;
+        switch ($keyword) {
             case ':all':
-                $reply = OMCDeviceDAO::DeviceListFetchAll();
+                $records = OMCDeviceDAO::deviceListFetchByStatus();
                 break;
             case ':online':
-                $reply = OMCDeviceDAO::DeviceListFetchAll('online');
+                $records = OMCDeviceDAO::deviceListFetchByStatus('online');
                 break;
             case ':offline':
-                $reply = OMCDeviceDAO::DeviceListFetchAll('offline');
+                $records = OMCDeviceDAO::deviceListFetchByStatus('offline');
                 break;
             default:
-                $reply = OMCDeviceDAO::DeviceListSearchByKeyword($keyword);
+                $records = OMCDeviceDAO::DeviceListSearchByKeyword($keyword);
                 break;
         }
-        return $reply;
-    }
-    
-    static private function DeviceListFetchAll($filterStatus = NULL)
-    {
-        $reply = OMCDeviceDAO::DeviceListFetchAll($filterStatus);
-        return $reply;
-    }
         
+        if ($records && is_array($records)) {
+            $reply = array();
+            foreach ($records as $record) {
+                $did = BaseFilter::SearchKey($record, 'id');
+                $name = BaseFilter::SearchKey($record, 'name');
+                $ipaddr = BaseFilter::SearchKey($record, 'ipaddr');
+                $r = array(
+                    'id' => $did,
+                    'name' => $name,
+                    'ipaddr' => $ipaddr,
+                    'peer_qty' => OMCDeviceDAO::FetchDevicePeerQty($did)
+                );
+                $reply[] = $r;
+            }
+            return $reply;
+        }
+        
+        return $reply;
+    }
+
+    // reserved wrapper
+    // if $filterStatus not given, return all
+    static private function deviceListFetchByStatus($filterStatus = NULL)
+    {
+        $reply = OMCDeviceDAO::DeviceListFetchByStatus($filterStatus);
+        return $reply;
+    }
+
+    // --------- --------- Fetch Device Details --------- --------- ---------
+    
+    // TODO: fetch device thrpt, msg
+    // including basic information, wireless, network, peers, thrpt
     static public function DeviceDetail($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
-            
             $device = self::deviceBasicDetail($deviceQueryId);
-            $device['wireless'] = self::deviceWirelessDetail($deviceQueryId);
             $device['network'] = self::deviceNetworkDetail($deviceQueryId);
+            $device['wireless'] = self::deviceWirelessDetail($deviceQueryId);
             $device['thrpt'] = self::deviceThrptCalc($deviceQueryId);
+            $device['msg_qty'] = self::deviceMsgQty($deviceQueryId);
             
             // fre-format
-            $data = array(
-                'device' => $device
-            );
             $reply = array(
-                'data' => $data
+                'data' => array(
+                    'device' => $device
+                )
             );
             return $reply;
         }
         return NULL;
     }
-    
+
+    // verified since 2017.12.04
     static private function deviceBasicDetail($deviceQueryId = NULL)
     {
-        return array(
-            'wmac' => '00:00:00:00:00:00',
-            'name' => '山西现网#1',
-            'hwver' => 'gws5kv2',
-            'fwver' => 'v1.0.7'
-        );
+        return OMCDeviceDAO::FetchDeviceBasicDetail($deviceQueryId);
+    }
+
+    // verified since 2017.12.04
+    static private function deviceNetworkDetail($deviceQueryId = NULL)
+    {
+        return OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
     }
     
+    // TODO: not verified since 2017.12.04
     static private function deviceWirelessDetail($deviceQueryId = NULL)
     {
         return array(
-            'peers' => self::deviceWirelessPeers(),
-            'peer_qty' => 0
+            'peers' => NULL, //self::deviceWirelessPeers($deviceQueryId),
+            'peer_qty' => 0 //self::deviceWirelessPeerQty($deviceQueryId)
         );
     }
-    
-    static private function deviceNetworkDetail($deviceQueryId = NULL)
-    {
-        $devid = (int) $deviceQueryId + rand(0, 10);
-        return array(
-            'ip' => "192.168.1.{$devid}",
-            'netmask' => '255.255.255.0'
-        );
-    }
-    
+
+    // TODO: not verified since 2017.12.04
     static private function deviceWirelessPeers($deviceQueryId = NULL)
     {
-        return OMCDeviceDAO::FetchDevicePeers($deviceQueryId);
+        return OMCDeviceDAO::FetchDevicePeers($deviceQueryId, 'online');
     }
-    
+
+    // TODO: not verified since 2017.12.04
+    static private function deviceWirelessPeerQty($deviceQueryId = NULL)
+    {
+        return OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId, 'online');
+    }
+
+    // TODO: not verified since 2017.12.04
     static private function deviceThrptCalc($deviceQueryId = NULL)
     {
         return array(
             'qty' => 1,
-            'ifname_rxtx' => array(
+            'rxtx' => array(
                 array(
-                    'name' => 'eth0',
+                    'ifname' => 'eth0',
                     'unit' => 'Mbps',
                     'rx' => 1.386,
                     'tx' => 0.011 + rand(0, 10)
@@ -128,7 +171,8 @@ final class WSDeviceMngr
             )
         );
     }
-    
+
+    // TODO: not verified since 2017.12.04
     static private function DeviceStatistics()
     {
         $total = self::DeviceListSearchByKeyword(':all');
@@ -141,22 +185,24 @@ final class WSDeviceMngr
         );
         return $reply;
     }
-    
+
     // TODO: search database by wmac or devid
-    static public function DeviceMsgs($deviceId = NULL)
+    // TODO: not verified since 2017.12.04
+    static private function deviceMsgQty($deviceId = NULL)
     {
-        //return $deviceId ? $deviceId : 0;
+        // return $deviceId ? $deviceId : 0;
         return 0;
     }
-    
+
     // TODO: load by model
+    // TODO: not verified since 2017.12.04
     static public function DeviceConfigLoad($deviceQueryId = NULL)
     {
         ;
     }
-    
-    
+
     // TODO: save to database, then agent will read in queue, one at a time
+    // TODO: not verified since 2017.12.04
     static public function DeviceConfigInQueue($deviceQueryId = NULL)
     {
         ;

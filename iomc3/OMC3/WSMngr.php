@@ -1,6 +1,7 @@
 <?php
-// by Qige <qigezhao@gmail.com> at 2017.11.29
-
+// by Qige <qigezhao@gmail.com>
+// tech-preview: 2017.11.29
+// alpha: 2017.12.04/05
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
@@ -14,24 +15,30 @@ require_once BPATH . '/OMC3/WSAuth.php';
 require_once BPATH . '/OMC3/WSError.php';
 
 // handle all request
-final class OMCWebServiceMngr
+// partly verified since 2017.12.04
+final class WebServiceMngr
 {
-    // FIXME: complete user agent list
-    static private $USER_AGENT = array('OMC3Agent');
 
+    // FIXME: complete user agent list
+    private static $USER_AGENT = array(
+        'OMC3Agent',
+        'omc3agent'
+    );
+
+    // verified since 2017.11.04
     static public function Run($envRaw = NULL, $urlRaw = NULL, $dataRaw = NULL)
     {
-        //var_dump($urlRaw, $dataRaw);
+        // var_dump($urlRaw, $dataRaw);
         // FIXME: if $reply valid, must put all into field $reply['data']
         $response = $reply = $responseFormat = NULL;
         
-        // TODO: check UserAgent first
+        // check UserAgent first
         $envSafe = BaseFilter::FilterAll($envRaw);
         $urlSafe = BaseFilter::FilterAll($urlRaw);
         $dataSafe = BaseFilter::FilterAll($dataRaw);
         
         $do = BaseFilter::SearchKey($urlSafe, 'do');
-        switch($do) {
+        switch ($do) {
             case 'report':
             case 'sync':
                 $responseFormat = 'kv';
@@ -67,8 +74,8 @@ final class OMCWebServiceMngr
         
         return $response;
     }
-    
-    // check user agent
+
+    // check user agent. verified since 2017.11.04
     static private function actionsRequireUserAgent($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
     {
         $reply = NULL;
@@ -77,24 +84,23 @@ final class OMCWebServiceMngr
             $host = BaseEnv::RemoteIPAddr($envSafe);
             $report = BaseFilter::SearchKey($dataSafe, 'data');
             $reply = WSAgentMngr::ReportReceivedAndFetchCmds($host, $report);
+            
+            // audit_all hook
+            WSAuth::AuditAll(); // is token timeout?
+            WSDeviceMngr::AuditAll(); // is device offline?
         } else {
             $reply = OMCError::GetErrorInArray(ERROR_UNKNOWN_AR_UA);
         }
         return $reply;
     }
-    
+
+    // verified since 2017.11.04
     static private function actionsRequireAutherization($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
     {
         $token = BaseFilter::SearchKey($urlSafe, 'token');
         if (self::verifyAuthToken($token)) {
             $do = BaseFilter::SearchKey($urlSafe, 'do');
             switch ($do) {
-                case 'audit': // is token timeout? is device offline?
-                    break;
-                case 'signout':
-                    $token = BaseFilter::SearchKey($urlSafe, 'token');
-                    $reply = WSAuth::Singout($host, $token);
-                    break;
                 case 'devices':
                 case 'device_list':
                     $kw = BaseFilter::SearchKey($urlSafe, 'keyword');
@@ -105,6 +111,15 @@ final class OMCWebServiceMngr
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceDetail($dqid);
                     break;
+                case 'audit_all':
+                    WSAuth::AuditAll(); // is token timeout?
+                    WSDeviceMngr::AuditAll(); // is device offline?
+                    $reply = OMCError::GetErrorInArray(ERROR_NONE);
+                    break;
+                case 'signout':
+                    $token = BaseFilter::SearchKey($urlSafe, 'token');
+                    $reply = WSAuth::Singout($host, $token);
+                    break;
                 case 'config_load':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceConfigLoad($dqid);
@@ -114,10 +129,6 @@ final class OMCWebServiceMngr
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceConfigInQueue($dqid);
                     break;
-                case 'msg_sync':
-                    $dqid = BaseFilter::SearchKey($urlSafe, 'did');
-                    $reply = WSDeviceMngr::DeviceMsgCheck($kw, $dqid);
-                    break;
                 default:
                     break;
             }
@@ -126,12 +137,13 @@ final class OMCWebServiceMngr
         }
         return $reply;
     }
-    
+
+    // verified since 2017.11.04
     static private function actionsAnonymous($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
     {
         $reply = NULL;
         $do = BaseFilter::SearchKey($urlSafe, 'do');
-        switch($do) {
+        switch ($do) {
             case 'signin':
                 $host = BaseEnv::RemoteIPAddr($envSafe);
                 $user = BaseFilter::SearchKey($dataSafe, 'user');
@@ -147,12 +159,14 @@ final class OMCWebServiceMngr
         }
         return $reply;
     }
-    
+
+    // verified since 2017.11.04
     static private function verifyAuthToken($token = NULL)
     {
         return ($token && WSAuth::IsTokenValid($token));
     }
-    
+
+    // verified since 2017.11.04
     static private function verifyUserAgent($ua = NULL)
     {
         return ($ua && in_array($ua, self::$USER_AGENT));

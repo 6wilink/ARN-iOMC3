@@ -10,17 +10,27 @@ require_once BPATH . '/OMC3/OMCAuthDAO.php';
 final class WSAuth
 {
 
-    // TODO: find "user", "passwd", verify by DAO
-    // return "TOKEN"
+    // TODO: verify all token
+    static public function AuditAll()
+    {
+        $tokens = NULL;
+        if ($tokens && is_array($tokens)) {
+            foreach ($tokens as $token) {
+                // TODO: check if token is no longer valid
+            }
+        }
+    }
+
+    // save token by DAO, return "TOKEN", verified at 2017.12.05
     static public function Signin($host = NULL, $user = NULL, $passwd = NULL)
     {
         $reply = NULL;
         
         if (self::isEnvValid()) {
             if (self::isUserPasswdValid($user, $passwd)) {
-                $key = "{$host}+{$user}+{$passwd}";
+                $key = "{$user}:{$passwd}@{$host}";
                 $token = self::tokenMaker($key);
-                self::tokenSave($user, $token);
+                self::tokenSave($user, $token, $host);
                 $reply = self::authResultMaker($token, $host);
             } else {
                 $reply = OMCError::GetErrorInArray(ERROR_BAD_AUTH_USRPWD, __FUNCTION__);
@@ -32,20 +42,20 @@ final class WSAuth
         return $reply;
     }
 
+    // search token by DAO, verified at 2017.12.05
     static public function IsTokenValid($token = NULL)
     {
-        // TODO: query token via DAO
-        $reply = NULL;
-        $flagTokenValid = ($token && OMCAuthDAO::IsTokenValid($token));
-        return $flagTokenValid;
+        // query token via DAO
+        return ($token && OMCAuthDAO::IsTokenValid($token));
     }
 
+    // delete token by DAO
     static public function Signout($host = NULL, $token = NULL)
     {
-        if (self::IsTokenValid(($token))) {
-            // make sure it's logout from signin host/ipaddr
-            // remove token from database;
+        if (self::IsTokenValid($token) && $host) {
+            return OMCAuthDAO::DeleteToken($token, $host);
         }
+        return NULL;
     }
 
     // organize auth result in array
@@ -67,11 +77,17 @@ final class WSAuth
         }
         return $reply;
     }
-    
-    // TODO: verify via DAO
+
+    // verify via DAO
     static private function isUserPasswdValid($user = NULL, $passwd = NULL)
     {
         return (true && OMCAuthDAO::IsUserPasswdValid($user, $passwd));
+    }
+
+    // save "token", "host" to "user"
+    static private function tokenSave($user = NULL, $token = NULL, $host = NULL)
+    {
+        return OMCAuthDAO::SaveToken($user, $token, $host);
     }
 
     // call "md5", "sha1" exists of not. 2017.11.29
@@ -80,11 +96,7 @@ final class WSAuth
         return function_exists('md5');
     }
 
-    static private function tokenSave($user = NULL, $token = NULL)
-    {
-        return OMCAuthDAO::SaveToken($user, $token);
-    }
-
+    // candicate: md5, sha1, etc
     static private function tokenMaker($key = ' ')
     {
         $token = NULL;

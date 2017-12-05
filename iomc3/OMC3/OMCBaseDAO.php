@@ -1,12 +1,14 @@
 <?php
+// by Qige <qigezhao@gmail.com> since 2017.11.20
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
 // single database connection
 abstract class OMCBaseDAO
 {
-    static protected $DB_MYSQLI = NULL;
-    
+
+    protected static $DB_MYSQLI = NULL;
+
     static public function OMCDbConnect()
     {
         $conn = self::$DB_MYSQLI;
@@ -19,15 +21,15 @@ abstract class OMCBaseDAO
             }
         }
     }
-    
-    static public function OMCDbQuery($sql = NULL, $from  = NULL)
-    {        
+
+    static public function OMCDbQuery($sql = NULL, $from = NULL)
+    {
         if (! self::$DB_MYSQLI) {
             self::OMCDbConnect();
         }
         
         // TODO: remove line below in official release
-        //echo($from . '(): ' . $sql . "\n");
+        // echo($from . '(): ' . $sql . "\n");
         
         if ($sql && self::$DB_MYSQLI) {
             $conn = self::$DB_MYSQLI;
@@ -35,12 +37,12 @@ abstract class OMCBaseDAO
         }
         return NULL;
     }
-    
+
     static private function OMCDbFetch($result = NULL)
     {
         if ($result) {
             $reply = array();
-            while($row = $result->fetch_array(MYSQLI_ASSOC)) {
+            while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
                 $reply[] = $row;
             }
             return $reply;
@@ -57,6 +59,13 @@ abstract class OMCBaseDAO
             return $records;
         }
         return NULL;
+    }
+
+    static public function OMCDbDisconnect()
+    {
+        $conn = self::$DB_MYSQLI;
+        $conn->close();
+        self::$DB_MYSQLI = NULL;
     }
 }
 

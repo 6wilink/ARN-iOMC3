@@ -184,7 +184,7 @@
 					<div class="ui fluid vertical right pointing menu">
 						<div class="item">
 							<div class="ui icon input" id="qz-devices-search">
-								<input type="text" placeholder="查找……"
+								<input type="text" placeholder="全部设备"
 									id="qz-devices-text-keyword"> <i
 									class="search link icon" id="qz-devices-btn-search"></i>
 							</div>
@@ -195,7 +195,7 @@
 								<div class="header">请选择</div>
 								<div class="divider"></div>
 								<a class="item" title=":offline">离线设备</a> <a class="item"
-									title=":online">在线设备</a> <a class="item" title=":alarm">有告警设备</a>
+									title=":online">在线设备</a> <a class="item" title=":msg">有告警设备</a>
 								<a class="item" title=":all">所有设备</a>
 								<div class="divider"></div>
 								<a class="item disabled" title="+ip">按IP地址排序</a> <a
@@ -238,8 +238,8 @@
 						<div class="ui text loader">正在读取，请稍候……</div>
 					</div>
 					<div class="ui" id="qz-device-details">
-						<div class="ui warning message" id="qz-devices-alarms">
-							<div class="header" id="qz-devices-device-name-alarm">正在读取，请稍候……</div>
+						<div class="ui warning message" id="qz-devices-header">
+							<div class="header" id="qz-devices-device-name-header">正在读取，请稍候……</div>
 						</div>
 						<div class="ui top attached tabular menu">
 							<a class="item" id="qz-device-base">基本信息</a> <a class="item"
@@ -318,18 +318,6 @@
 						<div class="ui bottom attached segment"
 							id="qz-device-network-detail">
 							<div class="ui form">
-								<div class="field">
-									<label>网络接口</label> <input placeholder="默认仅eth0"
-										readonly="readonly" type="text" value="-"
-										id="qz-devices-device-ifname">
-								</div>
-								<div class="three fields">
-									<div class="field">
-										<label>VLAN标识</label> <input placeholder="正在读取"
-											readonly="readonly" type="text" value=""
-											id="qz-devices-device-vlan">
-									</div>
-								</div>
 								<div class="three fields">
 									<div class="field">
 										<label>设备地址</label> <input placeholder="出厂默认为192.168.1.100"
@@ -345,6 +333,18 @@
 										<label>网关 / DNS</label> <input placeholder="正在读取"
 											readonly="readonly" type="text" value="-"
 											id="qz-devices-device-gw">
+									</div>
+								</div>
+								<div class="field">
+									<label>网络接口</label> <input placeholder="默认仅eth0"
+										readonly="readonly" type="text" value="-"
+										id="qz-devices-device-ifname">
+								</div>
+								<div class="three fields">
+									<div class="field">
+										<label>VLAN标识</label> <input placeholder="正在读取"
+											readonly="readonly" type="text" value=""
+											id="qz-devices-device-vlan">
 									</div>
 								</div>
 							</div>

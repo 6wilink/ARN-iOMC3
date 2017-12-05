@@ -17,6 +17,7 @@
 				password : '6harmonics'
 			},
 			interval : {
+				auditAll : 1000,
 				deviceDetail : 2000
 			}
 		},
@@ -547,7 +548,7 @@
 		// call for ARN.iOMC3.Audit result
 		TimerStartAll : function() {
 			console.log('$.BG.AuditStart() called');
-			$.BG.UITmrAdd.Sync();
+			// $.BG.UITmrAdd.SyncAll();
 			$.BG.UITmrAdd.DeviceFetchLatest();
 			// $.BG.UI.NavAlarms(0);
 			// $.BG.UI.NavDeviceQty(10, 4, 6);
@@ -559,19 +560,21 @@
 			// $.BG.UI.NavDeviceQty('-');
 		},
 		UITmrAdd : {
-			Sync : function() {
+			SyncAll : function() {
+				console.log('$.BG.UITmrAdd.SyncAll()');
 				var data = $.Val.IsValid($.Lite.data) ? $.Lite.data : null;
-				var tmrs = data && $.Val.IsValid(data.Timers) ? $.Lite.data.Timers
+				var tmrs = data && $.Val.IsValid(data.Timers) ? data.Timers
 						: null;
 				var tmr = tmrs && $.Val.IsValid(tmrs.UISync) ? tmrs.UISync
 						: null;
 				if (!$.Val.IsValid(tmr)) {
 					var t = setInterval($.Request.UISync,
-							$.Lite.defaults.interval.deviceDetail);
+							$.Lite.defaults.interval.auditAll);
 					if (!data)
 						$.Lite.data = {};
 					if (!tmrs)
 						$.Lite.data.Timers = {};
+
 					$.Lite.data.Timers.UISync = t;
 				}
 			},
@@ -842,11 +845,18 @@
 (function($) {
 	$.Request = {
 		UISync : function() {
-			var data = $.Val.IsValid($.Lite.data) ? $.Lite.data : null;
+			console.log('$.Request.UISync()');
+			var token = $.Lite.Url.TOKEN();
+			if ($.Val.IsValid(token)) {
+				var url = '/iomc3/ws.php?do=audit_all&token=' + token;
+				$.Ajax.Query(url, null, null, null);
+			} else {
+				$.Lite.Start();
+			}
 		},
 		DeviceFetchLatest : function() {
 			var data = $.Val.IsValid($.Lite.data) ? $.Lite.data : null;
-			var did = data && $.Val.IsValid(data.DeviceId) ? $.Lite.data.DeviceId
+			var did = data && $.Val.IsValid(data.DeviceId) ? data.DeviceId
 					: null;
 			if ($.Val.IsValid(did)) {
 				$.Request.DeviceDetail(did);
@@ -871,7 +881,7 @@
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token)) {
 				if (flagAutoLoad) {
-					var url = '/iomc3/ws.php?token=' + token + '&do=devices';
+					var url = '/iomc3/ws.php?do=devices&token=' + token;
 					if (keyword && keyword != 'undefined') {
 						kw = keyword.toString();
 						url += ('&keyword=' + kw);
@@ -891,8 +901,8 @@
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token)) {
 				if ($.Val.IsValid(did)) {
-					var url = '/iomc3/ws.php?token=' + token
-							+ '&do=detail&did=' + did;
+					var url = '/iomc3/ws.php?do=detail&did=' + did + '&token='
+							+ token;
 					// $("#qz-device-mask").SUILoaderShow();
 					$.Ajax.Query(url, null, $.CB.CB_DeviceDone,
 							$.CB.CB_DevicesError);
@@ -904,8 +914,8 @@
 		DeviceConfigLoad : function(did) {
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token) && $.Val.IsValid(did)) {
-				var url = '/iomc3/ws.php?token=' + token
-						+ '&do=config_load&did=' + did;
+				var url = '/iomc3/ws.php?do=config_load&did=' + did + '&token='
+						+ token;
 				// $("#qz-device-mask").SUILoaderShow();
 				$.Ajax.Query(url, null, $.CB.CB_DeviceConfigDone,
 						$.CB.CB_DeviceConfigError);
@@ -914,8 +924,8 @@
 		DeviceConfigSave : function(did, ops) {
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token)) {
-				var url = '/iomc3/ws.php?token=' + token
-						+ '&do=config_save&did=' + did;
+				var url = '/iomc3/ws.php?do=config_save&did=' + did + '&token='
+						+ token;
 				$("#qz-device-mask").SUILoaderShow();
 				$.Ajax.Query(url, ops, $.CB.CB_DeviceSetDone,
 						$.CB.CB_DeviceSetError);
@@ -935,8 +945,8 @@
 						kw = '';
 					}
 					console.log('keyword of before request =', kw, keyword);
-					var url = '/iomc3/ws.php?token=' + token
-							+ '&do=maps_devices&keyword=' + kw;
+					var url = '/iomc3/ws.php?do=maps_devices&keyword=' + kw
+							+ '&token=' + token;
 					$("#qz-maps-search").SUILoaderShow();
 					$.Ajax.Query(url, null, $.CB.CB_MapsDevicesDone,
 							$.CB.CB_MapsDevicesError);
@@ -1188,29 +1198,37 @@
 				if (data) {
 					var device = $.Val.IsValid(data.device) ? data.device
 							: null;
-					var wmac = device && $.Val.IsValid(device.wmac) ? device.wmac : null;
+					var wmac = device && $.Val.IsValid(device.wmac) ? device.wmac
+							: null;
 
-					var base = device && $.Val.IsValid(device.base) ? device.base : null;
+					var base = device && $.Val.IsValid(device.base) ? device.base
+							: null;
 					var wireless = device && $.Val.IsValid(device.wireless) ? device.wireless
 							: null;
 					var network = device && $.Val.IsValid(device.network) ? device.network
 							: null;
 					var thrpt = device && $.Val.IsValid(device.thrpt) ? device.thrpt
 							: null;
+					var msg = device && $.Val.IsValid(device.msg) ? device.msg
+							: null;
+
+					if (msg) {
+						var msg_qty = msg && $.Val.IsValid(msg.msg)
+					}
 
 					if (wmac) {
 						var name = $.Val.IsValid(device.name) ? device.name
-								: '-';
+								: '未命名新设备';
 						var mac = $.Val.IsValid(device.mac) ? device.mac : '-';
-						var hwver = $.Val.IsValid(device.hwver) ? device.hwver
+						var hw_ver = $.Val.IsValid(device.hw_ver) ? device.hw_ver
 								: '-';
-						var fwver = $.Val.IsValid(device.fwver) ? device.fwver
+						var fw_ver = $.Val.IsValid(device.fw_ver) ? device.fw_ver
 								: '-';
 
 						$("#qz-devices-device-name").val(name);
 						$("#qz-devices-device-id").val(wmac + ', ' + mac);
-						$("#qz-devices-device-hwver").val(hwver);
-						$("#qz-devices-device-fwver").val(fwver);
+						$("#qz-devices-device-hwver").val(hw_ver);
+						$("#qz-devices-device-fwver").val(fw_ver);
 
 						var ssid = base && $.Val.IsValid(base.ssid) ? base.ssid
 								: '-';
@@ -1235,12 +1253,12 @@
 						var chanbw = wireless && $.Val.IsValid(wireless.chanbw) ? wireless.chanbw
 								: 0;
 
-						var fdesc = $.GWS.Freq(rgn, channel);
+						var freq = $.GWS.Freq(rgn, channel);
 						var tdesc = $.GWS.Txpower(txpower, watt);
 
 						$("#qz-devices-device-mode").val(mdesc);
 						$("#qz-devices-device-ssid").val(ssid);
-						$("#qz-devices-device-freq").val(fdesc);
+						$("#qz-devices-device-freq").val(freq + ' MHz');
 						$("#qz-devices-device-txpower").val(tdesc);
 						$("#qz-devices-device-chanbw").val(chanbw + ' MHz');
 
@@ -1248,7 +1266,7 @@
 								: '-';
 						var vlan = network && $.Val.IsValid(network.vlan) ? network.vlan
 								: '-';
-						var ip = network && $.Val.IsValid(network.ip) ? network.ip
+						var ip = network && $.Val.IsValid(network.ipaddr) ? network.ipaddr
 								: '-';
 						var netmask = network && $.Val.IsValid(network.netmask) ? network.netmask
 								: '-';
@@ -1262,9 +1280,25 @@
 						$("#qz-devices-device-gw").val(gateway);
 
 						// update Devices.Device.[.label]
-						$("#qz-device-network").find('.label').text(device.ip);
-						$("#qz-devices-device-name-alarm").text(name);
-						$("#qz-device-wireless").find('.label').text(chanbw);
+						$("#qz-device-network").find('.label').text(ip);
+						$("#qz-device-wireless").find('.label').text(
+								rgn + '-' + freq + '/' + chanbw);
+
+						var h1 = mdesc+' - '+name;
+						if ($.Val.IsValid(ip)) {
+							h1 += (' - '+ip);
+						}
+						if ($.Val.IsValid(txpower)) {
+							h1 += (' - '+txpower+' dBm');
+						}
+						if ($.Val.IsValid(freq)) {
+							h1 += (' - '+freq+' MHz');
+						}
+						if ($.Val.IsValid(chanbw)) {
+							h1 += (' - '+chanbw+' MHz');
+						}
+						
+						$("#qz-devices-device-name-header").text(h1);
 					}
 
 					// update peers
@@ -1277,8 +1311,9 @@
 							: 0;
 					var peers = wireless && $.Val.IsValid(wireless.peers) ? wireless.peers
 							: null;
-					$("#qz-device-links").find('.label').html(peer_qty);
 					if (peer_qty > 0 && peers) {
+						$("#qz-device-links").find('.label').removeClass(
+								'yellow').addClass('green').html(peer_qty);
 						$
 								.each(
 										peers,
@@ -1329,6 +1364,8 @@
 											links_tbody_html += '</tr>';
 										});
 					} else {
+						$("#qz-device-links").find('.label').removeClass(
+								'green').addClass('yellow').html('-');
 						links_tbody_html = '<tr><td colspan="4">无线空闲（没有连接到其它设备）</td></tr>';
 					}
 					links_tbody.nextAll().remove().end().html(links_tbody_html);
@@ -1374,7 +1411,7 @@
 				return false;
 			},
 			DevicesList : function(data) {
-				if (data && data.qty) {
+				if (data) {
 					var ds = data.ds;
 					var total = ds.total;
 					var offline = ds.offline ? ds.offline : 0;
@@ -1390,10 +1427,10 @@
 					 * nav_devices.removeClass('green').addClass('red'); } else {
 					 * nav_devices.removeClass('red').addClass('green'); } }
 					 */
+					// update Devices.[LIST]
+					var list_header = $("#qz-devices-list-header");
+					list_header.nextAll().remove();
 					if (qty > 0) {
-						// update Devices.[LIST]
-						var list_header = $("#qz-devices-list-header");
-						list_header.nextAll().remove();
 						var list = data.devices;
 						$
 								.each(
@@ -1424,7 +1461,7 @@
 														+ ipaddr
 														+ ') '
 														+ name
-														+ '<div class="ui red label">-</div></a>';
+														+ '<div class="ui yellow label">-</div></a>';
 											}
 											list_header.after(html);
 										});
@@ -1452,9 +1489,17 @@
 
 						// select first result when done
 						devices.first().trigger('click');
+					} else {
+						// $.Lite.data.DeviceId = 0; 
+						// TODO: remove update device id
+						var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
+						list_header.after(html);
 					}
 				} else {
-
+					// $.Lite.data.DeviceId = 0; 
+					// TODO: remove update device id
+					var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
+					list_header.after(html);
 				}
 			},
 			DeviceConfig : function(data) {
