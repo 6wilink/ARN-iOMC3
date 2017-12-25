@@ -1,5 +1,5 @@
 ﻿# Host: 192.168.1.4  (Version 5.1.73)
-# Date: 2017-12-05 18:10:02
+# Date: 2017-12-25 19:51:04
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -20,13 +20,13 @@ CREATE TABLE `arn_auth` (
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_user` (`user`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "arn_auth"
 #
 
-INSERT INTO `arn_auth` VALUES (1,X'30',X'31',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2017-12-05 18:07:33'),(2,X'30',X'31',NULL,'Qige','qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2017-12-05 18:07:41');
+INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2017-12-25 19:48:38');
 
 #
 # Structure for table "arn_auth_group"
@@ -97,6 +97,7 @@ CREATE TABLE `arn_device_abb` (
 CREATE TABLE `arn_device_abb_peers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `devid` int(11) unsigned DEFAULT '0',
+  `realtime` enum('connected','unreachable') COLLATE latin1_general_ci DEFAULT NULL,
   `pwmac` varchar(18) COLLATE latin1_general_ci DEFAULT NULL,
   `pipaddr` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `psignal` tinyint(3) DEFAULT NULL,
@@ -136,15 +137,16 @@ CREATE TABLE `arn_device_cmd` (
 CREATE TABLE `arn_device_nw` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `devid` int(11) unsigned DEFAULT NULL,
-  `reachable` enum('unknown','online','offline') DEFAULT NULL,
-  `ipaddr` varchar(16) DEFAULT NULL,
-  `netmask` varchar(16) DEFAULT NULL COMMENT '255.255.255.0',
-  `gw` varchar(32) DEFAULT NULL,
-  `ifname` varchar(32) CHARACTER SET latin1 COLLATE latin1_general_ci DEFAULT NULL COMMENT 'lo,br-lan,eth0,wlan0,wlan0.sta1,bat0',
-  `vlan` varchar(16) CHARACTER SET latin1 COLLATE latin1_general_ci DEFAULT NULL,
+  `reachable` enum('unknown','online','offline') COLLATE latin1_general_ci DEFAULT NULL,
+  `ipaddr` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
+  `netmask` varchar(16) COLLATE latin1_general_ci DEFAULT NULL COMMENT '255.255.255.0',
+  `gw` varchar(32) COLLATE latin1_general_ci DEFAULT NULL,
+  `ifname` varchar(32) COLLATE latin1_general_ci DEFAULT NULL COMMENT 'lo,br-lan,eth0,wlan0,wlan0.sta1,bat0',
+  `vlan` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  PRIMARY KEY (`id`),
+  KEY `uniq_devid` (`devid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=DYNAMIC;
 
 #
 # Data for table "arn_device_nw"
