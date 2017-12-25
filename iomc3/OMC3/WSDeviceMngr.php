@@ -1,8 +1,9 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.29
+// by Qige <qigezhao@gmail.com> since 2017.11.29/2017.12.25
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
+//(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
 require_once BPATH . '/Common/BaseFilter.php';
 require_once BPATH . '/OMC3/OMCDeviceDAO.php';
 
@@ -21,7 +22,7 @@ final class WSDeviceMngr
     }
 
     // --------- --------- Search Device by id, keyword or all --------- ---------
-
+    
     // wrapper for search by id, search by keyword & all, verified since 2017.12.05
     static public function DeviceSearch($keyword = NULL, $deviceQueryId = NULL)
     {
@@ -33,7 +34,7 @@ final class WSDeviceMngr
         } else {
             $devices = self::deviceListSearchByKeyword(':all');
         }
-
+        
         $reply = array(
             'data' => array(
                 'ds' => self::DeviceStatistics(),
@@ -70,24 +71,25 @@ final class WSDeviceMngr
                 $records = OMCDeviceDAO::DeviceListSearchByKeyword($keyword);
                 break;
         }
-
+        
         if ($records && is_array($records)) {
             $reply = array();
             foreach ($records as $record) {
                 $did = BaseFilter::SearchKey($record, 'id');
                 $name = BaseFilter::SearchKey($record, 'name');
                 $ipaddr = BaseFilter::SearchKey($record, 'ipaddr');
+                $qty = OMCDeviceDAO::FetchDevicePeerQty($did);
                 $r = array(
                     'id' => $did,
                     'name' => $name,
                     'ipaddr' => $ipaddr,
-                    'peer_qty' => OMCDeviceDAO::FetchDevicePeerQty($did)
+                    'peer_qty' => (is_array($qty) ? current($qty) : 0)
                 );
                 $reply[] = $r;
             }
             return $reply;
         }
-
+        
         return $reply;
     }
 
@@ -100,7 +102,7 @@ final class WSDeviceMngr
     }
 
     // --------- --------- Fetch Device Details --------- --------- ---------
-
+    
     // TODO: fetch device thrpt, msg
     // including basic information, wireless, network, peers, thrpt
     static public function DeviceDetail($deviceQueryId = NULL)
@@ -111,7 +113,7 @@ final class WSDeviceMngr
             $device['wireless'] = self::deviceWirelessDetail($deviceQueryId);
             $device['thrpt'] = self::deviceThrptCalc($deviceQueryId);
             $device['msg_qty'] = self::deviceMsgQty($deviceQueryId);
-
+            
             // fre-format
             $reply = array(
                 'data' => array(
@@ -134,7 +136,7 @@ final class WSDeviceMngr
     {
         return OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
     }
-
+    
     // TODO: not verified since 2017.12.04
     static private function deviceWirelessDetail($deviceQueryId = NULL)
     {
@@ -175,14 +177,7 @@ final class WSDeviceMngr
     // TODO: not verified since 2017.12.04
     static private function DeviceStatistics()
     {
-        $total = self::DeviceListSearchByKeyword(':all');
-        $online = self::DeviceListSearchByKeyword(':online');
-        $offline = self::DeviceListSearchByKeyword(':offline');
-        $reply = array(
-            'total' => count($total),
-            'online' => count($online),
-            'offline' => count($offline)
-        );
+        $reply = OMCDeviceDAO::DeviceStatistics();
         return $reply;
     }
 

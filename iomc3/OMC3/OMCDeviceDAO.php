@@ -1,7 +1,10 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.20
+// by Qige <qigezhao@gmail.com> since 2017.11.20/2017.12.13/2017.12.25
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
+
+// by Qige <qigezhao@gmail.com> at 2017.12.21
+(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
 
 require_once BPATH . '/Common/BaseInterface.php';
 require_once BPATH . '/Common/BaseFilter.php';
@@ -15,9 +18,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
 
     private static $DB_DEVICE_TABLE = 'arn_device';
     private static $DB_DEVICE_CMD_TABLE = 'arn_device_cmd';
-
     private static $DB_DEVICE_ABB_TABLE = 'arn_device_abb';
-    private static $DB_DEVICE_PEER_TABLE = 'arn_device_abb_peers';
+    private static $DB_DEVICE_ABB_PEER_TABLE = 'arn_device_abb_peers';
     private static $DB_DEVICE_RADIO_TABLE = 'arn_device_radio';
     private static $DB_DEVICE_NETWORK_TABLE = 'arn_device_nw';
 
@@ -28,75 +30,54 @@ final class OMCDeviceDAO extends OMCBaseDAO
     private static $DB_DEVICE_LIMIT = 50;
 
     // --------- --------- --------- Common Query --------- --------- ---------
-    // warpper
-    static private function firstRecord($table = NULL, $field = NULL, $value = NULL)
-    {
-        if ($table && $field && $value) {
-            $limits = "limit 1";
-            $sql = "select id from {$table} where {$field}='{$value}' {$limits}";
-            $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
-            if ($records && is_array($records)) {
-                $firstRecord = current($records);
-                return $firstRecord;
-            }
-        }
-        return NULL;
-    }
-
-    // needed by: OMCDeviceMngr.findDeviceQueryId();
-    // verified since 2017.12.04
-    static public function DeviceQueryId($deviceId = NULL)
+    // verified since 2017.12.25
+    // 1. verified if record exists;
+    // 2. find device abb/radio/nw/peers record id;
+    // 3. fetch qty of record(s).
+    static public function FindRecordId($rets = NULL, $rtype = NULL, $filter = NULL)
     {
         $deviceQueryId = NULL;
-        if ($deviceId) {
-            // find device query id
-            $table = self::$DB_DEVICE_TABLE;
-            $firstRecord = self::firstRecord($table, 'wmac', $deviceId);
-            if ($firstRecord && is_array($firstRecord)) {
-                $deviceQueryId = current($firstRecord);
+
+        // return fields: default only return 'id'
+        $fields = $rets ? $rets : array('id');
+        if ($filter && is_array($filter)) {
+            switch($rtype) {
+                case 'abb':
+                    $table = self::$DB_DEVICE_ABB_TABLE;
+                    break;
+                case 'abb_peer':
+                    $table = self::$DB_DEVICE_ABB_PEER_TABLE;
+                    break;
+                case 'radio':
+                    $table = self::$DB_DEVICE_RADIO_TABLE;
+                    break;
+                case 'nw':
+                    $table = self::$DB_DEVICE_NETWORK_TABLE;
+                    break;
+                case 'device':
+                default:
+                    $table = self::$DB_DEVICE_TABLE;
+                    break;
             }
+            // find device query id
+            $deviceQueryId = self::FetchFieldsOfFirstRecord($table, $fields, $filter);
         }
         return $deviceQueryId;
     }
 
-    // needed by: OMCDeviceMngr.findDeviceQueryId();
-    // verified since 2017.12.04
-    static public function DeviceStatusQueryId($table = NULL, $deviceQueryId = NULL)
-    {
-        $deviceStatusQueryId = NULL;
-        if ($deviceQueryId && $table) {
-            // find device query id
-            $firstRecord = self::firstRecord($table, 'devid', $deviceQueryId);
-            if ($firstRecord && is_array($firstRecord)) {
-                $deviceStatusQueryId = current($firstRecord);
-            }
-        }
-        return $deviceStatusQueryId;
-    }
-
     // --------- --------- --------- Agent Mngr --------- --------- ---------
-    // verified since 2017.11.04
-    static public function NewDeviceFound($deviceId = NULL)
-    {
-        if ($deviceId && self::$DB_MYSQLI) {
-            $table = self::$DB_DEVICE_TABLE;
-            $sql = "insert into {$table}(wmac) values('{$deviceId}')";
-            $result = self::OMCDbQuery($sql, __FUNCTION__);
-        }
-    }
-
-    // verified since 2017.11.04
-    static public function DeviceExists($deviceId = NULL)
+    // verified since 2017.11.04|2017.12.21
+    static public function NewDeviceFound($data = NULL)
     {
         $table = self::$DB_DEVICE_TABLE;
-        return ($deviceId && self::firstRecord($table, 'wmac', $deviceId));
+        $result = self::Insert($table, $data, __FUNCTION__);
     }
 
-    // called by:
-    // 1. OMCDeviceMngr.deviceRadioUpdate()
-    // 2. self::DeviceSaveTs
-    static public function DeviceSave($deviceQueryId = NULL, $data = NULL)
+    // update device last time stamp by device record id
+    // verified since 2017.12.21
+    static public function DeviceSaveByRecordId($deviceQueryId = NULL, $data = NULL)
     {
+        $result = NULL;
         if ($deviceQueryId && is_numeric($deviceQueryId) && $deviceQueryId > 0) {
             $tableDevice = self::$DB_DEVICE_TABLE;
             
@@ -111,69 +92,67 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $sql = "update {$tableDevice} set {$updates} where {$conditions}";
             
             // execute & save
-            $result = self::OMCDbQuery($sql, __FUNCTION__);
+            $result = self::QueryBySql($sql, __FUNCTION__);
         }
+        return $result;
     }
 
-    static public function DeviceStatusSave($deviceQueryId = NULL, $where = NULL, $data = NULL)
+    // verified since 2017.12.25
+    static public function DeviceStatusSaveByRecordId($deviceQueryId = NULL, $ntype = NULL, $data = NULL, $flagInsertIfNoRecordFound = true)
     {
-        $deviceStatusQueryId = NULL;
-        
-        $deviceStatusTable = NULL;
-        // where to save
-        switch ($where) {
-            case 'abb':
-                $deviceStatusTable = self::$DB_DEVICE_ABB_TABLE;
-                break;
-            case 'radio':
-                $deviceStatusTable = self::$DB_DEVICE_RADIO_TABLE;
-                break;
-            case 'nw':
-            default:
-                $deviceStatusTable = self::$DB_DEVICE_NETWORK_TABLE;
-                break;
-        }
-        
-        if ($deviceQueryId && is_numeric($deviceQueryId) && $deviceQueryId > 0) {
-            $deviceStatusQueryId = self::DeviceStatusQueryId($deviceStatusTable, $deviceQueryId);
-        }
-        
-        // generate sql
-        $kv = array();
-        if ($deviceStatusQueryId && $deviceStatusQueryId > 0) {
-            $now = date('Y-m-d H:i:s');
-            $kv[] = "ts='{$now}'";
-            // update record
-            foreach ($data as $key => $val) {
-                $kv[] = "{$key}='{$val}'";
-            }
-            $updates = implode(',', $kv);
-            $conditions = "devid='{$deviceQueryId}'";
-            $sql = "update {$deviceStatusTable} set {$updates} where {$conditions}";
-        } else {
-            // insert record
-            $k = array(
-                'devid'
+        if ($deviceQueryId) {
+            $deviceStatusQueryId = NULL;
+            
+            $rtable = NULL;
+            $rfields = array('id');
+            $rfilter = array(
+                'devid' => $deviceQueryId
             );
-            $v = array(
-                $deviceQueryId
-            );
-            foreach ($data as $key => $val) {
-                $k[] = "{$key}";
-                $v[] = "'{$val}'";
+            // where to save
+            switch ($ntype) {
+                case 'abb':
+                    $rtable = self::$DB_DEVICE_ABB_TABLE;
+                    break;
+                case 'abb_peers':
+                    $rfilter['pwmac'] = BaseFilter::SearchKey('pwmac');
+                    $rtable = self::$DB_DEVICE_ABB_PEER_TABLE;
+                    break;
+                case 'radio':
+                    $rtable = self::$DB_DEVICE_RADIO_TABLE;
+                    break;
+                case 'nw':
+                default:
+                    // insert record
+                    $data['reachable'] = 'online';
+                    $rtable = self::$DB_DEVICE_NETWORK_TABLE;
+                    break;
             }
-            $fields = implode(',', $k);
-            $values = implode(',', $v);
-            $sql = "insert into {$deviceStatusTable}({$fields}) values({$values})";
+            
+            // record id, or doesn't exist
+            if ($deviceQueryId && is_numeric($deviceQueryId) && $deviceQueryId > 0) {
+                $deviceStatusQueryId = self::FetchFieldsOfFirstRecord($rtable, $rfields, $rfilter);
+            }
+            
+            // $flagInsertIfNoRecordFound: update [or insert]
+            $kv = array();
+            $sql = NULL;
+            if ($deviceStatusQueryId && $deviceStatusQueryId > 0) {
+                $data['reachable'] = 'online';
+                $rfilter = array(
+                    'id' => $deviceStatusQueryId
+                );
+                $result = self::Update($rtable, $data, $rfilter, __FUNCTION__);
+            } elseif ($flagInsertIfNoRecordFound) {
+                $data['devid'] = $deviceQueryId;
+                $result = self::Insert($rtable, $data, __FUNCTION__);
+            }
         }
-        
-        // execute & save
-        $result = self::OMCDbQuery($sql, __FUNCTION__);
     }
 
-    // insert into abb history
-    // TODO: prevent two or more agents running as daemon
-    static public function DeviceStatusHistorySave($deviceQueryId = NULL, $table = NULL, $data = NULL)
+    // insert into abb/radio/network history
+    // - prevent two or more agents running as daemon
+    // - verified since 2017.12.25
+    static public function DeviceStatusHistorySaveByRecordId($deviceQueryId = NULL, $table = NULL, $data = NULL)
     {
         $tableHistory = NULL;
         switch ($table) {
@@ -205,12 +184,13 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $values = implode(',', $v);
             $sql = "insert into {$tableHistory}({$fields}) values({$values})";
             
-            $result = self::OMCDbQuery($sql, __FUNCTION__);
+            $result = self::QueryBySql($sql, __FUNCTION__);
         }
     }
 
     // --------- --------- Agent Cmds from Admin --------- --------- ---------
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function CmdsToExecute($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
@@ -218,7 +198,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $qty = self::$DB_DEVICE_LIMIT;
             $limits = "limit {$qty}";
             $sql = "select cmd.cmd,cmd.ts from {$tableDeviceCmd} where devid='{$deviceQueryId}' {$limits}";
-            $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+            $records = self::FetchArrayBySql($sql, __FUNCTION__);
             $cmds = BaseFilter::SearchKey($records, 'cmd');
             return $cmds;
         }
@@ -226,8 +206,42 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
 
     // --------- --------- --------- Device List --------- --------- ---------
+    // verified since 2017.12.25
+    static public function DeviceStatistics()
+    {
+        $tables = array(
+            'arn_device as dev',
+            'arn_device_nw as nw'
+        );
+        $rfields = array(
+            'count(dev.id) as qty'
+        );
+        $joins = array(
+            'dev.id=nw.devid'
+        );
+        
+        // total, online, offline
+        $rfilters = array();
+        $qty = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
+        $total = BaseFilter::SearchKey($qty, 'qty');
+        
+        $rfilters['reachable'] = 'online';
+        $qty = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
+        $online = BaseFilter::SearchKey($qty, 'qty');
+        
+        $rfilters['reachable'] = 'offline';
+        $qty = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
+        $offline = BaseFilter::SearchKey($qty, 'qty');
+        return array(
+            'total' => $total ? $total : 0,
+            'online' => $online ? $online : 0,
+            'offline' => $offline ? offline : 0
+        );
+    }
+    
     // fetch device list, support device id or keyword search
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function DeviceListSearchById($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
@@ -243,12 +257,13 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $limits = "limit {$qty}";
             $conditions = "where dev.id=nw.devid and dev.id='{$deviceQueryId}'";
             $sql = "select {$fields} from {$tables} {$conditions} {$orderby} {$limits}";
-            return self::OMCDbFetchBySQL($sql);
+            return self::FetchArrayBySql($sql);
         }
         return NULL;
     }
-    
+
     // verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function DeviceListSearchByKeyword($keyword = NULL)
     {
         if ($keyword) {
@@ -269,14 +284,15 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 $limits = "limit {$qty}";
                 $conditions = "where dev.id=nw.devid and (dev.name like '%{$safeKw}%' or nw.ipaddr like '%{$safeKw}%')";
                 $sql = "select {$fields} from {$tables} {$conditions} {$orderby} {$limits}";
-                return self::OMCDbFetchBySQL($sql);
+                return self::FetchArrayBySql($sql);
             }
         }
         
         return self::DeviceListFetchAll();
     }
-    
+
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function DeviceListFetchByStatus($filterStatus = NULL)
     {
         $table1 = self::$DB_DEVICE_TABLE;
@@ -302,11 +318,12 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 break;
         }
         $sql = "select {$fields} from {$tables} {$conditions} {$orderby} {$limits}";
-        return self::OMCDbFetchBySQL($sql);
+        return self::FetchArrayBySql($sql);
     }
-    
+
     // --------- --------- --------- Device Details --------- --------- ---------
     // verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function FetchDeviceBasicDetail($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
@@ -317,15 +334,16 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $fields = 'dev.wmac,dev.name,dev.fw_ver,dev.hw_ver,nw.ipaddr,nw.netmask';
             $conditions = "dev.id=nw.devid and dev.id='{$deviceQueryId}'";
             $sql = "select {$fields} from {$tables} where {$conditions}";
-            $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+            $records = self::FetchArrayBySql($sql, __FUNCTION__);
             if ($records && is_array($records)) {
                 return current($records); // = $records[0]
             }
         }
         return NULL;
     }
-    
+
     // verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function FetchDeviceNetworkDetail($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
@@ -333,27 +351,27 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $fields = 'ipaddr,netmask,gw,ifname,vlan';
             $conditions = "devid='{$deviceQueryId}'";
             $sql = "select {$fields} from {$tables} where {$conditions}";
-            $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+            $records = self::FetchArrayBySql($sql, __FUNCTION__);
             if ($records && is_array($records)) {
                 return current($records); // = $records[0]
             }
         }
         return NULL;
     }
-    
-    
+
     // wrapper for WSDeviceMngr: search device that match conditions
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function FetchDevicePeerQty($deviceQueryId = NULL, $ptype = 'online')
     {
         if ($deviceQueryId) {
             $deviceQueryIdSafe = (int) $deviceQueryId;
             if ($deviceQueryIdSafe > 0) {
-                $table = self::$DB_DEVICE_PEER_TABLE;
+                $table = self::$DB_DEVICE_ABB_PEER_TABLE;
                 $fields = 'count(id) as qty';
                 $conditions = "devid='{$deviceQueryId}'";
                 $sql = "select {$fields} from {$table} where {$conditions}";
-                $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+                $records = self::FetchArrayBySql($sql, __FUNCTION__);
                 if ($records && is_array($records)) {
                     return current($records); // = $records[0]
                 }
@@ -363,6 +381,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
 
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.13
     static public function FetchDevicePeers($deviceQueryId = NULL, $ptype = 'online')
     {
         if ($deviceQueryId) {
@@ -372,7 +391,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 $fields = 'wmac,ipaddr,signal,rx,tx';
                 $conditions = "devid='{$deviceQueryId}'";
                 $sql = "select {$fields} from {$table} where {$conditions}";
-                $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+                $records = self::FetchArrayBySql($sql, __FUNCTION__);
                 if ($records && is_array($records)) {
                     return $records;
                 }
@@ -380,8 +399,6 @@ final class OMCDeviceDAO extends OMCBaseDAO
         }
         return NULL;
     }
-
-
 }
 
 ?>

@@ -18,7 +18,7 @@ final class OMCAuthDAO extends OMCBaseDAO
         if ($user && $passwd) {
             $table = self::$DB_AUTH_TABLE;
             $sql = "select id from {$table} where user='{$user}' and passwd=password('{$passwd}')";
-            $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+            $records = self::FetchArrayBySql($sql, __FUNCTION__);
             return (true && count($records));
         }
         return false;
@@ -31,7 +31,7 @@ final class OMCAuthDAO extends OMCBaseDAO
         if ($token) {
             $table = self::$DB_AUTH_TABLE;
             $sql = "select id from {$table} where token='{$token}'";
-            $records = self::OMCDbFetchBySQL($sql, __FUNCTION__);
+            $records = self::FetchArrayBySql($sql, __FUNCTION__);
             return ($token && count($records));
         }
         return false;
@@ -45,7 +45,7 @@ final class OMCAuthDAO extends OMCBaseDAO
             $now = date('Y-m-d H:i:s');
             $updates = "token='{$token}',host='{$host}',ts='{$now}'";
             $sql = "update {$table} set {$updates} where user='{$user}'";
-            $result = self::OMCDbQuery($sql, __FUNCTION__);
+            $result = self::QueryBySql($sql, __FUNCTION__);
             return $result;
         }
         return NULL;
@@ -64,7 +64,7 @@ final class OMCAuthDAO extends OMCBaseDAO
             $condtions = "token='{$token}' and host='{$host}'";
             
             $sql = "update {$table} set {$updates} where {$conditions}";
-            $result = self::OMCDbQuery($sql, __FUNCTION__);
+            $result = self::QueryBySql($sql, __FUNCTION__);
             return $result;
         }
         return NULL;

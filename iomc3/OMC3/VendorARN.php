@@ -1,5 +1,5 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.29
+// by Qige <qigezhao@gmail.com> since 2017.11.29/2017.12.25
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
@@ -89,6 +89,7 @@ final class VendorARN
                 $emode = 'mesh';
                 break;
             case 'adhoc':
+            case 'ad-hoc':
                 $emode = 'adhoc';
                 break;
             default:
@@ -101,8 +102,9 @@ final class VendorARN
     static public function ConvertEnumModeToMode($emode = NULL)
     {
         $mode = NULL;
-        switch ($emode) {
+        switch (strtolower($emode)) {
             case 'adhoc':
+            case 'ad-hoc':
                 $mode = 'Ad-Hoc';
                 break;
             case 'ap':
@@ -122,3 +124,5 @@ final class VendorARN
         return $mode;
     }
 }
+
+?>

@@ -16,6 +16,8 @@ $urlRaw = $_GET;
 $dataRaw = $_POST;
 
 // verified since 2017.11.04
+//var_dump($urlRaw);
+//var_dump($dataRaw);
 $response = WebServiceMngr::Run($envRaw, $urlRaw, $dataRaw);
 
 // control header here

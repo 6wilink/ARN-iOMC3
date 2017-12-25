@@ -1,5 +1,6 @@
 <?php
-// by Qige <qigezhao@gmail.com> at 2017.11.29
+// by Qige <qigezhao@gmail.com> since 2017.11.29
+// 2017.12.21
 
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
@@ -14,10 +15,10 @@ const ERROR_BAD_TOKEN = -8;
 
 const ERROR_UNKNOWN_AR_UA = -11;
 const ERROR_UNKNOWN_AR_DEVICEID = - 12;
-const ERROR_UNKNOWN_AR_FORMAT = - 13;
+const ERROR_EMPTY_AR_CONTENT = - 13;
 
 
-//
+// handle all error, errno
 final class OMCError
 {
 
@@ -35,11 +36,11 @@ final class OMCError
         $err = '';
         
         switch ($eid) {
-            case ERROR_UNKNOWN_AR_FORMAT:
-                $err = 'unknown_agent_report_data_format';
+            case ERROR_EMPTY_AR_CONTENT:
+                $err = 'empty_agent_report';
                 break;
             case ERROR_UNKNOWN_AR_DEVICEID:
-                $err = 'unknown_agent_report_device_id';
+                $err = 'unknown_agent_id_in_report';
                 break;
             case ERROR_BAD_TOKEN:
                 $err = 'bad_auth_token';
