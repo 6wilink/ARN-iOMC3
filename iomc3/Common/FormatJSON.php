@@ -7,10 +7,12 @@
 // php >= 5.2.0, 7.0; PECL json >= 1.2.0
 // FIXME: check php version first
 // if (version_compare("5.2", PHP_VERSION, ">"))
+// verified since 2017.12.28 17:11
 final class FormatJSON
 {
+
     private static $error = NULL;
-    
+
     static public function Encode($data = null)
     {
         if ($data) {
@@ -21,7 +23,7 @@ final class FormatJSON
         }
         return NULL;
     }
-    
+
     static public function Decode($data = NULL)
     {
         if ($data) {

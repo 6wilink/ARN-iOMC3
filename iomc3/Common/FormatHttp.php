@@ -5,9 +5,10 @@
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
 // Http: [page.ext?]k1=v1&l2=v2&k3=v3
+// verified since 2017.12.28 17:11
 final class FormatHttp
 {
-    
+
     static public function Encode($data = NULL)
     {
         $str = '';
@@ -29,7 +30,7 @@ final class FormatHttp
         }
         return $str;
     }
-    
+
     // k1=v1&k2=v2&k3=v3
     // "first=value&arr[]=foo+bar&arr[]=baz"
     static public function Decode($str = NULL)
@@ -40,17 +41,16 @@ final class FormatHttp
         }
         return $data;
     }
-    
+
     // reply/response
     static public function Response($data = NULL)
     {
         if ($data) {
-            echo($data);
+            echo ($data);
         } else {
-            echo("\n");
+            echo ("\n");
         }
     }
-
 }
 
 ?>

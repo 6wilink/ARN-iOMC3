@@ -13,6 +13,7 @@ final class OMCAuthDAO extends OMCBaseDAO
     private static $DB_AUTH_TABLE = 'arn_auth';
 
     // query if user & passwd pair matches, verified at 2017.12.05
+    // verified at 2017.12.28 17:42
     static public function IsUserPasswdValid($user = NULL, $passwd = NULL)
     {
         if ($user && $passwd) {
@@ -26,6 +27,7 @@ final class OMCAuthDAO extends OMCBaseDAO
 
     // query if token exists, verified at 2017.12.05
     // FIXME: add token timeout ts
+    // verified at 2017.12.28 17:42
     static public function IsTokenValid($token = NULL)
     {
         if ($token) {
@@ -38,6 +40,7 @@ final class OMCAuthDAO extends OMCBaseDAO
     }
 
     // save token to database, verified at 2017.12.05
+    // verified at 2017.12.28 17:42
     static public function SaveToken($user = NULL, $token = NULL, $host = NULL)
     {
         if ($user && $token && $host) {
@@ -53,8 +56,8 @@ final class OMCAuthDAO extends OMCBaseDAO
 
     // make sure it's logout from signin host/ipaddr
     // remove token from database
-    // TODO: not verified DeleteToken()
-    static public function DeleteToken($token = NULL, $host = NULL)
+    // TODO: not verified ExpireToken()
+    static public function ExpireToken($token = NULL, $host = NULL)
     {
         if ($token && $host) {
             $now = date('Y-m-d H:i:s');

@@ -16,7 +16,9 @@ final class OMCAgent3
     private $deviceQueryId = NULL;
     private $deviceId = NULL;
     
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:48
     public function __construct($deviceId = NULL)
     {
         $this->deviceId = $deviceId;
@@ -26,17 +28,20 @@ final class OMCAgent3
     }
     
     // verified since 2017.12.21
+    // verified at 2017.12.28 15:48
     public function __destruct()
     {
         self::Destroy();
     }
     
     // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:48
     public function Destroy()
     {
         OMCDeviceDAO::Disconnect();
     }
     
+    // verified at 2017.12.28 15:48
     public function Reset()
     {
         $this->deviceQueryId = NULL;
@@ -48,6 +53,7 @@ final class OMCAgent3
     // NOTE: don't save device id! verified since 2017.11.04
     // return device record id
     // verified since 2017.12.21
+    // verified at 2017.12.28 15:51
     private function findDeviceRecordId($deviceId = NULL)
     {
         $deviceQueryId = $this->deviceQueryId;
@@ -65,7 +71,9 @@ final class OMCAgent3
         return $deviceQueryId;
     }
     
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:51
     private function deviceExists($deviceId = NULL)
     {
         return ($deviceId && $this->findDeviceRecordId($deviceId));
@@ -73,6 +81,7 @@ final class OMCAgent3
     
     // save device record with wmac
     // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:51
     private function newDeviceFound($deviceId = NULL)
     {
         $data = array(
@@ -83,7 +92,9 @@ final class OMCAgent3
     
     //--------- --------- Save Agent's Report/Sync --------- --------- ---------
     
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:50
     public function DeviceLatestStatusFromAgent($data = NULL, $host = NULL)
     {
         $deviceQueryId = $this->deviceQueryId;
@@ -120,6 +131,7 @@ final class OMCAgent3
     
     // FIXME: remove "ts" update of device if too much query slow down the speed
     // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:55
     private function deviceHeatbeat($deviceQueryId = NULL, $host = NULL)
     {
         $now = date('Y-m-d H:i:s');
@@ -140,6 +152,7 @@ final class OMCAgent3
     
     // save "Agent's Report"
     // not verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:52
     private function DeviceUpdateAll($deviceQueryId = NULL, $deviceData = NULL, $host = NULL)
     {
         if ($deviceQueryId) {
@@ -158,6 +171,7 @@ final class OMCAgent3
     
     // update abb, insert peers
     // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:52
     private function deviceAbbUpdate($deviceQueryId = NULL, $kpi = NULL)
     {
         if ($deviceQueryId && $kpi) {
@@ -182,7 +196,8 @@ final class OMCAgent3
             );
             OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'abb', $data);
             
-            // TODO: insert peers
+            // insert peers
+            // if no peers, set all history peers offline
             $peer_qty = BaseFilter::SearchKey($kpi, 'peer_qty');
             $peers = BaseFilter::SearchKey($kpi, 'peers');
             if ($peer_qty > 0 && is_array($peers)) {
@@ -231,7 +246,9 @@ final class OMCAgent3
         }
     }
 
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:52
     private function deviceRadioUpdate($deviceQueryId = NULL, $kpi = NULL)
     {
         if ($deviceQueryId && $kpi) {
@@ -281,7 +298,9 @@ final class OMCAgent3
         }
     }
 
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:52
     private function deviceNetworkUpdate($deviceQueryId = NULL, $kpi= NULL, $host = NULL)
     {
         if ($deviceQueryId && $kpi) {

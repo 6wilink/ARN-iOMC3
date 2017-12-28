@@ -9,13 +9,16 @@
 require_once BPATH . '/Common/BaseFilter.php';
 require_once BPATH . '/OMC3/OMCAgent3.php';
 
-// verified at 2017.12.05|2017.12.21
+// verified at 2017.12.05
+// 2017.12.21 dev
+// verified at 2017.12.28 15:48
 final class WSAgentMngr
 {
 
     // find WMAC, query if device exists
     // if not exist, save device before update
-    // update device latest, verified at 2017.12.21
+    // update device latest, verified since 2017.12.21
+    // verified at 2017.12.28 15:49
     static public function ReportReceivedAndFetchCmds($host = NULL, $report = NULL)
     {
         $reply = NULL;

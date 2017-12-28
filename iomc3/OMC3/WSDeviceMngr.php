@@ -1,13 +1,17 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.29/2017.12.25
+// by Qige <qigezhao@gmail.com> since 2017.11.29
+// 2017.12.25/2017.12.28
+// verified at 2017.12.28 17:19
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
-//(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
+// by Qige <qigezhao@gmail.com> at 2017.12.21
+(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
+
 require_once BPATH . '/Common/BaseFilter.php';
 require_once BPATH . '/OMC3/OMCDeviceDAO.php';
 
-//
+// verified at 2017.12.28 17:19
 final class WSDeviceMngr
 {
 
@@ -23,7 +27,8 @@ final class WSDeviceMngr
 
     // --------- --------- Search Device by id, keyword or all --------- ---------
     
-    // wrapper for search by id, search by keyword & all, verified since 2017.12.05
+    // wrapper for search by id, search by keyword & all
+    // verified since 2017.12.28 16:05
     static public function DeviceSearch($keyword = NULL, $deviceQueryId = NULL)
     {
         // handle search by id or keyword
@@ -53,13 +58,14 @@ final class WSDeviceMngr
     }
 
     // support search pattens
+    // verified since 2017.12.28 16:06
     static private function deviceListSearchByKeyword($keyword = NULL)
     {
         $reply = NULL;
         $records = NULL;
         switch ($keyword) {
             case ':all':
-                $records = OMCDeviceDAO::deviceListFetchByStatus();
+                $records = OMCDeviceDAO::deviceListFetchByStatus(); // 2017.12.28 15:26
                 break;
             case ':online':
                 $records = OMCDeviceDAO::deviceListFetchByStatus('online');
@@ -101,7 +107,7 @@ final class WSDeviceMngr
         return $reply;
     }
 
-    // --------- --------- Fetch Device Details --------- --------- ---------
+    // --------- --------- Fetch Device Detail --------- --------- ---------
     
     // TODO: fetch device thrpt, msg
     // including basic information, wireless, network, peers, thrpt
@@ -142,7 +148,7 @@ final class WSDeviceMngr
     {
         return array(
             'peers' => NULL, //self::deviceWirelessPeers($deviceQueryId),
-            'peer_qty' => 0 //self::deviceWirelessPeerQty($deviceQueryId)
+            'peer_qty' => OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId)
         );
     }
 

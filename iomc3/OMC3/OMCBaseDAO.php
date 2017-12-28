@@ -1,22 +1,26 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.20/2017.12.13/2017.12.21
+// by Qige <qigezhao@gmail.com> since 2017.11.20
+// 2017.12.13/2017.12.21
+// 2017.12.28 FetchInMultiTables() verified
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
 // single database connection
+// verifed since 2017.12.28 16:55
 abstract class OMCBaseDAO
 {
 
     protected static $DB_MYSQLI = NULL;
 
-    // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.12
+    // verifed since 2017.12.21 16:55
     static public function Connect()
     {
         $conn = self::$DB_MYSQLI;
         if (! $conn) {
-            $conn = new mysqli(OMC_DB_HOST, OMC_DB_USER, OMC_DB_PASSWD, '', OMC_DB_PORT);
+            $conn = @new mysqli(OMC_DB_HOST, OMC_DB_USER, OMC_DB_PASSWD, '', OMC_DB_PORT);
             self::$DB_MYSQLI = $conn;
-            if ($conn) {
+            if (! $conn->connect_error) {
                 $conn->select_db(OMC_DB_NAME);
                 $conn->query('SET NAMES UTF8');
             }
@@ -24,6 +28,7 @@ abstract class OMCBaseDAO
     }
 
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:55
     static public function QueryBySql($sql = NULL, $from = NULL)
     {
         if (! self::$DB_MYSQLI) {
@@ -35,12 +40,13 @@ abstract class OMCBaseDAO
         
         if ($sql && self::$DB_MYSQLI) {
             $conn = self::$DB_MYSQLI;
-            return $conn->query($sql);
+            return @$conn->query($sql);
         }
         return NULL;
     }
 
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static private function FetchArray($result = NULL)
     {
         if ($result) {
@@ -55,6 +61,7 @@ abstract class OMCBaseDAO
 
     // wrapper for fetch
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static public function FetchArrayBySql($sql = NULL, $from = NULL)
     {
         if ($sql) {
@@ -64,8 +71,9 @@ abstract class OMCBaseDAO
         }
         return NULL;
     }
-    
+
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static public function Fetch($table = NULL, $rfields = NULL, $rfilter = NULL)
     {
         if ($table && $rfilter && is_array($rfilter)) {
@@ -79,15 +87,16 @@ abstract class OMCBaseDAO
             foreach ($rfilter as $k => $v) {
                 $kv[] = "{$k}='{$v}'";
             }
-            $conditions = implode(',', $kv);
+            $conditions = implode(' and ', $kv);
             
             $sql = "select {$fields} from {$table} where {$conditions}";
             return self::FetchArrayBySql($sql, __FUNCTION__);
         }
         return NULL;
     }
-    
-    static public function FetchInMultiTables($tables = NULL, $rfields = NULL, $joins = NULL, $rfilter = NULL)
+
+    // verifed since 2017.12.28 16:56
+    static public function FetchInMultiTables($tables = NULL, $rfields = NULL, $joins = NULL, $rfilter = NULL, $rsearch = NULL)
     {
         if ($tables && $joins && is_array($tables) && is_array($joins)) {
             $table = implode(',', $tables);
@@ -99,22 +108,40 @@ abstract class OMCBaseDAO
                 $fields = 'id';
             }
             
-            $kv = array();
-            foreach ($rfilter as $k => $v) {
-                $kv[] = "{$k}='{$v}'";
+            $conditions = '';
+            if ($rfilter && is_array($rfilter)) {
+                $kv = array();
+                foreach ($rfilter as $k => $v) {
+                    $kv[] = "{$k}='{$v}'";
+                }
+                $conditions = implode(',', $kv);
             }
-            $conditions = implode(',', $kv);
+            
+            $search = '';
+            if ($rsearch && is_array($rsearch)) {
+                $kv = array();
+                foreach ($rsearch as $k => $v) {
+                    $kv[] = "{$k} like '{$v}'";
+                }
+                $search = implode(' or ', $kv);
+            }
             
             $sql = "select {$fields} from {$table} where {$join}";
             if ($conditions != '') {
                 $sql .= " and {$conditions}";
             }
+            
+            if ($search != '') {
+                $sql .= " and ({$search})";
+            }
+            
             return self::FetchArrayBySql($sql, __FUNCTION__);
         }
         return NULL;
     }
-    
+
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static public function FetchFirstRecord($table = NULL, $rfields = NULL, $rfilter = NULL)
     {
         $records = self::Fetch($table, $rfields, $rfilter);
@@ -123,8 +150,9 @@ abstract class OMCBaseDAO
         }
         return NULL;
     }
-    
+
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static public function FetchFieldsOfFirstRecord($table = NULL, $rfields = NULL, $rfilter = NULL)
     {
         $record = self::FetchFirstRecord($table, $rfields, $rfilter);
@@ -135,6 +163,7 @@ abstract class OMCBaseDAO
     }
 
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static public function Insert($table = NULL, $data = NULL, $from = NULL)
     {
         if ($table && $data && is_array($data)) {
@@ -151,8 +180,9 @@ abstract class OMCBaseDAO
         }
         return NULL;
     }
-    
+
     // verifed since 2017.12.12|2017.12.21
+    // verifed since 2017.12.28 16:56
     static public function Update($table = NULL, $data = NULL, $filter = NULL, $from = NULL)
     {
         if ($table && $data && is_array($data) && $filter && is_array($filter)) {
@@ -174,28 +204,14 @@ abstract class OMCBaseDAO
         return NULL;
     }
 
-    // TODO: not verifed since 2017.12.12
-    static public function Search($table = NULL, $retFields = NULL, $filter = NULL)
+    // TODO: if delete record needed
+    static public function Delete($table = NULL, $filter = NULL, $from = NULL)
     {
-        if ($table && $filter && is_array($filter)) {
-            if ($retFields && is_array($retFields)) {
-                $fields = implode(',', $retFields);
-            } else {
-                $fields = 'id';
-            }
-            
-            $kv = array();
-            foreach ($filter as $k => $v) {
-                $kv[] = "{$k}='{$v}'";
-            }
-            $conditions = implode(',', $kv);
-            
-            $sql = "select {$fields} from {$table} where {$conditions}";
-            return self::FetchArrayBySql($sql);
-        }
+        ;
     }
 
     // verifed since 2017.12.12
+    // verifed since 2017.12.28 16:56
     static public function Disconnect()
     {
         $conn = self::$DB_MYSQLI;

@@ -1,13 +1,14 @@
 <?php
 // by Qige <qigezhao@gmail.com>
-// tech-preview: 2017.11.29
-// alpha: 2017.12.04/05|2017.12.21
+// since 2017.11.29
+// verified at 2017.12.28 17:14
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
-// by Qige <qigezhao@gmail.com> at 2017.12.21
+// by Qige <qigezhao@gmail.com> at 2017.12.28
 (! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
 
+require_once BPATH . '/Common/BaseEnv.php';
 require_once BPATH . '/Common/BaseFilter.php';
 require_once BPATH . '/Common/FormatJSON.php';
 require_once BPATH . '/Common/FormatHttp.php';
@@ -20,10 +21,12 @@ require_once BPATH . '/OMC3/WSError.php';
 // handle all request
 // partly verified since 2017.12.04
 // TODO: 1. audit hook ? 2. more "do"
+// verified at 2017.12.28 15:48
 final class WebServiceMngr
 {
 
     // FIXME: complete user agent list
+    // verified at 2017.12.28 15:47
     private static $USER_AGENT = array(
         'OMC3Agent',
         'omc3agent'
@@ -38,7 +41,9 @@ final class WebServiceMngr
         return NULL;
     }
 
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:44
     static public function Run($envRaw = NULL, $urlRaw = NULL, $dataRaw = NULL)
     {
         // var_dump($urlRaw, $dataRaw);
@@ -89,7 +94,9 @@ final class WebServiceMngr
     }
 
     // check user agent
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:46
     static private function actionsRequireUserAgent($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
     {
         $reply = NULL;
@@ -108,6 +115,7 @@ final class WebServiceMngr
     }
 
     // verified since 2017.11.04
+    // verified at 2017.12.28 15:46
     static private function actionsRequireAutherization($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
     {
         $token = BaseFilter::SearchKey($urlSafe, 'token');
@@ -132,17 +140,20 @@ final class WebServiceMngr
                     $token = BaseFilter::SearchKey($urlSafe, 'token');
                     $reply = WSAuth::Singout($host, $token);
                     break;
-                case 'config_load':
+                case 'options':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceConfigLoad($dqid);
                     break;
                 case 'config':
+                case 'save':
                 case 'set':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceConfigInQueue($dqid);
                     break;
                 case 'audit_all':
+                case 'audit':
                 default:
+                    self::EveryRequestHook();
                     $reply = OMCError::GetErrorInArray(ERROR_NONE);
                     break;
             }
@@ -153,6 +164,7 @@ final class WebServiceMngr
     }
 
     // verified since 2017.11.04
+    // verified at 2017.12.28 15:46
     static private function actionsAnonymous($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
     {
         $reply = NULL;
@@ -175,12 +187,14 @@ final class WebServiceMngr
     }
 
     // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:46
     static private function verifyAuthToken($token = NULL)
     {
         return ($token && WSAuth::IsTokenValid($token));
     }
 
     // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:46
     static private function verifyUserAgent($ua = NULL)
     {
         return ($ua && in_array($ua, self::$USER_AGENT));

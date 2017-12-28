@@ -1,5 +1,6 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.20/2017.12.13/2017.12.25
+// by Qige <qigezhao@gmail.com> since 2017.11.20
+// 2017.12.13/2017.12.25
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
@@ -30,10 +31,11 @@ final class OMCDeviceDAO extends OMCBaseDAO
     private static $DB_DEVICE_LIMIT = 50;
 
     // --------- --------- --------- Common Query --------- --------- ---------
-    // verified since 2017.12.25
     // 1. verified if record exists;
     // 2. find device abb/radio/nw/peers record id;
     // 3. fetch qty of record(s).
+    // verified since 2017.12.25
+    // verified at 2017.12.28 15:56
     static public function FindRecordId($rets = NULL, $rtype = NULL, $filter = NULL)
     {
         $deviceQueryId = NULL;
@@ -66,7 +68,9 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
 
     // --------- --------- --------- Agent Mngr --------- --------- ---------
-    // verified since 2017.11.04|2017.12.21
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:56
     static public function NewDeviceFound($data = NULL)
     {
         $table = self::$DB_DEVICE_TABLE;
@@ -75,6 +79,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
 
     // update device last time stamp by device record id
     // verified since 2017.12.21
+    // verified at 2017.12.28 15:56
     static public function DeviceSaveByRecordId($deviceQueryId = NULL, $data = NULL)
     {
         $result = NULL;
@@ -98,6 +103,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
 
     // verified since 2017.12.25
+    // verified at 2017.12.28 15:57
     static public function DeviceStatusSaveByRecordId($deviceQueryId = NULL, $ntype = NULL, $data = NULL, $flagInsertIfNoRecordFound = true)
     {
         if ($deviceQueryId) {
@@ -152,6 +158,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
     // insert into abb/radio/network history
     // - prevent two or more agents running as daemon
     // - verified since 2017.12.25
+    // verified at 2017.12.28 15:57
     static public function DeviceStatusHistorySaveByRecordId($deviceQueryId = NULL, $table = NULL, $data = NULL)
     {
         $tableHistory = NULL;
@@ -206,64 +213,91 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
 
     // --------- --------- --------- Device List --------- --------- ---------
-    // verified since 2017.12.25
-    static public function DeviceStatistics()
+    // verified since 2017.12.28 16:30
+    static private function fetchDeviceListByFilter($rfields = NULL, $rfilters = NULL, $rsearch = NULL)
     {
+        $tableDevice = self::$DB_DEVICE_TABLE;
+        $tableNetwork = self::$DB_DEVICE_NETWORK_TABLE;
         $tables = array(
-            'arn_device as dev',
-            'arn_device_nw as nw'
-        );
-        $rfields = array(
-            'count(dev.id) as qty'
+            "{$tableDevice} as dev",
+            "{$tableNetwork} as nw"
         );
         $joins = array(
             'dev.id=nw.devid'
         );
-        
+        return self::FetchInMultiTables($tables, $rfields, $joins, $rfilters, $rsearch);
+    }
+    
+    // verified since 2017.12.25
+    // verified since 2017.12.28 16:08
+    static public function DeviceStatistics()
+    {
+        $rfields = array(
+            'count(dev.id) as qty'
+        );
         // total, online, offline
         $rfilters = array();
-        $qty = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
+        $qty = self::fetchDeviceListByFilter($rfields, $rfilters);
         $total = BaseFilter::SearchKey($qty, 'qty');
         
-        $rfilters['reachable'] = 'online';
-        $qty = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
+        $rfilters['nw.reachable'] = 'online';
+        $qty = self::fetchDeviceListByFilter($rfields, $rfilters);
         $online = BaseFilter::SearchKey($qty, 'qty');
         
-        $rfilters['reachable'] = 'offline';
-        $qty = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
+        $rfilters['nw.reachable'] = 'offline';
+        $qty = self::fetchDeviceListByFilter($rfields, $rfilters);
         $offline = BaseFilter::SearchKey($qty, 'qty');
         return array(
             'total' => $total ? $total : 0,
             'online' => $online ? $online : 0,
-            'offline' => $offline ? offline : 0
+            'offline' => $offline ? $offline : 0
         );
     }
     
+    // verified since 2017.12.28 17:25
+    static public function DeviceListFetchByStatus($filterStatus = NULL)
+    {
+        $rfields = array(
+            'dev.id',
+            'dev.name',
+            'nw.ipaddr'
+        );
+        $rfilters = array();
+        switch ($filterStatus) {
+            case 'offline':
+                $rfilters['nw.reachable'] = 'offline';
+                break;
+            case 'online':
+                $rfilters['nw.reachable'] = 'online';
+                break;
+            default:
+                break;
+        }
+        
+        return self::fetchDeviceListByFilter($rfields, $rfilters);
+    }
+    
     // fetch device list, support device id or keyword search
-    // TODO: not verified since 2017.11.04
-    // TODO: not verified since 2017.12.13
+    // verified since 2017.12.28 17:25
     static public function DeviceListSearchById($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
-            $table1 = self::$DB_DEVICE_TABLE;
-            $table2 = self::$DB_DEVICE_NETWORK_TABLE;
+            $rfields = array(
+                'dev.id',
+                'dev.name',
+                'nw.ipaddr'
+            );
+            $rfilter = array(
+                'dev.id' => $deviceQueryId
+            );
             
-            $tables = "{$table1} as dev, {$table2} as nw";
-            $fields = 'dev.id,dev.name,nw.ipaddr';
-            
-            $orderby = ' order by dev.id desc';
-            
-            $qty = self::$DB_DEVICE_LIMIT;
-            $limits = "limit {$qty}";
-            $conditions = "where dev.id=nw.devid and dev.id='{$deviceQueryId}'";
-            $sql = "select {$fields} from {$tables} {$conditions} {$orderby} {$limits}";
-            return self::FetchArrayBySql($sql);
+            return self::fetchDeviceListByFilter($rfields, $rfilter);
         }
         return NULL;
     }
 
     // verified since 2017.11.04
-    // TODO: not verified since 2017.12.13
+    // verified since 2017.12.28 17:25
     static public function DeviceListSearchByKeyword($keyword = NULL)
     {
         if ($keyword) {
@@ -272,56 +306,38 @@ final class OMCDeviceDAO extends OMCBaseDAO
             if ($safeQid > 0) {
                 return self::DeviceListSearchById($safeQid);
             } else if ($safeKw) {
-                $table1 = self::$DB_DEVICE_TABLE;
-                $table2 = self::$DB_DEVICE_NETWORK_TABLE;
-                
-                $tables = "{$table1} as dev, {$table2} as nw";
-                $fields = 'dev.id,dev.name,nw.ipaddr';
-                
-                $orderby = ' order by dev.id desc';
-                
-                $qty = self::$DB_DEVICE_LIMIT;
-                $limits = "limit {$qty}";
-                $conditions = "where dev.id=nw.devid and (dev.name like '%{$safeKw}%' or nw.ipaddr like '%{$safeKw}%')";
-                $sql = "select {$fields} from {$tables} {$conditions} {$orderby} {$limits}";
-                return self::FetchArrayBySql($sql);
+                $rfields = array(
+                    'dev.id',
+                    'dev.name',
+                    'nw.ipaddr'
+                );
+                $rsearch = array(
+                    'dev.name' => "%{$safeKw}%",
+                    'nw.ipaddr' => "%{$safeKw}%"
+                );
+                return self::fetchDeviceListByFilter($rfields, NULL, $rsearch);
             }
         }
         
         return self::DeviceListFetchAll();
     }
 
-    // TODO: not verified since 2017.11.04
-    // TODO: not verified since 2017.12.13
-    static public function DeviceListFetchByStatus($filterStatus = NULL)
-    {
-        $table1 = self::$DB_DEVICE_TABLE;
-        $table2 = self::$DB_DEVICE_NETWORK_TABLE;
-        
-        $tables = "{$table1} as dev, {$table2} as nw";
-        $fields = 'dev.id,dev.name,nw.ipaddr';
-        
-        $orderby = ' order by dev.id desc';
-        
-        $qty = self::$DB_DEVICE_LIMIT;
-        $limits = "limit {$qty}";
-        switch ($filterStatus) {
-            case 'offline':
-                $conditions = "where dev.id=nw.devid and nw.reachable='offline'";
-                break;
-            case 'online':
-                $conditions = "where dev.id=nw.devid and nw.reachable='online'";
-                break;
-            case 'all':
-            default:
-                $conditions = "where dev.id=nw.devid";
-                break;
-        }
-        $sql = "select {$fields} from {$tables} {$conditions} {$orderby} {$limits}";
-        return self::FetchArrayBySql($sql);
-    }
 
     // --------- --------- --------- Device Details --------- --------- ---------
+    static private function fetchDeviceDetailByFilter($rfields = NULL, $rfilters = NULL, $rsearch = NULL)
+    {
+        $tableDevice = self::$DB_DEVICE_TABLE;
+        $tableNetwork = self::$DB_DEVICE_NETWORK_TABLE;
+        $tables = array(
+            "{$tableDevice} as dev",
+            "{$tableNetwork} as nw"
+        );
+        $joins = array(
+            'dev.id=nw.devid'
+        );
+        return self::FetchInMultiTables($tables, $rfields, $joins, $rfilters, $rsearch);
+    }
+    
     // verified since 2017.11.04
     // TODO: not verified since 2017.12.13
     static public function FetchDeviceBasicDetail($deviceQueryId = NULL)
@@ -329,12 +345,25 @@ final class OMCDeviceDAO extends OMCBaseDAO
         if ($deviceQueryId) {
             $table1 = self::$DB_DEVICE_TABLE;
             $table2 = self::$DB_DEVICE_NETWORK_TABLE;
-            
-            $tables = "{$table1} as dev, {$table2} as nw";
-            $fields = 'dev.wmac,dev.name,dev.fw_ver,dev.hw_ver,nw.ipaddr,nw.netmask';
-            $conditions = "dev.id=nw.devid and dev.id='{$deviceQueryId}'";
-            $sql = "select {$fields} from {$tables} where {$conditions}";
-            $records = self::FetchArrayBySql($sql, __FUNCTION__);
+            $tables = array(
+                "{$table1} as dev", 
+                "{$table2} as nw"
+            );
+            $rfields = array(
+                'dev.wmac',
+                'dev.name',
+                'dev.fw_ver',
+                'dev.hw_ver',
+                'nw.ipaddr',
+                'nw.netmask'
+            );
+            $joins = array(
+                'dev.id=nw.devid'
+            );
+            $rfilters = array(
+                'dev.id' => $deviceQueryId
+            );
+            $records = self::FetchInMultiTables($tables, $rfields, $joins, $rfilters);
             if ($records && is_array($records)) {
                 return current($records); // = $records[0]
             }
@@ -348,10 +377,17 @@ final class OMCDeviceDAO extends OMCBaseDAO
     {
         if ($deviceQueryId) {
             $tables = self::$DB_DEVICE_NETWORK_TABLE;
-            $fields = 'ipaddr,netmask,gw,ifname,vlan';
-            $conditions = "devid='{$deviceQueryId}'";
-            $sql = "select {$fields} from {$tables} where {$conditions}";
-            $records = self::FetchArrayBySql($sql, __FUNCTION__);
+            $fields = array(
+                'ipaddr',
+                'netmask',
+                'gw',
+                'ifname',
+                'vlan'
+            );
+            $rfilters = array(
+                'devid' => $deviceQueryId
+            );
+            $records = self::Fetch($tables, $fields, $rfilters, __FUNCTION__);
             if ($records && is_array($records)) {
                 return current($records); // = $records[0]
             }
@@ -368,13 +404,13 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $deviceQueryIdSafe = (int) $deviceQueryId;
             if ($deviceQueryIdSafe > 0) {
                 $table = self::$DB_DEVICE_ABB_PEER_TABLE;
-                $fields = 'count(id) as qty';
-                $conditions = "devid='{$deviceQueryId}'";
-                $sql = "select {$fields} from {$table} where {$conditions}";
-                $records = self::FetchArrayBySql($sql, __FUNCTION__);
-                if ($records && is_array($records)) {
-                    return current($records); // = $records[0]
-                }
+                $rfields = array(
+                    'count(id) as qty'
+                );
+                $rfilter = array(
+                    'devid' => "{$deviceQueryId}"
+                );
+                return self::FetchFieldsOfFirstRecord($table, $rfields, $rfilter); // 2017.12.28 15:29
             }
         }
         return 0;
