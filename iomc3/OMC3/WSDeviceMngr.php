@@ -26,6 +26,13 @@ final class WSDeviceMngr
     }
 
     // --------- --------- Search Device by id, keyword or all --------- ---------
+    // verified since 2017.12.28 17:00
+    // reserved wrapper
+    static private function deviceStatistics()
+    {
+        $reply = OMCDeviceDAO::DeviceStatistics();
+        return $reply;
+    }
     
     // wrapper for search by id, search by keyword & all
     // verified since 2017.12.28 16:05
@@ -42,7 +49,7 @@ final class WSDeviceMngr
         
         $reply = array(
             'data' => array(
-                'ds' => self::DeviceStatistics(),
+                'ds' => self::deviceStatistics(),
                 'qty' => count($devices),
                 'devices' => $devices
             )
@@ -84,12 +91,12 @@ final class WSDeviceMngr
                 $did = BaseFilter::SearchKey($record, 'id');
                 $name = BaseFilter::SearchKey($record, 'name');
                 $ipaddr = BaseFilter::SearchKey($record, 'ipaddr');
-                $qty = OMCDeviceDAO::FetchDevicePeerQty($did);
+                $qty = self::deviceAbbPeerQty($did, 'online');
                 $r = array(
                     'id' => $did,
                     'name' => $name,
                     'ipaddr' => $ipaddr,
-                    'peer_qty' => (is_array($qty) ? current($qty) : 0)
+                    'peer_qty' => (is_numeric($qty) ? (int) $qty : 0)
                 );
                 $reply[] = $r;
             }
@@ -103,22 +110,36 @@ final class WSDeviceMngr
     // if $filterStatus not given, return all
     static private function deviceListFetchByStatus($filterStatus = NULL)
     {
-        $reply = OMCDeviceDAO::DeviceListFetchByStatus($filterStatus);
-        return $reply;
+        $records = OMCDeviceDAO::DeviceListFetchByStatus($filterStatus);
+        return $records;
     }
 
     // --------- --------- Fetch Device Detail --------- --------- ---------
-    
-    // TODO: fetch device thrpt, msg
-    // including basic information, wireless, network, peers, thrpt
+    // answer to Ajax: do=detail&did=<n>&token=<token>
     static public function DeviceDetail($deviceQueryId = NULL)
     {
         if ($deviceQueryId) {
-            $device = self::deviceBasicDetail($deviceQueryId);
+            // data.device
+            $device = array();
+            // device: .wmac, .base, .mac, .hw_ver, .fw_ver, .wireless, .network, .thrpt, .msg
+            $device['basic'] = self::deviceBasicDetail($deviceQueryId);
+            // device.wireless
+            $deivce['wireless'] = array();
+            // device.wireless.abb: .ssid, .mode
+            $device['abb'] = self::deviceAbbDetail($deviceQueryId);
+            $peers = self::deviceAbbPeers($deviceQueryId);
+            $device['abb']['peer_qty'] = count($peers);
+            $device['abb']['peers'] = $peers;
+            // device.wireless.radio: .region, .channel, .txpower, .watt, .chanbw
+            $device['radio'] = self::deviceRadioDetail($deviceQueryId);
+            
+            // device.network: .ifname, .vlan, .ipaddr, .netmask, .gateway
             $device['network'] = self::deviceNetworkDetail($deviceQueryId);
-            $device['wireless'] = self::deviceWirelessDetail($deviceQueryId);
-            $device['thrpt'] = self::deviceThrptCalc($deviceQueryId);
-            $device['msg_qty'] = self::deviceMsgQty($deviceQueryId);
+            // device.thrpt: .qty, .ifname_rxtx
+            $device['thrpt'] = self::deviceThrptCalc($deviceQueryId); // TODO: calc based on report
+            
+            // device.msg_qty
+            $device['msg_qty'] = self::deviceMsgQty($deviceQueryId); // TODO: add msg query
             
             // fre-format
             $reply = array(
@@ -126,44 +147,55 @@ final class WSDeviceMngr
                     'device' => $device
                 )
             );
+            //var_dump($device);
             return $reply;
         }
         return NULL;
     }
 
-    // verified since 2017.12.04
+    // reserved wrapper
+    // verified since 2018.01.03 12:39
     static private function deviceBasicDetail($deviceQueryId = NULL)
     {
-        return OMCDeviceDAO::FetchDeviceBasicDetail($deviceQueryId);
-    }
-
-    // verified since 2017.12.04
-    static private function deviceNetworkDetail($deviceQueryId = NULL)
-    {
-        return OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
+        $record = OMCDeviceDAO::FetchDeviceBasicDetail($deviceQueryId);
+        return $record;
     }
     
-    // TODO: not verified since 2017.12.04
-    static private function deviceWirelessDetail($deviceQueryId = NULL)
+    // reserved wrapper
+    // verified since 2018.01.03 12:39
+    static private function deviceAbbDetail($deviceQueryId = NULL)
     {
-        return array(
-            'peers' => NULL, //self::deviceWirelessPeers($deviceQueryId),
-            'peer_qty' => OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId)
-        );
+        $record = OMCDeviceDAO::FetchDeviceAbbDetail($deviceQueryId);
+        return $record;
     }
-
-    // TODO: not verified since 2017.12.04
-    static private function deviceWirelessPeers($deviceQueryId = NULL)
+    // verified since 2018.01.03 12:25
+    static private function deviceAbbPeerQty($deviceQueryId = NULL)
     {
-        return OMCDeviceDAO::FetchDevicePeers($deviceQueryId, 'online');
+        $records = OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId, 'online');
+        return $records;
     }
-
-    // TODO: not verified since 2017.12.04
-    static private function deviceWirelessPeerQty($deviceQueryId = NULL)
+    // verified since 2018.01.03 12:41
+    static private function deviceAbbPeers($deviceQueryId = NULL)
     {
-        return OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId, 'online');
+        $records = OMCDeviceDAO::FetchDevicePeers($deviceQueryId, 'online');
+        return $records;
     }
-
+    
+    // verified since 2018.01.03 12:39
+    static private function deviceRadioDetail($deviceQueryId = NULL)
+    {
+        $record = OMCDeviceDAO::FetchDeviceRadioDetail($deviceQueryId);
+        return $record;
+    }
+    
+    // verified since 2017.12.04
+    // verified since 2018.01.03 12:39
+    static private function deviceNetworkDetail($deviceQueryId = NULL)
+    {
+        $record = OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
+        return $record;
+    }
+    
     // TODO: not verified since 2017.12.04
     static private function deviceThrptCalc($deviceQueryId = NULL)
     {
@@ -178,13 +210,6 @@ final class WSDeviceMngr
                 )
             )
         );
-    }
-
-    // TODO: not verified since 2017.12.04
-    static private function DeviceStatistics()
-    {
-        $reply = OMCDeviceDAO::DeviceStatistics();
-        return $reply;
     }
 
     // TODO: search database by wmac or devid

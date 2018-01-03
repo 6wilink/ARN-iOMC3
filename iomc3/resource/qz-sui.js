@@ -3,7 +3,7 @@
 (function($) {
 	$.extend({
 		SUIInit : function() {
-			console.log('SematicUI init');
+			//console.log('SematicUI init');
 			$('.ui.model').modal({
 				inverted : true
 			}).modal('hide');

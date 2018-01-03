@@ -97,7 +97,7 @@
 			var token = $.Lite.Url.TOKEN();
 			var section = $.Lite.Url.Section();
 			var did = $.Lite.Url.DeviceID();
-			console.log('$.Lite.Start said: t/s/d =', token, section, did);
+			//console.log('$.Lite.Start said: t/s/d =', token, section, did);
 
 			// {TOKEN} will be validated when send Ajax requests
 			// and will be redirect to Signin if error = "noauth"
@@ -547,7 +547,7 @@
 	$.BG = {
 		// call for ARN.iOMC3.Audit result
 		TimerStartAll : function() {
-			console.log('$.BG.AuditStart() called');
+			//console.log('$.BG.AuditStart() called');
 			// $.BG.UITmrAdd.SyncAll();
 			$.BG.UITmrAdd.DeviceFetchLatest();
 			// $.BG.UI.NavAlarms(0);
@@ -889,7 +889,7 @@
 
 					// Ajax search keyword, then update Devices [LIST]
 					$("#qz-devices-search").SUILoaderShow();
-					console.log('keyword of before request =', kw, keyword);
+					//console.log('keyword of before request =', kw, keyword);
 					$.Ajax.Query(url, null, $.CB.CB_DevicesDone,
 							$.CB.CB_DevicesError);
 				}
@@ -1193,17 +1193,110 @@
 			}
 		},
 		Update : {
+            DeviceKPIPeers: function(peers, peer_qty) {
+                //console.log(peer_qty, peers);
+                var links_tbody = $("#qz-device-links-detail")
+                        .find('tbody');
+                var links_tbody_html = '';
+                if ($.Val.IsArray(peers) && $.Val.IsValid(peer_qty)) {
+					// update peers
+                    $("#qz-device-links").find('.label').removeClass(
+                            'yellow').addClass('green').html(peer_qty);
+                    $.each(
+                        peers,
+                        function(idx, peer) {
+                            var pwmac = peer
+                                    && $.Val.IsValid(peer.pwmac) ? peer.pwmac
+                                    : '-';
+                            var psignal = peer
+                                    && $.Val.IsValid(peer.psignal) ? peer.psignal
+                                    : '-';
+                            var pipaddr = peer
+                                    && $.Val.IsValid(peer.pipaddr) ? peer.pipaddr
+                                    : '-';
+                            var prx = peer
+                                    && $.Val
+                                            .IsValid(peer.prx) ? peer.prx
+                                    : '-';
+                            var rx = prx.split(',');
+                            var ptx = peer
+                                    && $.Val
+                                            .IsValid(peer.ptx) ? peer.ptx
+                                    : '-';
+                            var tx = ptx.split(',');
+
+                            var desc = pwmac + ' ( ' + pipaddr + ' )';
+                            links_tbody_html += '<tr>';
+                            links_tbody_html += '<td>' + desc
+                                    + '</td>';
+                            links_tbody_html += '<td>' + psignal + ' dBm'
+                                    + '</td>';
+                            links_tbody_html += '<td>' + prx
+                                    + '</td>';
+                            links_tbody_html += '<td>' + ptx
+                                    + '</td>';
+                            links_tbody_html += '</tr>';
+                        });
+                } else {
+                    $("#qz-device-links").find('.label').removeClass(
+                            'green').addClass('yellow').html('-');
+                    links_tbody_html = '<tr><td class="disabled" colspan="4">无线空闲（没有连接到其它设备）</td></tr>';
+                }
+                links_tbody.nextAll().remove().end().html(links_tbody_html);
+            },
+            DeviceKPIThrpt: function(thrpt) {
+                var thrpt_tbody = $("#qz-device-thrpt-detail")
+                        .find('tbody');
+                var thrpt_tbody_html = '', icon_html = '0+0 Mbps';
+                if ($.Val.IsValid(thrpt)) {
+					// update network
+					// console.log('Device Network');
+					// TODO: handle unit Kbps & Mbps
+					var thrpt_qty = thrpt && $.Val.IsValid(thrpt.qty) ? thrpt.qty
+							: 0;
+					var rxtx = thrpt && $.Val.IsValid(thrpt.rxtx) ? thrpt.rxtx
+							: 0;
+					if (thrpt_qty > 0 && $.Val.IsArray(rxtx)) {
+						var total_dl = 0, total_ul = 0, total_unit = 'Mbps';
+						$.each(rxtx, function(idx, rt) {
+							var desc = rt.ifname;
+							var unit = rt.unit;
+							var dl = rt.rx, ul = rt.tx;
+							var dlul = dl + ul;
+							thrpt_tbody_html += '<tr>';
+							thrpt_tbody_html += '<td>' + desc + '</td>';
+							thrpt_tbody_html += '<td>' + dlul.toFixed(3) + ' '
+									+ unit + '</td>';
+							thrpt_tbody_html += '<td>' + dl + ' ' + unit
+									+ '</td>';
+							thrpt_tbody_html += '<td>' + ul + ' ' + unit
+									+ '</td>';
+							thrpt_tbody_html += '</tr>';
+							total_dl += dl;
+							total_ul += ul;
+						});
+						icon_html = total_dl.toFixed(3) + '+'
+								+ total_ul.toFixed(3) + total_unit;
+					}
+                } else {
+                    icon_html = '0+0 Mbps';
+                    thrpt_tbody_html = '<tr><td colspan="4">正在统计，请稍候</td></tr>';
+                }
+                $("#qz-device-thrpt").find('.label').html(icon_html);
+                thrpt_tbody.nextAll().remove().end().html(thrpt_tbody_html);
+            },
 			Device : function(data) {
 				// console.log(data.device, data.device.mac);
 				if (data) {
 					var device = $.Val.IsValid(data.device) ? data.device
 							: null;
-					var wmac = device && $.Val.IsValid(device.wmac) ? device.wmac
+					var basic = device && $.Val.IsValid(device.basic) ? device.basic
 							: null;
-
-					var base = device && $.Val.IsValid(device.base) ? device.base
+					var abb = device && $.Val.IsValid(device.abb) ? device.abb
 							: null;
-					var wireless = device && $.Val.IsValid(device.wireless) ? device.wireless
+					var peers = abb && $.Val.IsValid(abb.peers) ? abb.peers
+							: null;
+					var radio = device && $.Val.IsValid(device.radio) ? device.radio
 							: null;
 					var network = device && $.Val.IsValid(device.network) ? device.network
 							: null;
@@ -1212,56 +1305,64 @@
 					var msg = device && $.Val.IsValid(device.msg) ? device.msg
 							: null;
 
-					if (msg) {
-						var msg_qty = msg && $.Val.IsValid(msg.msg)
-					}
-
+                    var h1 = '';
+                    var wmac = basic && $.Val.IsValid(basic.wmac) ? basic.wmac
+                            : null;
 					if (wmac) {
 						var name = $.Val.IsValid(device.name) ? device.name
 								: '未命名新设备';
-						var mac = $.Val.IsValid(device.mac) ? device.mac : '-';
+						var mac = $.Val.IsValid(device.mac) ? device.mac
+                                : null;
 						var hw_ver = $.Val.IsValid(device.hw_ver) ? device.hw_ver
 								: '-';
 						var fw_ver = $.Val.IsValid(device.fw_ver) ? device.fw_ver
 								: '-';
 
 						$("#qz-devices-device-name").val(name);
-						$("#qz-devices-device-id").val(wmac + ', ' + mac);
+						$("#qz-devices-device-id").val(mac ? wmac + ', ' + mac : wmac);
 						$("#qz-devices-device-hwver").val(hw_ver);
 						$("#qz-devices-device-fwver").val(fw_ver);
-
-						var ssid = base && $.Val.IsValid(base.ssid) ? base.ssid
+                    }
+                    if (abb) {
+						var ssid = abb && $.Val.IsValid(abb.ssid) ? abb.ssid
 								: '-';
-						var wireless = $.Val.IsValid(device.wireless) ? device.wireless
-								: null;
-
 						var mdesc = $.GWS
-								.Mode(base && $.Val.IsValid(base.mode) ? base.mode
+								.Mode(abb && $.Val.IsValid(abb.emode) ? abb.emode
 										: 0);
-						var rgn = wireless && $.Val.IsValid(wireless.region) ? wireless.region
-								: 0;
-						var channel = wireless
-								&& $.Val.IsValid(wireless.channel) ? wireless.channel
-								: 0;
-						// var freq = wireless && $.Val.IsValid(wireless.freq) ?
-						// wireless.freq : 0;
-						var txpower = wireless
-								&& $.Val.IsValid(wireless.txpower) ? wireless.txpower
-								: 0;
-						var watt = wireless && $.Val.IsValid(wireless.watt) ? wireless.watt
-								: 0;
-						var chanbw = wireless && $.Val.IsValid(wireless.chanbw) ? wireless.chanbw
-								: 0;
+						var rgn = radio && $.Val.IsValid(radio.region) ? radio.region
+								: '-';
+						var channel = radio && $.Val.IsValid(radio.channel) ? radio.channel
+								: '-';
+						var txpower = radio && $.Val.IsValid(radio.txpwr) ? radio.txpwr
+								: '-';
+						var watt = radio && $.Val.IsValid(radio.watt) ? radio.watt
+								: '-';
+						var chanbw = radio && $.Val.IsValid(radio.chanbw) ? radio.chanbw
+								: '-';
 
-						var freq = $.GWS.Freq(rgn, channel);
-						var tdesc = $.GWS.Txpower(txpower, watt);
-
+                        var freq = $.GWS.Freq(rgn, channel);
 						$("#qz-devices-device-mode").val(mdesc);
 						$("#qz-devices-device-ssid").val(ssid);
 						$("#qz-devices-device-freq").val(freq + ' MHz');
-						$("#qz-devices-device-txpower").val(tdesc);
+						$("#qz-devices-device-txpower").val($.GWS.Txpower(txpower, watt));
 						$("#qz-devices-device-chanbw").val(chanbw + ' MHz');
-
+                        
+                        // label
+						$("#qz-device-wireless").find('.label').text(
+								rgn + '-' + freq + '/' + chanbw);
+                    
+                        h1 = mdesc+' - '+name;
+                        if ($.Val.IsValid(txpower)) {
+                            h1 += (' - '+txpower+' dBm');
+                        }
+                        if ($.Val.IsValid(freq)) {
+                            h1 += (' - '+freq+' MHz');
+                        }
+                        if ($.Val.IsValid(chanbw)) {
+                            h1 += (' - '+chanbw+' MHz');
+                        }
+                    }
+                    if (network) {
 						var ifname = network && $.Val.IsValid(network.ifname) ? network.ifname
 								: '-';
 						var vlan = network && $.Val.IsValid(network.vlan) ? network.vlan
@@ -1281,131 +1382,22 @@
 
 						// update Devices.Device.[.label]
 						$("#qz-device-network").find('.label').text(ip);
-						$("#qz-device-wireless").find('.label').text(
-								rgn + '-' + freq + '/' + chanbw);
+                        if ($.Val.IsValid(ip)) {
+                            h1 += (' - '+ip);
+                        }
+                    }
 
-						var h1 = mdesc+' - '+name;
-						if ($.Val.IsValid(ip)) {
-							h1 += (' - '+ip);
-						}
-						if ($.Val.IsValid(txpower)) {
-							h1 += (' - '+txpower+' dBm');
-						}
-						if ($.Val.IsValid(freq)) {
-							h1 += (' - '+freq+' MHz');
-						}
-						if ($.Val.IsValid(chanbw)) {
-							h1 += (' - '+chanbw+' MHz');
-						}
-						
-						$("#qz-devices-device-name-header").text(h1);
-					}
-
-					// update peers
-					// console.log('Device Peers');
-					var links_tbody = $("#qz-device-links-detail")
-							.find('tbody');
-					var links_tbody_html = '';
-
-					var peer_qty = wireless && $.Val.IsValid(wireless.peer_qty) ? wireless.peer_qty
+                    // set header
+                    $("#qz-devices-device-name-header").text(h1);
+                    
+                    var peer_qty = abb && $.Val.IsValid(abb.peer_qty) ? abb.peer_qty
 							: 0;
-					var peers = wireless && $.Val.IsValid(wireless.peers) ? wireless.peers
+					var peers = abb && $.Val.IsValid(abb.peers) ? abb.peers
 							: null;
-					if (peer_qty > 0 && peers) {
-						$("#qz-device-links").find('.label').removeClass(
-								'yellow').addClass('green').html(peer_qty);
-						$
-								.each(
-										peers,
-										function(idx, peer) {
-											var wmac = peer
-													&& $.Val.IsValid(peer.wmac) ? peer.wmac
-													: '-';
-											var ip = peer
-													&& $.Val.IsValid(peer.ip) ? peer.ip
-													: '-';
-											var rx_mcs = peer
-													&& $.Val
-															.IsValid(peer.rx_mcs) ? peer.rx_mcs
-													: '-';
-											var rx_br = peer
-													&& $.Val
-															.IsValid(peer.rx_br) ? peer.rx_br
-													: '-';
-											var tx_mcs = peer
-													&& $.Val
-															.IsValid(peer.tx_mcs) ? peer.tx_mcs
-													: '-';
-											var tx_br = peer
-													&& $.Val
-															.IsValid(peer.tx_br) ? peer.tx_br
-													: '-';
-											var inactive = peer
-													&& $.Val
-															.IsValid(peer.inactive) ? peer.inactive
-													: '-';
+                    $.LiteUI.Update.DeviceKPIPeers(peers, peer_qty);
+                    
+                    $.LiteUI.Update.DeviceKPIThrpt(thrpt);
 
-											var desc = wmac + ' ( ' + ip + ' )';
-											var rx = 'MCS ' + rx_mcs + ' ( '
-													+ rx_br + ' Mbit/s)';
-											var tx = 'MCS ' + tx_mcs + ' ( '
-													+ tx_br + ' Mbit/s)';
-											var note = inactive + ' ms';
-
-											links_tbody_html += '<tr>';
-											links_tbody_html += '<td>' + desc
-													+ '</td>';
-											links_tbody_html += '<td>' + rx
-													+ '</td>';
-											links_tbody_html += '<td>' + tx
-													+ '</td>';
-											links_tbody_html += '<td>' + note
-													+ '</td>';
-											links_tbody_html += '</tr>';
-										});
-					} else {
-						$("#qz-device-links").find('.label').removeClass(
-								'green').addClass('yellow').html('-');
-						links_tbody_html = '<tr><td colspan="4">无线空闲（没有连接到其它设备）</td></tr>';
-					}
-					links_tbody.nextAll().remove().end().html(links_tbody_html);
-
-					// update network
-					// console.log('Device Network');
-					var thrpt_tbody = $("#qz-device-thrpt-detail")
-							.find('tbody');
-					// TODO: handle unit Kbps & Mbps
-					var thrpt_tbody_html = '', icon_html = '0+0 Mbps';
-					var thrpt_qty = thrpt && $.Val.IsValid(thrpt.qty) ? thrpt.qty
-							: 0;
-					var ifname_rxtx = thrpt && $.Val.IsValid(thrpt.ifname_rxtx) ? thrpt.ifname_rxtx
-							: 0;
-					if (thrpt_qty > 0 && ifname_rxtx) {
-						var total_dl = 0, total_ul = 0, total_unit = 'Mbps';
-						$.each(ifname_rxtx, function(idx, rt) {
-							var desc = rt.name;
-							var unit = rt.unit;
-							var dl = rt.rx, ul = rt.tx;
-							var dlul = dl + ul;
-							thrpt_tbody_html += '<tr>';
-							thrpt_tbody_html += '<td>' + desc + '</td>';
-							thrpt_tbody_html += '<td>' + dlul.toFixed(3) + ' '
-									+ unit + '</td>';
-							thrpt_tbody_html += '<td>' + dl + ' ' + unit
-									+ '</td>';
-							thrpt_tbody_html += '<td>' + ul + ' ' + unit
-									+ '</td>';
-							thrpt_tbody_html += '</tr>';
-							total_dl += dl;
-							total_ul += ul;
-						});
-						icon_html = total_dl.toFixed(3) + '+'
-								+ total_ul.toFixed(3) + total_unit;
-					} else {
-						thrpt_tbody_html = '<tr><td colspan="4">正在统计，请稍候</td></tr>';
-					}
-					$("#qz-device-thrpt").find('.label').html(icon_html);
-					thrpt_tbody.nextAll().remove().end().html(thrpt_tbody_html);
 					return true;
 				}
 				return false;
@@ -1418,7 +1410,7 @@
 					var online = ds.online ? ds.online : 0;
 					var qty = data.qty;
 					var qty_desc = total + '=' + offline + '+' + online;
-					console.log('$.Lite.DevicesListUpdate()', total, qty);
+					//console.log('$.Lite.DevicesListUpdate()', total, qty);
 					/*
 					 * // replace by $.BG.AuditStart() if (total > 0) { //
 					 * Update Nav.[DEVICES].Qty var nav_devices =
@@ -1483,7 +1475,6 @@
 							$(this).addClass('active');
 
 							var id = $(this).attr('id');
-							console.log('try first child: id =', id);
 							$.Lite.Update.DeviceDetail(id);
 						});
 

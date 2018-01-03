@@ -7,21 +7,31 @@
 (function($) {
 	$.GWS = {
 		Mode : function(mode) {
-			var mode_str = '子站';
+			var mode_str = '子站 (WDS STA)';
 			switch (mode) {
 			case 'mesh':
+            case '0':
+            case 0:
+				mode_str = '自组网I (WDS Mesh)';
+				break;
 			case 'adhoc':
 			case 'ad-hoc':
-				mode_str = '自组网';
+            case '3':
+            case 3:
+				mode_str = '自组网II (WDS Ad-Hoc)';
 				break;
 			case 'car':
 			case 'ap':
-				mode_str = '基站';
+            case '1':
+            case 1:
+				mode_str = '基站 (WDS AP)';
 				break;
 			case 'ear':
 			case 'sta':
+            case '0':
+            case 0:
 			default:
-				mode_str = '子站';
+				mode_str = '子站 (WDS STA)';
 				break;
 			}
 			return mode_str;
@@ -33,17 +43,31 @@
 			return dbm + ' dBm / ' + watt + '瓦';
 		},
 		Freq : function(region, channel) {
-			var freq = 0;
+			var freq;
 			var freqStart, freqStop, chanBw, chanStart;
-			if (region > 0) {
+			switch(region) {
+            case '1':
+            case 1:
 				freqStart = 474, freqStop = 790, chanBw = 8, chanStart = 21;
-			} else {
+                if (channel >= chanStart) {
+                    freq = freqStart + (channel - chanStart) * chanBw;
+                } else {
+                    freq = freqStart;
+                }
+                break;
+            case '0':
+            case 0:
 				freqStart = 473, freqStop = 790, chanBw = 6, chanStart = 14;
-			}
-			if (channel >= chanStart) {
-				freq = freqStart + (channel - chanStart) * chanBw;
-			} else {
-				freq = freqStart;
+                if (channel >= chanStart) {
+                    freq = freqStart + (channel - chanStart) * chanBw;
+                } else {
+                    freq = freqStart;
+                }
+                break;
+            case '-':
+            default:
+                freq = '-';
+                break;
 			}
 			return freq;
 		},

@@ -1,5 +1,6 @@
 <?php
-// by Qige <qigezhao@gmail.com> at 2017.11.20
+// by Qige <qigezhao@gmail.com> since 2017.11.20
+// 2017.12.28 17:14
 'use strict';
 define('CALLED_BY', 'OMC_WEBSERVICE_PROC');
 
@@ -11,7 +12,7 @@ require_once BPATH . "/Common/BaseEnv.php";
 require_once BPATH . "/OMC3/WSMngr.php";
 
 // XXX: what to test
-$dbgType = 'devices';
+$dbgType = 'report_idle';
 
 // load valid data
 switch($dbgType) {
@@ -46,7 +47,7 @@ switch($dbgType) {
         $post = NULL;
         break;
     case 'devices':
-        // XXX: test device list
+        // 2017.12.28 15:25
         $env = NULL;
         $get = dbgDeviceList();
         $post = NULL;
@@ -58,7 +59,7 @@ switch($dbgType) {
         break;
     case 'sdevices':
         $env = NULL;
-        $get = dbgDeviceList('.229');
+        $get = dbgDeviceList('.211');// :all, :online, :offline, .226, 1
         $post = NULL;
         break;
     case 'detail':
@@ -89,7 +90,7 @@ function dbgDeviceDetail($did = NULL)
 {
     return array(
         'do' => 'detail',
-        'token' => '8c398da739c1d81d14a90726cbd75d37',
+        'token' => 'e585505613467a58afe1fbaf49359821',
         'did' => $did
     );
 }
@@ -126,7 +127,7 @@ function dbgAuthSigninGet()
 function dbgAuthSigninPost()
 {
     return array(
-        'user' => 'qigez',
+        'user' => 'admin',
         'passwd' => '6harmonics'
     );
 }
@@ -136,7 +137,7 @@ function dbgAuthValidToken()
 {
     return array(
         'do' => 'token_verify',
-        'token' => '8c398da739c1d81d14a90726cbd75d37'
+        'token' => 'e585505613467a58afe1fbaf49359821'
     );
 }
 
@@ -201,10 +202,10 @@ function dbgAgentPostedIdle()
             "timeout":60,
             "region":1,
             "elapsed":28,
-            "freq":474,
+            "freq":666,
             "chanbw":8,
-            "channo":21,
-            "txpwr":9,
+            "channo":45,
+            "txpwr":24,
             "hw_ver":"GWS5Kv2",
             "rxgain":1
         }
@@ -228,7 +229,7 @@ function dbgAgentPostedFullReportNoPeers()
             "ssid": "6harmonicsGWS",
             "bssid": "----",
             "chanbw": "8",
-            "wmac": "AC:EE:3B:03:80:73",
+            "wmac": "AC:EE:3B:03:80:4D",
             "peers": null,
             "mode": "Ad-Hoc",
             "signal": -67,
@@ -242,10 +243,10 @@ function dbgAgentPostedFullReportNoPeers()
             "timeout": 60,
             "region": 1,
             "elapsed": 0,
-            "freq": 554,
+            "freq": 666,
             "chanbw": 8,
-            "channo": 31,
-            "txpwr": 9,
+            "channo": 45,
+            "txpwr": 25,
             "hw_ver": "GWS5Kv2",
             "rxgain": 1
         }
