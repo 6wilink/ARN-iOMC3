@@ -187,29 +187,32 @@
 				}
 			},
 			DeviceCollectConfig : function(did) {
+                console.log('DeviceCollectConfig()', did);
 				if ($.Val.IsValid(did)) {
 					$.LiteUI.DeviceConfig.Saving();
 					var name = $("#qz-device-config-name").val();
+					var latlng = $("#qz-device-config-latlng").val();
 					var ip = $("#qz-device-config-ip").val();
 					var mask = $("#qz-device-config-netmask").val();
 					var gw = $("#qz-device-config-gw").val();
 					var mode = $("#qz-device-config-mode").find('input').val();
-					var rgn = $("#qz-device-config-region").find('input').val();
+					var region = $("#qz-device-config-region").find('input').val();
 					var freq = $("#qz-device-config-freq").val();
 					var channel = $("#qz-device-config-channel").val();
-					var txpwr = $("#qz-device-config-txpower").find('input')
+					var txpower = $("#qz-device-config-txpower").find('input')
 							.val();
-					$.Request.DeviceSet(did, {
-						ops : 'config_save',
+					$.Request.DeviceConfigSave(did, {
+						ops : 'config',
 						name : name,
+                        latlng: latlng,
 						ip : ip,
 						mask : mask,
 						gw : gw,
 						mode : mode,
-						rgn : rgn,
+						region : region,
 						freq : freq,
 						channel : channel,
-						txpwr : txpwr
+						txpower : txpower
 					});
 				}
 			},
@@ -421,8 +424,6 @@
 				$("#qz-device-btn-config,#qz-device-btn-config-update")
 						.click(
 								function() {
-									console
-											.log('TODO: read device id from $.Lite.data');
 									var data = $.Val.IsValid($.Lite.data) ? $.Lite.data
 											: null;
 									var did = data
@@ -477,7 +478,7 @@
 				// ask user first in case wrong click
 				$("#qz-device-btn-config-save").click(
 						function() {
-							$("#qz-device-config-confirm").attr('ops', 'save')
+							$("#qz-device-config-confirm").attr('ops', 'save-config')
 									.modal('show');
 						});
 				$("#qz-device-btn-reset-network").click(
@@ -494,17 +495,18 @@
 						function() {
 							$("#qz-device-config-confirm").modal('hide');
 
-							var did = $("#qz-device-detail").attr('did');
+                            var data = $.Val.IsValid($.Lite.data) ? $.Lite.data : null;
+                            var did = data && $.Val.IsValid(data.DeviceId) ? data.DeviceId
+                                    : null;
 							var ops = $("#qz-device-config-confirm")
 									.attr('ops')
 									|| 'unknown';
 							switch (ops) {
 							case 'unknown':
-								console.log(
-										'#qz-device-config-confirm> did/ops =',
-										did, ops);
+                            case null:
+                            case 'null':
 								break;
-							case 'save':
+							case 'save-config':
 								$.Lite.Update.DeviceCollectConfig(did);
 								break;
 							default:
@@ -662,8 +664,6 @@
 					var page = $.Url.PageOnly();
 					var url = page + '#' + token;
 					$.Url.GotoAnchor(url); // QZ_TODO: set url, then call
-					// $.Lite.Set() at 2017.11.30
-					console.log('$.CB.CB_SigninDone()> url = ', url);
 
 					var flagAutoLoad = true;
 					$.Lite.Run.Devices(flagAutoLoad);
@@ -755,7 +755,6 @@
 			if ($.Val.IsValid(resp) && $.Val.IsValid(resp.error)) {
 				error = resp.error;
 			}
-			console.log('$.CB.CB_DeviceConfigDone> error =', error);
 			switch (error) {
 			case 'none':
 				if ($.LiteUI.Update.DeviceConfig(resp.data)) {
@@ -914,7 +913,7 @@
 		DeviceConfigLoad : function(did) {
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token) && $.Val.IsValid(did)) {
-				var url = '/iomc3/ws.php?do=config_load&did=' + did + '&token='
+				var url = '/iomc3/ws.php?do=options&did=' + did + '&token='
 						+ token;
 				// $("#qz-device-mask").SUILoaderShow();
 				$.Ajax.Query(url, null, $.CB.CB_DeviceConfigDone,
@@ -924,7 +923,7 @@
 		DeviceConfigSave : function(did, ops) {
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token)) {
-				var url = '/iomc3/ws.php?do=config_save&did=' + did + '&token='
+				var url = '/iomc3/ws.php?do=config&did=' + did + '&token='
 						+ token;
 				$("#qz-device-mask").SUILoaderShow();
 				$.Ajax.Query(url, ops, $.CB.CB_DeviceSetDone,
@@ -1091,8 +1090,6 @@
 				default:
 					channel = $("#qz-device-config-channel").val();
 					freq = $.GWS.Freq(region, channel);
-					console.log('qz-device-config-channel changed', region,
-							channel, freq);
 					break;
 				}
 
@@ -1292,11 +1289,13 @@
 							: null;
 					var basic = device && $.Val.IsValid(device.basic) ? device.basic
 							: null;
-					var abb = device && $.Val.IsValid(device.abb) ? device.abb
+					var wireless = device && $.Val.IsValid(device.wireless) ? device.wireless
+							: null;
+					var abb = wireless && $.Val.IsValid(wireless.abb) ? wireless.abb
 							: null;
 					var peers = abb && $.Val.IsValid(abb.peers) ? abb.peers
 							: null;
-					var radio = device && $.Val.IsValid(device.radio) ? device.radio
+					var radio = wireless && $.Val.IsValid(wireless.radio) ? wireless.radio
 							: null;
 					var network = device && $.Val.IsValid(device.network) ? device.network
 							: null;
@@ -1309,13 +1308,13 @@
                     var wmac = basic && $.Val.IsValid(basic.wmac) ? basic.wmac
                             : null;
 					if (wmac) {
-						var name = $.Val.IsValid(device.name) ? device.name
+						var name = $.Val.IsValid(basic.name) ? basic.name
 								: '未命名新设备';
-						var mac = $.Val.IsValid(device.mac) ? device.mac
+						var mac = $.Val.IsValid(basic.mac) ? basic.mac
                                 : null;
-						var hw_ver = $.Val.IsValid(device.hw_ver) ? device.hw_ver
+						var hw_ver = $.Val.IsValid(basic.hw_ver) ? basic.hw_ver
 								: '-';
-						var fw_ver = $.Val.IsValid(device.fw_ver) ? device.fw_ver
+						var fw_ver = $.Val.IsValid(basic.fw_ver) ? basic.fw_ver
 								: '-';
 
 						$("#qz-devices-device-name").val(name);
@@ -1341,9 +1340,10 @@
 								: '-';
 
                         var freq = $.GWS.Freq(rgn, channel);
+                        var fdesc = $.GWS.WirelessDesc(rgn, channel, freq, chanbw);
 						$("#qz-devices-device-mode").val(mdesc);
 						$("#qz-devices-device-ssid").val(ssid);
-						$("#qz-devices-device-freq").val(freq + ' MHz');
+						$("#qz-devices-device-freq").val(fdesc);
 						$("#qz-devices-device-txpower").val($.GWS.Txpower(txpower, watt));
 						$("#qz-devices-device-chanbw").val(chanbw + ' MHz');
                         
@@ -1424,39 +1424,36 @@
 					list_header.nextAll().remove();
 					if (qty > 0) {
 						var list = data.devices;
-						$
-								.each(
-										list,
-										function() {
-											var $this = $(this)[0];
-											var id = $this.id, name = $this.name, ipaddr = $this.ipaddr;
-											var peer_qty = $this.peer_qty, html = '';
+						$.each(list, function() {
+                            var $this = $(this)[0];
+                            var id = $this.id, name = $this.name, ipaddr = $this.ipaddr;
+                            var peer_qty = $this.peer_qty, html = '';
 
-											if (!$.Val.IsValid(name))
-												name = '未命名的新设备';
-											if (!$.Val.IsValid(peer_qty))
-												peer_qty = 0;
-											if (peer_qty > 0) {
-												html = '<a class="item" id="'
-														+ id
-														+ '">('
-														+ ipaddr
-														+ ') '
-														+ name
-														+ '<div class="ui green label">'
-														+ peer_qty
-														+ 'p</div></a>';
-											} else {
-												html = '<a class="item" id="'
-														+ id
-														+ '">('
-														+ ipaddr
-														+ ') '
-														+ name
-														+ '<div class="ui yellow label">-</div></a>';
-											}
-											list_header.after(html);
-										});
+                            if (!$.Val.IsValid(name))
+                                name = '未命名的新设备';
+                            if (!$.Val.IsValid(peer_qty))
+                                peer_qty = 0;
+                            if (peer_qty > 0) {
+                                html = '<a class="item" id="'
+                                        + id
+                                        + '">('
+                                        + ipaddr
+                                        + ') '
+                                        + name
+                                        + '<div class="ui green label">'
+                                        + peer_qty
+                                        + 'p</div></a>';
+                            } else {
+                                html = '<a class="item" id="'
+                                        + id
+                                        + '">('
+                                        + ipaddr
+                                        + ') '
+                                        + name
+                                        + '<div class="ui yellow label">-</div></a>';
+                            }
+                            list_header.after(html);
+                        });
 
 						// update Device Qty
 						var qty_icon = list_header.find(".label");
@@ -1494,35 +1491,45 @@
 				}
 			},
 			DeviceConfig : function(data) {
-				// console.log(data.device, data.device.name);
-				if (data && data.device && data.device.name) {
+				if (data) {
 					var device = data.device;
-					$("#qz-device-config-name").val(device.name);
-					$("#qz-device-config-latlng").val(device.latlng);
-
-					$("#qz-device-config-ip").val(device.network.ip);
-					$("#qz-device-config-netmask").val(device.network.netmask);
-					$("#qz-device-config-gw").val(device.network.gateway);
-
-					if (device.abb) {
-						$("#qz-device-config-ssid").val(device.abb.ssid);
-						$("#qz-device-config-mode").dropdown('set selected',
-								device.abb.mode);
-					}
-					if (device.radio) {
-						$("#qz-device-config-chanbw").dropdown('set selected',
-								device.radio.chanbw);
-						var region = new Number(device.radio.region);
-						$("#qz-device-config-region").dropdown('set selected',
-								region.toString());
-						$("#qz-device-config-channel")
-								.val(device.radio.channel);
-						$("#qz-device-config-txpower").dropdown('set selected',
-								device.radio.txpower);
-						$.LiteUI.DeviceConfig.GWS('channel');
-					}
-					return true;
-				}
+                    var basic = device && device.basic;
+                    var network = device && device.network;
+                    var wireless = device && device.wireless;
+                    var abb = wireless && wireless.abb;
+                    var radio = wireless && wireless.radio;
+                    if (basic) {
+                        var name = $.Val.IsValid(basic.name) ? basic.name
+                                : null;
+                        var latlng = $.Val.IsValid(basic.latlng) ? basic.latlng
+                                : null;
+                        $("#qz-device-config-name").val(name);
+                        $("#qz-device-config-latlng").val(latlng);
+                    }
+                    if (network) {
+                        $("#qz-device-config-ip").val(network.ipaddr);
+                        $("#qz-device-config-netmask").val(network.netmask);
+                        $("#qz-device-config-gw").val(network.gateway);
+                    }
+                    if (abb) {
+                        $("#qz-device-config-ssid").val(abb.ssid);
+                        $("#qz-device-config-mode").dropdown('set selected',
+                                abb.emode);
+                    }
+                    if (radio) {
+                        $("#qz-device-config-chanbw").dropdown('set selected',
+                                radio.chanbw);
+                        var region = new Number(radio.region);
+                        $("#qz-device-config-region").dropdown('set selected',
+                                region.toString());
+                        $("#qz-device-config-channel")
+                                .val(radio.channel);
+                        $("#qz-device-config-txpower").dropdown('set selected',
+                                radio.txpwr);
+                        $.LiteUI.DeviceConfig.GWS('channel');
+                    }
+                    return true;
+                }
 				return false;
 			}
 		}

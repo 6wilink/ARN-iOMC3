@@ -101,6 +101,36 @@ final class OMCDeviceDAO extends OMCBaseDAO
         }
         return $result;
     }
+    
+    static public function DeviceCommandsSaveByRecordId($deviceQueryId = NULL, $data = NULL)
+    {
+        if ($deviceQueryId && is_numeric($deviceQueryId) && $deviceQueryId > 0) {
+            $tableDevice = self::$DB_DEVICE_CMD_TABLE;
+            
+            // generate sql
+            $k = array(
+                'devid',
+                'done'
+            ); 
+            $v = array(
+                "'{$deviceQueryId}'",
+                "'new'"
+            );
+            
+            $k[] = 'cmd';
+            // update record
+            foreach ($data as $key => $val) {
+                $v[] = "'{$key}={$val}'";
+            }
+            $fields = implode(',', $k);
+            $values = implode(',', $v);
+            $sql = "insert into {$tableDevice}({$fields}) values({$values})";
+            
+            // execute & save
+            $result = self::QueryBySql($sql, __FUNCTION__);
+        }
+        return $result;
+    }
 
     // verified since 2017.12.25
     // verified at 2017.12.28 15:57
@@ -343,6 +373,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'wmac',
                     'mac',
                     'name',
+                    'latlng',
                     'fw_ver',
                     'hw_ver'
                 );
@@ -462,7 +493,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 $fields = array(
                     'ipaddr',
                     'netmask',
-                    'gw',
+                    'gateway',
                     'ifname',
                     'vlan'
                 );

@@ -126,12 +126,12 @@ final class WSDeviceMngr
             // device.wireless
             $deivce['wireless'] = array();
             // device.wireless.abb: .ssid, .mode
-            $device['abb'] = self::deviceAbbDetail($deviceQueryId);
+            $device['wireless']['abb'] = self::deviceAbbDetail($deviceQueryId);
             $peers = self::deviceAbbPeers($deviceQueryId);
-            $device['abb']['peer_qty'] = count($peers);
-            $device['abb']['peers'] = $peers;
+            $device['wireless']['abb']['peer_qty'] = count($peers);
+            $device['wireless']['abb']['peers'] = $peers;
             // device.wireless.radio: .region, .channel, .txpower, .watt, .chanbw
-            $device['radio'] = self::deviceRadioDetail($deviceQueryId);
+            $device['wireless']['radio'] = self::deviceRadioDetail($deviceQueryId);
             
             // device.network: .ifname, .vlan, .ipaddr, .netmask, .gateway
             $device['network'] = self::deviceNetworkDetail($deviceQueryId);
@@ -161,11 +161,29 @@ final class WSDeviceMngr
         return $record;
     }
     
+    static private function deviceAbbEModeConvert($emode = 'sta')
+    {
+        $mode =  'ear';
+        switch($emode) {
+            case 'ap':
+                $mode = 'car';
+                break;
+            case 'sta':
+            default:
+                $mode = 'ear';
+                break;
+        }
+        return $mode;
+    }
+    
     // reserved wrapper
     // verified since 2018.01.03 12:39
     static private function deviceAbbDetail($deviceQueryId = NULL)
     {
         $record = OMCDeviceDAO::FetchDeviceAbbDetail($deviceQueryId);
+        $emode = BaseFilter::SearchKey($record, 'emode');
+        $mode = self::deviceAbbEModeConvert($emode);
+        $record['emode'] = $mode;
         return $record;
     }
     // verified since 2018.01.03 12:25
@@ -205,8 +223,8 @@ final class WSDeviceMngr
                 array(
                     'ifname' => 'eth0',
                     'unit' => 'Mbps',
-                    'rx' => 1.386,
-                    'tx' => 0.011 + rand(0, 10)
+                    'rx' => 0.05 + rand(0, 10)/100,
+                    'tx' => 0.05 + rand(0, 10)/100
                 )
             )
         );
@@ -220,18 +238,102 @@ final class WSDeviceMngr
         return 0;
     }
 
-    // TODO: load by model
-    // TODO: not verified since 2017.12.04
+    // verified since 2018.01.10
     static public function DeviceConfigLoad($deviceQueryId = NULL)
     {
-        ;
+        if ($deviceQueryId) {
+            // data.device
+            $device = array();
+            // device: .wmac, .base, .mac, .hw_ver, .fw_ver, .wireless, .network, .thrpt, .msg
+            $device['basic'] = self::deviceBasicDetail($deviceQueryId);
+            // device.wireless
+            $deivce['wireless'] = array();
+            // device.wireless.abb: .ssid, .mode
+            $device['wireless']['abb'] = self::deviceAbbDetail($deviceQueryId);
+            // device.wireless.radio: .region, .channel, .txpower, .watt, .chanbw
+            $device['wireless']['radio'] = self::deviceRadioDetail($deviceQueryId);
+            
+            // device.network: .ifname, .vlan, .ipaddr, .netmask, .gateway
+            $device['network'] = self::deviceNetworkDetail($deviceQueryId);
+            // fre-format
+            $reply = array(
+                'data' => array(
+                    'device' => $device
+                )
+            );
+            //var_dump($device);
+            return $reply;
+        }
+        return NULL;
     }
 
     // TODO: save to database, then agent will read in queue, one at a time
     // TODO: not verified since 2017.12.04
-    static public function DeviceConfigInQueue($deviceQueryId = NULL)
+    static public function DeviceConfigInQueue($deviceQueryId = NULL, $config = NULL)
     {
-        ;
+        if ($deviceQueryId && $config && is_array($config)) {
+            // save data stored in omc server
+            $basic = array();
+            $name = BaseFilter::SearchKey($config, 'name');
+            if ($name && $name != '') {
+                $basic['name'] = $name;
+            }
+            $latlng = BaseFilter::SearchKey($config, 'latlng');
+            if ($latlng && $latlng != '') {
+                $basic['latlng'] = $latlng;
+            }
+            if ($basic && is_array($basic) && count($basic) > 0) {
+                self::deviceConfigSaveBasic($deviceQueryId, $basic);
+            }
+            unset($basic);
+            
+            // convert config into command(s), save to _cmd table
+            // FIXME: currently, only support mode/channel/txpower
+            $abb = array();
+            $mode = BaseFilter::SearchKey($config, 'mode');
+            if ($mode && $mode != '') {
+                $abb['mode'] = $mode;
+            }
+            if ($abb && is_array($abb) && count($abb) > 0) {
+                self::deviceConfigSaveAbb($deviceQueryId, $abb);
+            }
+            unset($abb);
+            
+            $radio = array();
+            $channel = BaseFilter::SearchKey($config, 'channel');
+            $txpower = BaseFilter::SearchKey($config, 'txpower');
+            if ($channel && $channel != '') {
+                $radio['channel'] = $channel;
+            }
+            if ($txpower && $txpower != '') {
+                $radio['txpower'] = $txpower;
+            }
+            if ($radio && is_array($radio) && count($radio) > 0) {
+                self::deviceConfigSaveRadio($deviceQueryId, $radio);
+            }
+            
+            return OMCError::GetErrorInArray(ERROR_NONE);
+        }
+        return OMCError::GetErrorInArray(ERROR_BAD_REQUEST_PARAM);
+    }
+    
+    static private function deviceConfigSaveBasic($deviceQueryId = NULL, $data = NULL)
+    {
+        OMCDeviceDAO::DeviceSaveByRecordId($deviceQueryId, $data);
+    }
+    
+    static private function deviceConfigSaveAbb($deviceQueryid = NULL, $data = NULL)
+    {
+        foreach($data as $key => $val) {
+            OMCDeviceDAO::DeviceCommandsSaveByRecordId($deviceQueryId, array($key => $val));
+        }
+    }
+    
+    static private function deviceConfigSaveRadio($deviceQueryId = NULL, $data = NULL)
+    {
+        foreach($data as $key => $val) {
+            OMCDeviceDAO::DeviceCommandsSaveByRecordId($deviceQueryId, array($key => $val));
+        }
     }
 }
 

@@ -43,7 +43,7 @@
 			return dbm + ' dBm / ' + watt + '瓦';
 		},
 		Freq : function(region, channel) {
-			var freq;
+			var freq, fdesc = '';
 			var freqStart, freqStop, chanBw, chanStart;
 			switch(region) {
             case '1':
@@ -69,7 +69,11 @@
                 freq = '-';
                 break;
 			}
-			return freq;
+            return freq;
+        },
+        WirelessDesc: function(region, channel, freq, chanbw) {
+			var fdesc = '区域' + region + ' / 频道' + channel + ' / '+ freq + 'MHz / 调制'+ chanbw +'M';
+            return fdesc;
 		},
 		FreqToChannel : function(region, freq) {
 			var channel = 0;

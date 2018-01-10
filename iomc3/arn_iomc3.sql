@@ -1,5 +1,5 @@
 ﻿# Host: 192.168.1.4  (Version 5.1.73)
-# Date: 2017-12-25 19:51:04
+# Date: 2018-01-10 17:58:24
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -26,7 +26,7 @@ CREATE TABLE `arn_auth` (
 # Data for table "arn_auth"
 #
 
-INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2017-12-25 19:48:38');
+INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-10 17:56:23');
 
 #
 # Structure for table "arn_auth_group"
@@ -119,6 +119,7 @@ CREATE TABLE `arn_device_abb_peers` (
 
 CREATE TABLE `arn_device_cmd` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `done` enum('new','done') COLLATE latin1_general_ci NOT NULL DEFAULT 'done',
   `devid` int(11) unsigned DEFAULT NULL,
   `cmd` varchar(64) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -140,7 +141,7 @@ CREATE TABLE `arn_device_nw` (
   `reachable` enum('unknown','online','offline') COLLATE latin1_general_ci DEFAULT NULL,
   `ipaddr` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `netmask` varchar(16) COLLATE latin1_general_ci DEFAULT NULL COMMENT '255.255.255.0',
-  `gw` varchar(32) COLLATE latin1_general_ci DEFAULT NULL,
+  `gateway` varchar(32) COLLATE latin1_general_ci DEFAULT NULL,
   `ifname` varchar(32) COLLATE latin1_general_ci DEFAULT NULL COMMENT 'lo,br-lan,eth0,wlan0,wlan0.sta1,bat0',
   `vlan` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

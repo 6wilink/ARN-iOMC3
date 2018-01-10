@@ -17,6 +17,8 @@ const ERROR_UNKNOWN_AR_UA       = -11;
 const ERROR_UNKNOWN_AR_DEVICEID = - 12;
 const ERROR_EMPTY_AR_CONTENT    = - 13;
 
+const ERROR_BAD_REQUEST_PARAM   = -21;
+
 
 // handle all error, errno
 // 2017.12.28 17:18
@@ -37,6 +39,9 @@ final class OMCError
         $err = '';
         
         switch ($eid) {
+            case ERROR_BAD_REQUEST_PARAM:
+                $err = 'request_with_bad_input';
+                break;
             case ERROR_EMPTY_AR_CONTENT:
                 $err = 'empty_agent_report';
                 break;

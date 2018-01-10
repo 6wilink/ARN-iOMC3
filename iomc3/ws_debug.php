@@ -12,7 +12,7 @@ require_once BPATH . "/Common/BaseEnv.php";
 require_once BPATH . "/OMC3/WSMngr.php";
 
 // XXX: what to test
-$dbgType = 'report_idle';
+$dbgType = 'config';
 
 // load valid data
 switch($dbgType) {
@@ -68,6 +68,11 @@ switch($dbgType) {
         $get = dbgDeviceDetail(1);
         $post = NULL;
         break;
+    case 'config':
+        $env = NULL;
+        $get = dbgDeviceConfig(1);
+        $post = dbgDeviceConfigPost();
+        break;
 }
 
 
@@ -83,7 +88,30 @@ if ($get) {
 }
 
 
+function dbgDeviceConfig($did = NULL)
+{
+    return array(
+        'do' => 'config',
+        'token' => 'e585505613467a58afe1fbaf49359821',
+        'did' => $did || 1
+    );
+}
 
+function dbgDeviceConfigPost()
+{
+    return array(
+        'ops' => 'config',
+        'name' => 'É½Î÷1ºÅ',
+        'ip' => '192.168.1.222',
+        'netmask' => '',
+        'gw' => '',
+        'mode' => 'ear',
+        'rgn' => 1,
+        'freq' => 650,
+        'channel' => 43,
+        'txpwr' => 32
+    );
+}
 
 
 function dbgDeviceDetail($did = NULL)

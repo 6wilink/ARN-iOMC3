@@ -306,7 +306,7 @@ final class OMCAgent3
         if ($deviceQueryId && $kpi) {
             $ifname = BaseFilter::SearchKey($kpi, 'ifname');
             $netmask = BaseFilter::SearchKey($kpi, 'netmask');
-            $gw = BaseFilter::SearchKey($kpi, 'gw');
+            $gateway = BaseFilter::SearchKey($kpi, 'gateway');
             $vlan = BaseFilter::SearchKey($kpi, 'vlan');
             
             $rxthrpt = BaseFilter::SearchKey($kpi, 'rx');
@@ -319,7 +319,7 @@ final class OMCAgent3
                 'reachable' => 'online',
                 'ipaddr' => $host,
                 'netmask' => $netmask,
-                'gw' => $gw,
+                'gateway' => $gateway,
                 'vlan' => $vlan,
                 'ts' => $now
             );

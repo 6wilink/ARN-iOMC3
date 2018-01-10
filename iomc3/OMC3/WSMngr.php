@@ -148,7 +148,7 @@ final class WebServiceMngr
                 case 'save':
                 case 'set':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
-                    $reply = WSDeviceMngr::DeviceConfigInQueue($dqid);
+                    $reply = WSDeviceMngr::DeviceConfigInQueue($dqid, $dataSafe);
                     break;
                 case 'audit_all':
                 case 'audit':
