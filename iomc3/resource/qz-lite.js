@@ -202,6 +202,7 @@
 					var txpower = $("#qz-device-config-txpower").find('input')
 							.val();
 					$.Request.DeviceConfigSave(did, {
+                        did: did,
 						ops : 'config',
 						name : name,
                         latlng: latlng,
@@ -216,9 +217,9 @@
 					});
 				}
 			},
-			DeviceConfigLoad : function(did, opt) {
+			DeviceConfigOptions : function(did, opt) {
 				if ($.Val.IsValid(did)) {
-					$.Request.DeviceConfigLoad(did);
+					$.Request.DeviceConfigOptions(did);
 				}
 			}
 		},
@@ -429,7 +430,7 @@
 									var did = data
 											&& $.Val.IsValid(data.DeviceId) ? $.Lite.data.DeviceId
 											: null;
-									$.Lite.Update.DeviceConfigLoad(did,
+									$.Lite.Update.DeviceConfigOptions(did,
 											'config_load');
 									$.LiteUI.DeviceConfig.Show();
 									$.LiteUI.DeviceConfig.Saved();
@@ -910,7 +911,7 @@
 				$.Lite.Start();
 			}
 		},
-		DeviceConfigLoad : function(did) {
+		DeviceConfigOptions : function(did) {
 			var token = $.Lite.Url.TOKEN();
 			if ($.Val.IsValid(token) && $.Val.IsValid(did)) {
 				var url = '/iomc3/ws.php?do=options&did=' + did + '&token='
@@ -944,7 +945,7 @@
 						kw = '';
 					}
 					console.log('keyword of before request =', kw, keyword);
-					var url = '/iomc3/ws.php?do=maps_devices&keyword=' + kw
+					var url = '/iomc3/ws.php?do=maps&keyword=' + kw
 							+ '&token=' + token;
 					$("#qz-maps-search").SUILoaderShow();
 					$.Ajax.Query(url, null, $.CB.CB_MapsDevicesDone,
@@ -1033,8 +1034,7 @@
 				// $("#qz-device-details").show();
 			},
 			Init : function() {
-				$(
-						"#qz-device-config-basic-detail,#qz-device-config-wireless-detail")
+				$("#qz-device-config-basic-detail,#qz-device-config-wireless-detail")
 						.hide();
 				$("#qz-device-config-basic,#qz-device-config-wireless")
 						.removeClass('active');
@@ -1104,8 +1104,7 @@
 		},
 		Device : {
 			Init : function() {
-				$(
-						"#qz-device-base-detail,#qz-device-wireless-detail,#qz-device-network-detail")
+				$("#qz-device-base-detail,#qz-device-wireless-detail,#qz-device-network-detail")
 						.hide();
 				$("#qz-device-base,#qz-device-wireless,#qz-device-network")
 						.removeClass('active');
@@ -1211,26 +1210,24 @@
                             var pipaddr = peer
                                     && $.Val.IsValid(peer.pipaddr) ? peer.pipaddr
                                     : '-';
-                            var prx = peer
-                                    && $.Val
-                                            .IsValid(peer.prx) ? peer.prx
+                            var prx = peer 
+                                    && $.Val.IsValid(peer.prx) ? peer.prx
                                     : '-';
                             var rx = prx.split(',');
                             var ptx = peer
-                                    && $.Val
-                                            .IsValid(peer.ptx) ? peer.ptx
+                                    && $.Val.IsValid(peer.ptx) ? peer.ptx
                                     : '-';
                             var tx = ptx.split(',');
 
-                            var desc = pwmac + ' ( ' + pipaddr + ' )';
+                            var desc = pwmac + ' | ' + pipaddr;
                             links_tbody_html += '<tr>';
                             links_tbody_html += '<td>' + desc
                                     + '</td>';
                             links_tbody_html += '<td>' + psignal + ' dBm'
                                     + '</td>';
-                            links_tbody_html += '<td>' + prx
+                            links_tbody_html += '<td>' + rx[0] + 'Mbit/s | MCS ' + rx[1] + ' | Short GI ' + rx[2]
                                     + '</td>';
-                            links_tbody_html += '<td>' + ptx
+                            links_tbody_html += '<td>' + tx[0] + 'Mbit/s | MCS ' + tx[1] + ' | Short GI ' + tx[2]
                                     + '</td>';
                             links_tbody_html += '</tr>';
                         });
@@ -1473,7 +1470,10 @@
 
 							var id = $(this).attr('id');
 							$.Lite.Update.DeviceDetail(id);
-						});
+                            
+                            // Hide "Config" when list refreshed
+                            $.LiteUI.DeviceConfig.Hide();
+                        });
 
 						// select first result when done
 						devices.first().trigger('click');
@@ -1524,8 +1524,58 @@
                                 region.toString());
                         $("#qz-device-config-channel")
                                 .val(radio.channel);
+                        var txpwr = parseInt(radio.txpwr);
+                        switch(txpwr) {
+                            case 33:
+                                txpwr = 33;
+                                break;
+                            case 32:
+                                txpwr = 32;
+                                break;
+                            case 31:
+                                txpwr = 31;
+                                break;
+                            case 30:
+                            case 29:
+                                txpwr = 30;
+                                break;
+                            case 28:
+                            case 27:
+                            case 26:
+                                txpwr = 27;
+                                break;
+                            case 25:
+                            case 24:
+                                txpwr = 24;
+                                break;
+                            case 23:
+                            case 22:
+                                txpwr = 23;
+                                break;
+                            case 21:
+                            case 20:
+                            case 19:
+                                txpwr = 20;
+                                break;
+                            case 18:
+                            case 17:
+                            case 16:
+                                txpwr = 17;
+                                break;
+                            case 15:
+                            case 14:
+                                txpwr = 14;
+                                break;
+                            case 13:
+                            case 12:
+                                txpwr = 13;
+                                break;
+                            default:
+                                txpwr = 10;
+                                break;
+                        }
                         $("#qz-device-config-txpower").dropdown('set selected',
-                                radio.txpwr);
+                                txpwr);
                         $.LiteUI.DeviceConfig.GWS('channel');
                     }
                     return true;
@@ -1541,16 +1591,18 @@
 // load Microsoft Bing Maps
 (function($) {
 	$.BingMaps = {
-		init : function() {
+		Init : function() {
 			console.log('Loading Microsoft Bing Maps');
 			// *
-			if (!$.Lite.data.map) {
-				console.log('$.BingMaps.init()');
+			if (! $.Lite.data) {
+                $.Lite.data = {}
+            }
+            if (! $.Lite.data.map) {
+				console.log('$.BingMaps.Init()');
 				$.Lite.data.map = new Microsoft.Maps.Map(
 						document.getElementById('qz-maps-box'),
 						{
-							center : new Microsoft.Maps.Location(40.0492,
-									116.2902),
+							center : new Microsoft.Maps.Location(40.0492, 116.2902),
 							credentials : 'AsHiUhyyE-3PP8A82WyPhdS6_Z18NL2cuaySXTGPviswZ_WDmgDlaSZ7xpEF77-3',
 							// credentials: '{Your Bing Maps Key}',
 							showMapTypeSelector : false,
@@ -1576,7 +1628,7 @@
  */
 
 // ARN-iOMC3 at 20171130
-var loadMap = $.BingMaps.init; // FIXME: load Microsoft Bing Maps async
+var loadMap = $.BingMaps.Init; // FIXME: load Microsoft Bing Maps async
 $(function() {
 	// Application start (lite version)
 	$.Lite.InitAll();

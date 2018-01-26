@@ -9,6 +9,7 @@ const FLAG_DAO_LOCAL = 1;
 const FLAG_DAO_DISPATCH = 2;
 
 const OMC_DB_TYPE = 1;
+
 const OMC_DB_HOST = '192.168.1.4';
 const OMC_DB_PORT = 3306;
 const OMC_DB_USER = 'iomc3rw';

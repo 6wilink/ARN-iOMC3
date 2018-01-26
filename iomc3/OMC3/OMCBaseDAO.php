@@ -89,7 +89,7 @@ abstract class OMCBaseDAO
             }
             $conditions = implode(' and ', $kv);
             
-            $sql = "select {$fields} from {$table} where {$conditions}";
+            $sql = "select {$fields} from {$table} where {$conditions} order by id desc";
             return self::FetchArrayBySql($sql, __FUNCTION__);
         }
         return NULL;

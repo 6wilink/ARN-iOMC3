@@ -36,7 +36,7 @@ final class WSDeviceMngr
     
     // wrapper for search by id, search by keyword & all
     // verified since 2017.12.28 16:05
-    static public function DeviceSearch($keyword = NULL, $deviceQueryId = NULL)
+    static public function DeviceSearch($keyword = null, $deviceQueryId = null)
     {
         // handle search by id or keyword
         if ($deviceQueryId) {
@@ -56,9 +56,14 @@ final class WSDeviceMngr
         );
         return $reply;
     }
+    
+    static public function DeviceSearchWithGPS($keyword = null, $deviceQueryId = null)
+    {
+        return null;
+    }
 
     // reserved wrapper
-    static private function deviceListSearchById($deviceQueryId = NULL)
+    static private function deviceListSearchById($deviceQueryId = null)
     {
         $reply = OMCDeviceDAO::DeviceListSearchById($deviceQueryId);
         return $reply;
@@ -66,10 +71,10 @@ final class WSDeviceMngr
 
     // support search pattens
     // verified since 2017.12.28 16:06
-    static private function deviceListSearchByKeyword($keyword = NULL)
+    static private function deviceListSearchByKeyword($keyword = null)
     {
-        $reply = NULL;
-        $records = NULL;
+        $reply = null;
+        $records = null;
         switch ($keyword) {
             case ':all':
                 $records = OMCDeviceDAO::deviceListFetchByStatus(); // 2017.12.28 15:26
@@ -108,7 +113,7 @@ final class WSDeviceMngr
 
     // reserved wrapper
     // if $filterStatus not given, return all
-    static private function deviceListFetchByStatus($filterStatus = NULL)
+    static private function deviceListFetchByStatus($filterStatus = null)
     {
         $records = OMCDeviceDAO::DeviceListFetchByStatus($filterStatus);
         return $records;
@@ -116,7 +121,7 @@ final class WSDeviceMngr
 
     // --------- --------- Fetch Device Detail --------- --------- ---------
     // answer to Ajax: do=detail&did=<n>&token=<token>
-    static public function DeviceDetail($deviceQueryId = NULL)
+    static public function DeviceDetail($deviceQueryId = null)
     {
         if ($deviceQueryId) {
             // data.device
@@ -150,12 +155,12 @@ final class WSDeviceMngr
             //var_dump($device);
             return $reply;
         }
-        return NULL;
+        return null;
     }
 
     // reserved wrapper
     // verified since 2018.01.03 12:39
-    static private function deviceBasicDetail($deviceQueryId = NULL)
+    static private function deviceBasicDetail($deviceQueryId = null)
     {
         $record = OMCDeviceDAO::FetchDeviceBasicDetail($deviceQueryId);
         return $record;
@@ -178,7 +183,7 @@ final class WSDeviceMngr
     
     // reserved wrapper
     // verified since 2018.01.03 12:39
-    static private function deviceAbbDetail($deviceQueryId = NULL)
+    static private function deviceAbbDetail($deviceQueryId = null)
     {
         $record = OMCDeviceDAO::FetchDeviceAbbDetail($deviceQueryId);
         $emode = BaseFilter::SearchKey($record, 'emode');
@@ -187,20 +192,20 @@ final class WSDeviceMngr
         return $record;
     }
     // verified since 2018.01.03 12:25
-    static private function deviceAbbPeerQty($deviceQueryId = NULL)
+    static private function deviceAbbPeerQty($deviceQueryId = null)
     {
         $records = OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId, 'online');
         return $records;
     }
     // verified since 2018.01.03 12:41
-    static private function deviceAbbPeers($deviceQueryId = NULL)
+    static private function deviceAbbPeers($deviceQueryId = null)
     {
         $records = OMCDeviceDAO::FetchDevicePeers($deviceQueryId, 'online');
         return $records;
     }
     
     // verified since 2018.01.03 12:39
-    static private function deviceRadioDetail($deviceQueryId = NULL)
+    static private function deviceRadioDetail($deviceQueryId = null)
     {
         $record = OMCDeviceDAO::FetchDeviceRadioDetail($deviceQueryId);
         return $record;
@@ -208,23 +213,44 @@ final class WSDeviceMngr
     
     // verified since 2017.12.04
     // verified since 2018.01.03 12:39
-    static private function deviceNetworkDetail($deviceQueryId = NULL)
+    static private function deviceNetworkDetail($deviceQueryId = null)
     {
         $record = OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
         return $record;
     }
     
     // TODO: not verified since 2017.12.04
-    static private function deviceThrptCalc($deviceQueryId = NULL)
+    static private function deviceThrptCalc($deviceQueryId = null)
     {
+        $record = OMCDeviceDAO::FetchDeviceNetworkBytes($deviceQueryId);
+        $ifname = BaseFilter::SearchKey($record, 'ifname');
+        $rxbytes = BaseFilter::SearchKey($record, 'rxbytes');
+        $txbytes = BaseFilter::SearchKey($record, 'txbytes');
+        $elapsed = BaseFilter::SearchKey($record, 'elapsed');
+        $ts = BaseFilter::SearchKey($record, 'ts');
+        
+        if (! $elapsed || $elapsed <= 0) {
+            $elapsed = 1;
+        }
+        
+        if ($rxbytes + $txbytes > 0) {
+            $rxthrpt = $rxbytes * 8 / $elapsed / 1024 / 1024;
+            $txthrpt = $txbytes * 8 / $elapsed / 1024 / 1024;
+            $unit = 'Mbps';
+        } else {
+            $unit = 'Mbps';
+            $rxthrpt = 0.001;
+            $txthrpt = 0.001;
+        }
+        
         return array(
             'qty' => 1,
             'rxtx' => array(
                 array(
-                    'ifname' => 'eth0',
-                    'unit' => 'Mbps',
-                    'rx' => 0.05 + rand(0, 10)/100,
-                    'tx' => 0.05 + rand(0, 10)/100
+                    'ifname' => $ifname,
+                    'unit' => $unit,
+                    'rx' => 0.05 + number_format($rxthrpt, 3),
+                    'tx' => 0.05 + number_format($txthrpt, 3)
                 )
             )
         );
@@ -232,14 +258,14 @@ final class WSDeviceMngr
 
     // TODO: search database by wmac or devid
     // TODO: not verified since 2017.12.04
-    static private function deviceMsgQty($deviceId = NULL)
+    static private function deviceMsgQty($deviceId = null)
     {
         // return $deviceId ? $deviceId : 0;
         return 0;
     }
 
     // verified since 2018.01.10
-    static public function DeviceConfigLoad($deviceQueryId = NULL)
+    static public function DeviceConfigLoad($deviceQueryId = null)
     {
         if ($deviceQueryId) {
             // data.device
@@ -264,14 +290,36 @@ final class WSDeviceMngr
             //var_dump($device);
             return $reply;
         }
-        return NULL;
+        return null;
     }
 
-    // TODO: save to database, then agent will read in queue, one at a time
-    // TODO: not verified since 2017.12.04
-    static public function DeviceConfigInQueue($deviceQueryId = NULL, $config = NULL)
+    // save to database, then agent will read in queue, one at a time
+    // CURRENT: reset_abb, reset_nw, reset_os, mode, channel, txpower
+    // FIXME: add more commands
+    // verified since 2018.01.25
+    static public function DeviceConfigInQueue($deviceQueryId = null, $config = null)
     {
         if ($deviceQueryId && $config && is_array($config)) {
+            $reset = array();
+            $ops = BaseFilter::SearchKey($config, 'ops');
+            switch($ops) {
+                case 'reset-wireless':
+                    $reset['cmd'] = 'reset_abb';
+                    break;
+                case 'reset-network':
+                    $reset['cmd'] = 'reset_nw';
+                    break;
+                case 'reset-system':
+                    $reset['cmd'] = 'reset_os';
+                    break;
+                default:
+                    break;
+            }
+            if (key_exists('cmd', $reset)) {
+                self::deviceConfigReset($deviceQueryId, $reset);
+            }
+            unset($reset);
+            
             // save data stored in omc server
             $basic = array();
             $name = BaseFilter::SearchKey($config, 'name');
@@ -279,8 +327,11 @@ final class WSDeviceMngr
                 $basic['name'] = $name;
             }
             $latlng = BaseFilter::SearchKey($config, 'latlng');
+            list($lat, $lng) = explode(',', $latlng);
             if ($latlng && $latlng != '') {
                 $basic['latlng'] = $latlng;
+                $basic['lat'] = (float) $lat;
+                $basic['lng'] = (float) $lng;
             }
             if ($basic && is_array($basic) && count($basic) > 0) {
                 self::deviceConfigSaveBasic($deviceQueryId, $basic);
@@ -317,19 +368,34 @@ final class WSDeviceMngr
         return OMCError::GetErrorInArray(ERROR_BAD_REQUEST_PARAM);
     }
     
-    static private function deviceConfigSaveBasic($deviceQueryId = NULL, $data = NULL)
+    // reset_abb, reset_nw, reset_os
+    // since 2018.01.25
+    static private function deviceConfigReset($deviceQueryId = null, $reset = null)
+    {
+        foreach($reset as $key => $val) {
+            OMCDeviceDAO::DeviceCommandsSaveByRecordId($deviceQueryId, array($key => $val));
+        }
+    }
+    
+    // name, latlng
+    // since 2018.01.25
+    static private function deviceConfigSaveBasic($deviceQueryId = null, $data = null)
     {
         OMCDeviceDAO::DeviceSaveByRecordId($deviceQueryId, $data);
     }
     
-    static private function deviceConfigSaveAbb($deviceQueryid = NULL, $data = NULL)
+    // mode
+    // since 2018.01.25
+    static private function deviceConfigSaveAbb($deviceQueryId = null, $data = null)
     {
         foreach($data as $key => $val) {
             OMCDeviceDAO::DeviceCommandsSaveByRecordId($deviceQueryId, array($key => $val));
         }
     }
     
-    static private function deviceConfigSaveRadio($deviceQueryId = NULL, $data = NULL)
+    // channel, txpower
+    // since 2018.01.25
+    static private function deviceConfigSaveRadio($deviceQueryId = null, $data = null)
     {
         foreach($data as $key => $val) {
             OMCDeviceDAO::DeviceCommandsSaveByRecordId($deviceQueryId, array($key => $val));

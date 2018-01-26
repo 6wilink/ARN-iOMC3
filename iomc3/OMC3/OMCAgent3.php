@@ -204,7 +204,8 @@ final class OMCAgent3
                 foreach($peers as $peer) {
                     $pwmac = BaseFilter::SearchKey($peer, 'wmac');
                     $pipaddr = BaseFilter::SearchKey($peer, 'ip');
-
+                    $psignal = BaseFilter::SearchKey($peer, 'signal');
+                    
                     $prx_br = BaseFilter::SearchKey($peer, 'rx_br');
                     $prx_mcs = BaseFilter::SearchKey($peer, 'rx_mcs');
                     $prx_short_gi = BaseFilter::SearchKey($peer, 'rx_short_gi');
@@ -218,6 +219,7 @@ final class OMCAgent3
                         'pwmac' => $pwmac,
                         'realtime' => 'connected',
                         'pipaddr' => $pipaddr,
+                        'psignal' => $psignal,
                         'prx' => $prx,
                         'ptx' => $ptx
                     );
@@ -309,9 +311,6 @@ final class OMCAgent3
             $gateway = BaseFilter::SearchKey($kpi, 'gateway');
             $vlan = BaseFilter::SearchKey($kpi, 'vlan');
             
-            $rxthrpt = BaseFilter::SearchKey($kpi, 'rx');
-            $txthrpt = BaseFilter::SearchKey($kpi, 'tx');            
-            
             // save cache/status
             $now = date('Y-m-d H:i:s');
             $data = array(
@@ -326,11 +325,15 @@ final class OMCAgent3
             OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'nw', $data);
             
             // insert history
+            $rxbytes = BaseFilter::SearchKey($kpi, 'rx');
+            $txbytes = BaseFilter::SearchKey($kpi, 'tx');
+            $interval = BaseFilter::SearchKey($kpi, 'interval');
             $now = date('Y-m-d H:i:s');
             $data = array(
                 'ifname' => $ifname,
-                'rxthrpt' => $rxthrpt,
-                'txthrpt' => $txthrpt,
+                'rxbytes' => $rxbytes,
+                'txbytes' => $txbytes,
+                'elapsed' => $interval,
                 'ts' => $now
             );
             OMCDeviceDAO::DeviceStatusHistorySaveByRecordId($deviceQueryId, 'nw', $data);

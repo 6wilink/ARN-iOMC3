@@ -38,17 +38,17 @@ final class WebServiceMngr
         // audit_all hook
         WSAuth::AuditAll(); // is token timeout?
         WSDeviceMngr::AuditAll(); // is device offline?
-        return NULL;
+        return null;
     }
 
     // verified since 2017.11.04
     // 2017.12.21
     // verified at 2017.12.28 15:44
-    static public function Run($envRaw = NULL, $urlRaw = NULL, $dataRaw = NULL)
+    static public function Run($envRaw = null, $urlRaw = null, $dataRaw = null)
     {
         // var_dump($urlRaw, $dataRaw);
         // FIXME: if $reply valid, must put all into field $reply['data']
-        $response = $reply = $responseFormat = NULL;
+        $response = $reply = $responseFormat = null;
         
         // check UserAgent first
         $envSafe = BaseFilter::FilterAll($envRaw);
@@ -97,9 +97,9 @@ final class WebServiceMngr
     // verified since 2017.11.04
     // 2017.12.21
     // verified at 2017.12.28 15:46
-    static private function actionsRequireUserAgent($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
+    static private function actionsRequireUserAgent($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
-        $reply = NULL;
+        $reply = null;
         $ua = BaseEnv::RemoteUserAgent($envSafe);
         if (self::verifyUserAgent($ua)) {
             $host = BaseEnv::RemoteIPAddr($envSafe);
@@ -116,7 +116,7 @@ final class WebServiceMngr
 
     // verified since 2017.11.04
     // verified at 2017.12.28 15:46
-    static private function actionsRequireAutherization($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
+    static private function actionsRequireAutherization($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
         $token = BaseFilter::SearchKey($urlSafe, 'token');
         if (self::verifyAuthToken($token)) {
@@ -131,6 +131,11 @@ final class WebServiceMngr
                     $kw = BaseFilter::SearchKey($urlSafe, 'keyword');
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceSearch($kw, $dqid);
+                    break;
+                case 'maps':
+                    $kw = BaseFilter::SearchKey($urlSafe, 'keyword');
+                    $dqid = BaseFilter::SearchKey($urlSafe, 'did');
+                    $reply = WSDeviceMngr::DeviceSearchWithGPS($kw, $dqid);
                     break;
                 case 'detail':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
@@ -165,9 +170,9 @@ final class WebServiceMngr
 
     // verified since 2017.11.04
     // verified at 2017.12.28 15:46
-    static private function actionsAnonymous($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
+    static private function actionsAnonymous($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
-        $reply = NULL;
+        $reply = null;
         $do = BaseFilter::SearchKey($urlSafe, 'do');
         switch ($do) {
             case 'signin':
@@ -188,14 +193,14 @@ final class WebServiceMngr
 
     // verified since 2017.11.04|2017.12.21
     // verified at 2017.12.28 15:46
-    static private function verifyAuthToken($token = NULL)
+    static private function verifyAuthToken($token = null)
     {
         return ($token && WSAuth::IsTokenValid($token));
     }
 
     // verified since 2017.11.04|2017.12.21
     // verified at 2017.12.28 15:46
-    static private function verifyUserAgent($ua = NULL)
+    static private function verifyUserAgent($ua = null)
     {
         return ($ua && in_array($ua, self::$USER_AGENT));
     }
