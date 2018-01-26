@@ -1,5 +1,5 @@
 ﻿# Host: 192.168.1.4  (Version 5.1.73)
-# Date: 2018-01-10 17:58:24
+# Date: 2018-01-26 10:07:09
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -20,13 +20,13 @@ CREATE TABLE `arn_auth` (
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_user` (`user`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "arn_auth"
 #
 
-INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-10 17:56:23');
+INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-26 10:04:11'),(2,X'30',X'30',NULL,NULL,'qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-26 10:05:04');
 
 #
 # Structure for table "arn_auth_group"
@@ -57,7 +57,9 @@ CREATE TABLE `arn_device` (
   `wmac` varchar(18) DEFAULT NULL,
   `hw_ver` varchar(64) DEFAULT NULL,
   `fw_ver` varchar(64) DEFAULT NULL,
-  `latlng` varchar(16) DEFAULT NULL,
+  `latlng` varchar(32) DEFAULT NULL,
+  `lat` double(10,8) DEFAULT NULL,
+  `lng` double(11,8) DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_wmac` (`wmac`)
@@ -105,7 +107,7 @@ CREATE TABLE `arn_device_abb_peers` (
   `ptx` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_pwmac` (`pwmac`)
+  UNIQUE KEY `uniq_peer` (`pwmac`,`devid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
 #
@@ -119,7 +121,8 @@ CREATE TABLE `arn_device_abb_peers` (
 
 CREATE TABLE `arn_device_cmd` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `done` enum('new','done') COLLATE latin1_general_ci NOT NULL DEFAULT 'done',
+  `done` enum('new','done') COLLATE latin1_general_ci DEFAULT 'done',
+  `tminus` int(11) unsigned NOT NULL DEFAULT '3',
   `devid` int(11) unsigned DEFAULT NULL,
   `cmd` varchar(64) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -208,8 +211,9 @@ CREATE TABLE `arn_history_nw` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `devid` int(11) NOT NULL DEFAULT '0',
   `ifname` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
-  `rxthrpt` int(11) unsigned DEFAULT NULL,
-  `txthrpt` int(11) unsigned DEFAULT NULL,
+  `rxbytes` int(11) unsigned DEFAULT NULL,
+  `txbytes` int(11) unsigned DEFAULT NULL,
+  `elapsed` int(11) unsigned NOT NULL DEFAULT '1',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=FIXED;
@@ -258,4 +262,3 @@ CREATE TABLE `arn_msg` (
 #
 # Data for table "arn_msg"
 #
-
