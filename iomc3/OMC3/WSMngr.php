@@ -67,7 +67,7 @@ final class WebServiceMngr
                 $reply = self::actionsAnonymous($envSafe, $urlSafe, $dataSafe);
                 break;
             default:
-                $reply = self::actionsRequireAutherization($envSafe, $urlSafe, $dataSafe);
+                $reply = self::actionsRequireAuthentication($envSafe, $urlSafe, $dataSafe);
                 break;
         }
         
@@ -116,7 +116,7 @@ final class WebServiceMngr
 
     // verified since 2017.11.04
     // verified at 2017.12.28 15:46
-    static private function actionsRequireAutherization($envSafe = null, $urlSafe = null, $dataSafe = null)
+    static private function actionsRequireAuthentication($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
         $token = BaseFilter::SearchKey($urlSafe, 'token');
         if (self::verifyAuthToken($token)) {

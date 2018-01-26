@@ -262,6 +262,23 @@ final class OMCDeviceDAO extends OMCBaseDAO
         return self::FetchInMultiTables($tables, $rfields, $joins, $rfilters, $rsearch);
     }
     
+    static private function fetchDeviceListWithLatLngByFilter($rfields = null, $rfilters = null, $rsearch = null)
+    {
+        $tableDevice = self::$DB_DEVICE_TABLE;
+        $tableNetwork = self::$DB_DEVICE_NETWORK_TABLE;
+        $tables = array(
+            "{$tableDevice} as dev",
+            "{$tableNetwork} as nw"
+        );
+        $joins = array(
+            'dev.id=nw.devid',
+            '(dev.latlng is not NULL or dev.latlng != NULL)'//,
+            //'dev.lat!=0.00',
+            //'dev.lng!=0.00'
+        );
+        return self::FetchInMultiTables($tables, $rfields, $joins, $rfilters, $rsearch);
+    }
+    
     // verified since 2017.12.25
     // verified since 2017.12.28 16:08
     static public function DeviceStatistics()
@@ -289,11 +306,14 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
     
     // verified since 2017.12.28 17:25
-    static public function DeviceListFetchByStatus($filterStatus = null)
+    static public function DeviceListFetchByStatus($filterStatus = null, $flag = false)
     {
         $rfields = array(
             'dev.id',
             'dev.name',
+            'dev.latlng',
+            'dev.lat',
+            'dev.lng',
             'nw.ipaddr'
         );
         $rfilters = array();
@@ -308,12 +328,16 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 break;
         }
         
-        return self::fetchDeviceListByFilter($rfields, $rfilters);
+        if ($flag) {
+            return self::fetchDeviceListWithLatLngByFilter($rfields, $rfilters);
+        } else {
+            return self::fetchDeviceListByFilter($rfields, $rfilters);
+        }
     }
     
     // fetch device list, support device id or keyword search
     // verified since 2017.12.28 17:25
-    static public function DeviceListSearchById($deviceQueryId = null)
+    static public function DeviceListSearchById($deviceQueryId = null, $flag = false)
     {
         if ($deviceQueryId) {
             $deviceQueryIdSafe = (int) $deviceQueryId;
@@ -321,13 +345,20 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 $rfields = array(
                     'dev.id',
                     'dev.name',
+                    //'dev.latlng',
+                    'dev.lat',
+                    'dev.lng',
                     'nw.ipaddr'
                 );
-                $rfilter = array(
+                $rfilters = array(
                     'dev.id' => $deviceQueryIdSafe
                 );
                 
-                return self::fetchDeviceListByFilter($rfields, $rfilter);
+                if ($flag) {
+                    return self::fetchDeviceListWithLatLngByFilter($rfields, $rfilters);
+                } else {
+                    return self::fetchDeviceListByFilter($rfields, $rfilters);
+                }
             }
         }
         return null;
@@ -335,16 +366,19 @@ final class OMCDeviceDAO extends OMCBaseDAO
 
     // verified since 2017.11.04
     // verified since 2017.12.28 17:25
-    static public function DeviceListSearchByKeyword($keyword = null)
+    static public function DeviceListSearchByKeyword($keyword = null, $flag = false)
     {
         if ($keyword) {
             $safeKw = BaseFilter::FilterAll($keyword);
             $safeQid = (int) $safeKw;
             if ($safeQid > 0) {
-                return self::DeviceListSearchById($safeQid);
+                return self::DeviceListSearchById($safeQid, $flag);
             } else if ($safeKw) {
                 $rfields = array(
                     'dev.id',
+                    //'dev.latlng',
+                    'dev.lat',
+                    'dev.lng',
                     'dev.name',
                     'nw.ipaddr'
                 );
@@ -352,7 +386,11 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'dev.name' => "%{$safeKw}%",
                     'nw.ipaddr' => "%{$safeKw}%"
                 );
-                return self::fetchDeviceListByFilter($rfields, null, $rsearch);
+                if ($flag) {
+                    return self::fetchDeviceListWithLatLngByFilter($rfields, null, $rsearch);
+                } else {
+                    return self::fetchDeviceListByFilter($rfields, null, $rsearch);
+                }
             }
         }
         

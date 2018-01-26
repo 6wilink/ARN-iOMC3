@@ -59,47 +59,71 @@ final class WSDeviceMngr
     
     static public function DeviceSearchWithGPS($keyword = null, $deviceQueryId = null)
     {
-        return null;
+        // handle search by id or keyword
+        $flag = true;
+        if ($deviceQueryId) {
+            $devices = self::deviceListSearchById($deviceQueryId, $flag);
+        } else if ($keyword) {
+            $devices = self::deviceListSearchByKeyword($keyword, $flag);
+        } else {
+            $devices = self::deviceListSearchByKeyword(':all', $flag);
+        }
+        
+        $reply = array(
+            'data' => array(
+                'ds' => self::deviceStatistics(),
+                'qty' => count($devices),
+                'devices' => $devices
+            )
+        );
+        return $reply;
     }
 
     // reserved wrapper
-    static private function deviceListSearchById($deviceQueryId = null)
+    static private function deviceListSearchById($deviceQueryId = null, $flag = false)
     {
-        $reply = OMCDeviceDAO::DeviceListSearchById($deviceQueryId);
+        $reply = OMCDeviceDAO::DeviceListSearchById($deviceQueryId, $flag);
         return $reply;
     }
 
     // support search pattens
     // verified since 2017.12.28 16:06
-    static private function deviceListSearchByKeyword($keyword = null)
+    static private function deviceListSearchByKeyword($keyword = null, $flag = false)
     {
         $reply = null;
         $records = null;
         switch ($keyword) {
             case ':all':
-                $records = OMCDeviceDAO::deviceListFetchByStatus(); // 2017.12.28 15:26
+                $records = OMCDeviceDAO::DeviceListFetchByStatus('all', $flag); // 2017.12.28 15:26
                 break;
             case ':online':
-                $records = OMCDeviceDAO::deviceListFetchByStatus('online');
+                $records = OMCDeviceDAO::DeviceListFetchByStatus('online', $flag);
                 break;
             case ':offline':
-                $records = OMCDeviceDAO::deviceListFetchByStatus('offline');
+                $records = OMCDeviceDAO::DeviceListFetchByStatus('offline', $flag);
                 break;
             default:
-                $records = OMCDeviceDAO::DeviceListSearchByKeyword($keyword);
+                $records = OMCDeviceDAO::DeviceListSearchByKeyword($keyword, $flag);
                 break;
         }
         
+        // re-format result
         if ($records && is_array($records)) {
             $reply = array();
             foreach ($records as $record) {
                 $did = BaseFilter::SearchKey($record, 'id');
                 $name = BaseFilter::SearchKey($record, 'name');
+                $lat = BaseFilter::SearchKey($record, 'lat');
+                $lng = BaseFilter::SearchKey($record, 'lng');
                 $ipaddr = BaseFilter::SearchKey($record, 'ipaddr');
                 $qty = self::deviceAbbPeerQty($did, 'online');
                 $r = array(
                     'id' => $did,
                     'name' => $name,
+                    'gps' => array(
+                        'lat' => number_format($lat, 6),
+                        'lng' => number_format($lng, 6)
+                    ),
                     'ipaddr' => $ipaddr,
                     'peer_qty' => (is_numeric($qty) ? (int) $qty : 0)
                 );

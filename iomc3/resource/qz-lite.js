@@ -221,7 +221,22 @@
 				if ($.Val.IsValid(did)) {
 					$.Request.DeviceConfigOptions(did);
 				}
-			}
+			},
+            MapsDeviceDetail: function(did, lat, lng) {
+                console.log('* should move maps center to this device pos:', lat, lng);
+                var map = $.Lite.data.map;
+                if (map) {
+                    var center = new Microsoft.Maps.Location(lat, lng);
+                    var icon = new Microsoft.Maps.Pushpin(center);
+                    map.entities.clear();
+                    map.entities.push(icon);
+                    map.setView({
+                        center: center
+                    });
+                } else {
+                    console.log('* Maps is not ready.');
+                }
+            }
 		},
 		InitAll : function() {
 			$.Lite.Init.Nav();
@@ -528,8 +543,21 @@
 				});
 			},
 			Maps : function() { // TODO: bind all button/input event(s) here
+				$("#qz-maps-text-keyword").focus(function() {
+					$(this).select();
+				}).keydown(function(e) { // console.log('search when hit
+					// ENTER');
+					if (e.keyCode == 13) {
+						// $(this).select();
+						$("#qz-maps-btn-search").trigger('click');
+					}
+				});
 				$("#qz-maps-btn-search").click(function() {
 					console.log('ARN.iOMC3.Maps.SearchBtn clicked');
+					var keyword = $("#qz-maps-text-keyword").val();
+					console.log('qz-maps-text-keyword =', keyword);
+					var flagAutoLoad = true;
+                    $.Request.DevicesForMaps(flagAutoLoad, keyword);
 				});
 			},
 			Tools : function() {
@@ -700,13 +728,13 @@
 			}
 
 			// update Timestamp
-			var ts = new Date().toTimeString();
+			var ts = new Date().toLocaleString();
 			$.Lite.Update.DevicesStatus('设备列表已更新 @' + ts);
 
 			$("#qz-devices-search").removeClass("loading");
 		},
 		CB_DevicesError : function(xhr, status, error) {
-			var ts = new Date().toTimeString();
+			var ts = new Date().toLocaleString();
 			$.Lite.Update.DevicesStatus('设备列表获取失败 @' + ts);
 
 			$("#qz-devices-search").removeClass("loading");
@@ -728,7 +756,7 @@
 					}
 
 					// update Timestamp
-					var ts = new Date().toTimeString();
+					var ts = new Date().toLocaleString();
 					$.Lite.Update.DevicesStatus('设备信息已更新 @' + ts);
 				} else {
 					$.CB.CB_DeviceError();
@@ -746,7 +774,7 @@
 			// $("#qz-device-mask").SUILoaderHide();
 		},
 		CB_DeviceError : function(xhr, status, error) {
-			var ts = new Date().toTimeString();
+			var ts = new Date().toLocaleString();
 			$("#qz-devices-status").SUIMessageError('设备信息获取失败 @' + ts).show();
 
 			$("#qz-device-mask").SUILoaderHide();
@@ -759,7 +787,7 @@
 			switch (error) {
 			case 'none':
 				if ($.LiteUI.Update.DeviceConfig(resp.data)) {
-					var ts = new Date().toTimeString();
+					var ts = new Date().toLocaleString();
 					$.Lite.Update.DevicesStatus('设备配置已更新 @' + ts);
 				} else {
 					$.CB.CB_DeviceConfigError();
@@ -775,7 +803,7 @@
 			$("#qz-device-mask").SUILoaderHide();
 		},
 		CB_DeviceConfigError : function(xhr, status, error) {
-			var ts = new Date().toTimeString();
+			var ts = new Date().toLocaleString();
 			$("#qz-devices-status").SUIMessageError('设备配置获取失败 @' + ts).show();
 
 			$("#qz-device-mask").SUILoaderHide();
@@ -788,7 +816,7 @@
 			console.log('$.CB.CB_DeviceSetDone> error =', error);
 			switch (error) {
 			case 'none':
-				var ts = new Date().toTimeString();
+				var ts = new Date().toLocaleString();
 				$.Lite.Update.DevicesStatus('设备操作已完成 @' + ts);
 				break;
 			case '404':
@@ -802,7 +830,7 @@
 			$("#qz-device-mask").SUILoaderHide();
 		},
 		CB_DeviceSetError : function(xhr, status, error) {
-			var ts = new Date().toTimeString();
+			var ts = new Date().toLocaleString();
 			$("#qz-devices-status").SUIMessageError('设备操作失败 @' + ts).show();
 
 			$.LiteUI.DeviceConfig.Saved()
@@ -826,15 +854,16 @@
 			}
 
 			// update Timestamp
-			var ts = new Date().toTimeString();
-			$.Lite.Update.MapsDevicesStatus('设备列表已更新 @' + ts);
+			var ts = new Date().toLocaleString();
+			$.Lite.Update.DevicesStatus('地图列表已更新 @' + ts);
+            console.log(ts);
 
 			$("#qz-maps-search").removeClass("loading");
-			$("#qz-device-mask").SUILoaderHide();
+			$("#qz-maps-mask").SUILoaderHide();
 		},
 		CB_MapsDevicesError : function(xhr, status, error) {
-			var ts = new Date().toTimeString();
-			// $.Lite.Update.MapsDevicesStatus('设备列表获取失败 @' + ts);
+			var ts = new Date().toLocaleString();
+			// $.Lite.Update.DevicesStatus('设备列表获取失败 @' + ts);
 
 			$("#qz-maps-search").removeClass("loading");
 		},
@@ -948,7 +977,7 @@
 					var url = '/iomc3/ws.php?do=maps&keyword=' + kw
 							+ '&token=' + token;
 					$("#qz-maps-search").SUILoaderShow();
-					$.Ajax.Query(url, null, $.CB.CB_MapsDevicesDone,
+					$.Ajax.Query(url, null, $.CB.CB_MapsDeviceDone,
 							$.CB.CB_MapsDevicesError);
 				}
 			} else {
@@ -1581,6 +1610,107 @@
                     return true;
                 }
 				return false;
+			},
+            MapsDevicesList : function(data) {
+				if (data) {
+					var ds = data.ds;
+					var total = ds.total;
+					var offline = ds.offline ? ds.offline : 0;
+					var online = ds.online ? ds.online : 0;
+					var qty = data.qty;
+					var qty_desc = total + '=' + offline + '+' + online;
+					console.log('$.Lite.MapsDevicesList()', total, qty);
+					/*
+					 * // replace by $.BG.AuditStart() if (total > 0) { //
+					 * Update Nav.[DEVICES].Qty var nav_devices =
+					 * $("#qz-nav-devices").find('.label');
+					 * nav_devices.text(qty_desc); if (offline > 0) {
+					 * nav_devices.removeClass('green').addClass('red'); } else {
+					 * nav_devices.removeClass('red').addClass('green'); } }
+					 */
+					// update Devices.[LIST]
+					var list_header = $("#qz-maps-list-header");
+					list_header.nextAll().remove();
+					if (qty > 0) {
+						var list = data.devices;
+						$.each(list, function() {
+                            var $this = $(this)[0];
+                            var id = $this.id, name = $this.name, ipaddr = $this.ipaddr;
+                            var latlng = $this.gps;
+                            var lat = latlng.lat;
+                            var lng = latlng.lng;
+                            var peer_qty = $this.peer_qty, html = '';
+
+                            if (!$.Val.IsValid(name))
+                                name = '未命名的新设备';
+                            if (!$.Val.IsValid(peer_qty))
+                                peer_qty = 0;
+                            if (peer_qty > 0) {
+                                html = '<a class="item" id="'
+                                        + id
+                                        + '" lat="'
+                                        + lat
+                                        + '" lng="'
+                                        + lng
+                                        + '">('
+                                        + ipaddr
+                                        + ') '
+                                        + name
+                                        + '<div class="ui green label">'
+                                        + peer_qty
+                                        + 'p</div></a>';
+                            } else {
+                                html = '<a class="item" id="'
+                                        + id
+                                        + '" lat="'
+                                        + lat
+                                        + '" lng="'
+                                        + lng
+                                        + '">('
+                                        + ipaddr
+                                        + ') '
+                                        + name
+                                        + '<div class="ui yellow label">-</div></a>';
+                            }
+                            list_header.after(html);
+                        });
+
+						// update Device Qty
+						var qty_icon = list_header.find(".label");
+						qty_icon.text(qty_desc);
+						if (offline > 0) {
+							qty_icon.removeClass('green').addClass('red');
+						} else {
+							qty_icon.removeClass('red').addClass('green');
+						}
+
+						// Bind [CLICK] again
+						var devices = list_header.nextAll();
+						devices.click(function() {
+							$("#qz-maps-list-header").nextAll().removeClass(
+									'active');
+							$(this).addClass('active');
+
+							var did = $(this).attr('id');
+							var lat = $(this).attr('lat');
+							var lng = $(this).attr('lng');
+							$.Lite.Update.MapsDeviceDetail(did, lat, lng);
+                        });
+
+						// select first result when done
+						devices.first().trigger('click');
+					} else {
+						// $.Lite.data.DeviceId = 0; 
+						// TODO: remove update device id
+						var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
+						list_header.after(html);
+					}
+				} else {
+					// $.Lite.data.DeviceId = 0; 
+					// TODO: remove update device id
+					var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
+					list_header.after(html);
+				}
 			}
 		}
 	}
