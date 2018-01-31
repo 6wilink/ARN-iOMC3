@@ -13,9 +13,10 @@ const ERROR_BAD_AUTH_ENV        = -6;
 const ERROR_BAD_TOKEN_MAKER     = -7;
 const ERROR_BAD_TOKEN           = -8;
 
+const ERROR_NOTHING_TODO        = 1;
 const ERROR_UNKNOWN_AR_UA       = -11;
-const ERROR_UNKNOWN_AR_DEVICEID = - 12;
-const ERROR_EMPTY_AR_CONTENT    = - 13;
+const ERROR_UNKNOWN_AR_DEVICEID = -12;
+const ERROR_EMPTY_AR_CONTENT    = -13;
 
 const ERROR_BAD_REQUEST_PARAM   = -21;
 
@@ -41,6 +42,9 @@ final class OMCError
         switch ($eid) {
             case ERROR_BAD_REQUEST_PARAM:
                 $err = 'request_with_bad_input';
+                break;
+            case ERROR_NOTHING_TODO:
+                $err = 'keep_still';
                 break;
             case ERROR_EMPTY_AR_CONTENT:
                 $err = 'empty_agent_report';

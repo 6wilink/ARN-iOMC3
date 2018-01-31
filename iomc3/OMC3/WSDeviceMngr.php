@@ -351,9 +351,23 @@ final class WSDeviceMngr
                 $basic['name'] = $name;
             }
             $latlng = BaseFilter::SearchKey($config, 'latlng');
-            list($lat, $lng) = explode(',', $latlng);
-            if ($latlng && $latlng != '') {
-                $basic['latlng'] = $latlng;
+            
+            $lat = $lng = null;
+            // cannot handle "£¬"
+            //list($lat, $lng) = explode(',', $latlng);
+            // filter out all numbers < since 2018.01.30
+            $pattern = '/[\d+\.]+[\d+\.]+/';
+            preg_match_all($pattern, $latlng, $data_filtered);
+            if (count($data_filtered) > 0) {
+                $latlng_filtered = current($data_filtered);
+                if (count($latlng_filtered) > 1) {
+                    list($lat, $lng) = $latlng_filtered;
+                }
+            }
+            
+            // if both lat & lng valid, save them
+            if ($lat && $lng) {
+                $basic['latlng'] = "{$lat},{$lng}";
                 $basic['lat'] = (float) $lat;
                 $basic['lng'] = (float) $lng;
             }

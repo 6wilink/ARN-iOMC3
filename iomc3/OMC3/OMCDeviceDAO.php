@@ -110,10 +110,12 @@ final class OMCDeviceDAO extends OMCBaseDAO
             // generate sql
             $k = array(
                 'devid',
+                'ttl',
                 'done'
             ); 
             $v = array(
                 "'{$deviceQueryId}'",
+                '3',
                 "'new'"
             );
             
@@ -226,24 +228,54 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
 
     // --------- --------- Agent Cmds from Admin --------- --------- ---------
-    // TODO: not verified since 2017.11.04
-    // TODO: not verified since 2017.12.13
+    // verified since 2018.01.30
     static public function CmdsToExecute($deviceQueryId = null)
     {
         if ($deviceQueryId) {
             $tableDeviceCmd = self::$DB_DEVICE_CMD_TABLE;
             $rfields = array(
+                'id',
+                'ttl',
                 'cmd',
                 'ts'
             );
             $rfilters = array(
-                'devid' => $deviceQueryId
+                'devid' => $deviceQueryId,
+                'done' => 'new'
             );
-            $records = self::Fetch($tableDeviceCmd, $rfields, $rfilters);
+            $orderby = 'id asc';
+            
+            $records = self::FetchFirstRecord($tableDeviceCmd, $rfields, $rfilters, $orderby);
             $cmds = BaseFilter::SearchKey($records, 'cmd');
+            
+            // update "ttl" of $cmds
+            if ($cmds) {
+                $cid = BaseFilter::SearchKey($records, 'id');
+                $ttl = BaseFilter::SearchKey($records, 'ttl');
+                self::expireCmdsForAgent($cid, $ttl);
+            }
+            
             return $cmds;
         }
         return null;
+    }
+    
+    // verified since 2018.01.30
+    static private function expireCmdsForAgent($cid = null, $ttl = 0)
+    {
+        if ($cid) {
+            $rtable = self::$DB_DEVICE_CMD_TABLE;
+            $ttl_left = ($ttl > 0 ? $ttl - 1 : 0);
+            $data = array(
+                'ttl' => $ttl_left,
+                'done' => ($ttl_left > 0 ? 'new' : 'done')
+            );
+            $rfilter = array(
+                'id' => $cid
+            );
+            
+            $result = self::Update($rtable, $data, $rfilter, __FUNCTION__);
+        }
     }
 
     // --------- --------- --------- Device List --------- --------- ---------

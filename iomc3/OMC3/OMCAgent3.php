@@ -346,23 +346,20 @@ final class OMCAgent3
     public function DeviceCmdsForAgent()
     {
         $deviceQueryId = $this->deviceQueryId;
-        $reply = $this->deviceDoNothing();
+        $reply = null;
         if ($deviceQueryId) {        
             $cmds = $this->fetchCmdsToExec($deviceQueryId);
             //$reply = OMCError::GetErrorInArray(ERROR_NONE);
             if ($cmds) {
-                $reply['cmd'] = $cmds;
+                list($key, $value) = explode('=', $cmds);
+                $reply = array(
+                    'cmd' => $key,
+                    'val' => $value
+                );
             }
         }
         
         return $reply;
-    }
-    
-    private function deviceDoNothing()
-    {
-        return array(
-            'cmd' => NULL
-        );
     }
 
     // reply with cmds from admin

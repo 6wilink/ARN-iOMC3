@@ -106,6 +106,10 @@ final class WebServiceMngr
             $report = BaseFilter::SearchKey($dataSafe, 'data');
             $reply = WSAgentMngr::ReportReceivedAndFetchCmds($host, $report);
             
+            if (! $reply) {
+                $reply = OMCError::GetErrorInArray(ERROR_NOTHING_TODO);
+            }
+            
             // FIXME: only run by valid source
             // self::EveryRequestHook(); // if no is using WebApp, it won't matter
         } else {

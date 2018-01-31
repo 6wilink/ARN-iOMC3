@@ -1,5 +1,5 @@
 ﻿# Host: 192.168.1.4  (Version 5.1.73)
-# Date: 2018-01-26 10:07:09
+# Date: 2018-01-30 17:26:15
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -26,7 +26,7 @@ CREATE TABLE `arn_auth` (
 # Data for table "arn_auth"
 #
 
-INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-26 10:04:11'),(2,X'30',X'30',NULL,NULL,'qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-26 10:05:04');
+INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-30 17:24:11'),(2,X'30',X'30',NULL,NULL,'qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-30 17:24:11');
 
 #
 # Structure for table "arn_auth_group"
@@ -63,7 +63,7 @@ CREATE TABLE `arn_device` (
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_wmac` (`wmac`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "arn_device"
@@ -122,12 +122,12 @@ CREATE TABLE `arn_device_abb_peers` (
 CREATE TABLE `arn_device_cmd` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `done` enum('new','done') COLLATE latin1_general_ci DEFAULT 'done',
-  `tminus` int(11) unsigned NOT NULL DEFAULT '3',
+  `ttl` tinyint(3) unsigned NOT NULL DEFAULT '3',
   `devid` int(11) unsigned DEFAULT NULL,
   `cmd` varchar(64) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
 #
 # Data for table "arn_device_cmd"
@@ -262,3 +262,4 @@ CREATE TABLE `arn_msg` (
 #
 # Data for table "arn_msg"
 #
+
