@@ -1199,7 +1199,6 @@
                     var cache = $.Lite.data;
                     var ds_total = cache && $.Val.IsInt(cache.ds_total) ? cache.ds_total : 0;
                     var ds_offline = cache && $.Val.IsInt(cache.ds_offline) ? cache.ds_offline : 0;
-                    console.log(total, ds_total, ds_offline);
                     if (total != ds_total) {
                         lbl.text(total);
                         $("#qz-nav-devices").trigger('click');
