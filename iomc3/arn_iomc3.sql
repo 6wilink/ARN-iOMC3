@@ -1,5 +1,5 @@
 ﻿# Host: 192.168.1.4  (Version 5.1.73)
-# Date: 2018-01-30 17:26:15
+# Date: 2018-02-26 12:13:11
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -26,7 +26,7 @@ CREATE TABLE `arn_auth` (
 # Data for table "arn_auth"
 #
 
-INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-30 17:24:11'),(2,X'30',X'30',NULL,NULL,'qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-01-30 17:24:11');
+INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-02-26 12:10:54'),(2,X'30',X'30',NULL,NULL,'qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-02-26 12:10:54');
 
 #
 # Structure for table "arn_auth_group"
@@ -60,10 +60,12 @@ CREATE TABLE `arn_device` (
   `latlng` varchar(32) DEFAULT NULL,
   `lat` double(10,8) DEFAULT NULL,
   `lng` double(11,8) DEFAULT NULL,
+  `addat` datetime DEFAULT NULL,
+  `auditat` datetime DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_wmac` (`wmac`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 #
 # Data for table "arn_device"
@@ -127,7 +129,7 @@ CREATE TABLE `arn_device_cmd` (
   `cmd` varchar(64) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
 #
 # Data for table "arn_device_cmd"
