@@ -2,7 +2,7 @@
 // @2016.12.31/2017.11.30
 (function($) {
 	$.Url = {
-		PageWithParams : function() {
+		PageWithParams: function() {
 			var url = window.location.href;
 			var page = url.split('/');
 			if ($.Val.IsArray(page) && page.length > 0) {
@@ -12,7 +12,7 @@
 		},
 		// index.html?x=a or ?x=a
 		// index.html#token or #token
-		PageOnly : function() {
+		PageOnly: function() {
 			var url = $.Url.PageWithParams();
 			var page = url.split('#');
 			if (page.length < 1) {
@@ -21,7 +21,7 @@
 			return page[0];
 		},
 		// get value by key from url
-		Get : function(key) {
+		Get: function(key) {
 			var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
 			var r = window.location.search.substr(1).match(reg);
 			if (r != null) {
@@ -30,16 +30,17 @@
 			return null;
 		},
 		// redirect
-		GotoAnchor : function(url) {
+		GotoAnchor: function(url) {
 			$(window.location).attr('href', url);
 		}
-	}, $.Tab = {
+	},
+    $.Tab = {
 		// "F5" refresh
-		Reload : function() {
+		Reload: function() {
 			window.location.reload();
 		},
 		// "^W"
-		Close : function() {
+		Close: function() {
 			window.opener = null;
 			window.open(".", "_self");
 			window.close();
@@ -53,21 +54,27 @@
 // Check values
 (function($) {
 	$.Val = {
-		IsValid : function(val) {
+		IsValid: function(val) {
 			if (val && val != 'undefined' && val != 'null' && val != '') {
 				// console.log('$.Val.IsValid said: val =', val);
 				return true;
 			}
 			return false;
 		},
-		IsArray : function(data) {
+		IsArray: function(data) {
 			return (data && $.Val.IsValid(data.length));
 		},
-		IsNumber : function(val) {
-			return (val == (+val)); // snatched from the internet
+		IsNumber: function(val) {
+            // snatched from the internet
+			return (val == (+val));
 		},
-		IsString : function(val) {
-			return (val == val + ''); // snatched from the internet
+        IsInt: function(val) {
+            // snatched from the internet
+            return ($.Val.IsValid(val) && (val % 1 === 0)); 
+        },
+		IsString: function(val) {
+            // snatched from the internet
+			return (val == val + ''); 
 		}
 	}
 })(jQuery);
@@ -78,15 +85,15 @@
 	$.Ajax = {
 		// done_cb: function(resp);
 		// error_cb: function(xhr, status, error);
-		Query : function(url, data, done_cb, error_cb, timeout) {
+		Query: function(url, data, done_cb, error_cb, timeout) {
 			$.ajax({
-				url : url,
-				data : data,
-				method : 'post',
-				success : done_cb,
-				error : error_cb,
-				timeout : timeout || 5000,
-				dataType : 'json',
+				url: url,
+				data: data,
+				method: 'post',
+				success: done_cb,
+				error: error_cb,
+				timeout: timeout || 5000,
+				dataType: 'json',
 			// scriptCharset: 'utf-8',
 			// contentType: "application/x-www-form-urlencoded; charset=utf-8",
 			});

@@ -6,7 +6,18 @@
 
 (function($) {
 	$.GWS = {
-		Mode : function(mode) {
+        dBmToBar: function(dbm) {
+            if (dbm <= -85) {
+                return '弱';
+            } else if (dbm <= -75) {
+                return '中';
+            } else if (dbm <= - 65) {
+                return '强';
+            } else {
+                return '很强';
+            }
+        },
+		Mode: function(mode) {
 			var mode_str = '子站 (WDS STA)';
 			switch (mode) {
 			case 'mesh':
@@ -36,13 +47,13 @@
 			}
 			return mode_str;
 		},
-		FreqDesc : function(region, channel, freq) {
+		FreqDesc: function(region, channel, freq) {
 			return '区域' + region + ' / 频道' + channel + ' / ' + freq + ' MHz';
 		},
-		Txpower : function(dbm, watt) {
+		Txpower: function(dbm, watt) {
 			return dbm + ' dBm / ' + watt + '瓦';
 		},
-		Freq : function(region, channel) {
+		Freq: function(region, channel) {
 			var freq, fdesc = '';
 			var freqStart, freqStop, chanBw, chanStart;
 			switch(region) {
@@ -75,7 +86,7 @@
 			var fdesc = '区域' + region + ' / 频道' + channel + ' / '+ freq + 'MHz / 调制'+ chanbw +'M';
             return fdesc;
 		},
-		FreqToChannel : function(region, freq) {
+		FreqToChannel: function(region, freq) {
 			var channel = 0;
 			var freqStart, freqStop, chanBw, chanStart;
 			if (region > 0) {
