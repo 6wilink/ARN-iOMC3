@@ -11,8 +11,9 @@ define('BPATH', dirname(__FILE__));
 require_once BPATH . "/Common/BaseEnv.php";
 require_once BPATH . "/OMC3/WSMngr.php";
 
+
 // XXX: what to test
-$dbgType = 'config';
+$dbgType = 'audit';
 
 // load valid data
 switch($dbgType) {
@@ -42,36 +43,41 @@ switch($dbgType) {
         break;
     case 'token':
         // XXX: test toke valid
-        $env = NULL;
+        $env = null;
         $get = dbgAuthValidToken();
-        $post = NULL;
+        $post = null;
         break;
     case 'devices':
         // 2017.12.28 15:25
-        $env = NULL;
+        $env = null;
         $get = dbgDeviceList();
-        $post = NULL;
+        $post = null;
         break;
     case 'idevices':
-        $env = NULL;
+        $env = null;
         $get = dbgDeviceList(1);
-        $post = NULL;
+        $post = null;
         break;
     case 'sdevices':
-        $env = NULL;
+        $env = null;
         $get = dbgDeviceList('.211');// :all, :online, :offline, .226, 1
-        $post = NULL;
+        $post = null;
         break;
     case 'detail':
         // XXX: test device detail
-        $env = NULL;
+        $env = null;
         $get = dbgDeviceDetail(1);
-        $post = NULL;
+        $post = null;
         break;
     case 'config':
-        $env = NULL;
+        $env = null;
         $get = dbgDeviceConfig(1);
         $post = dbgDeviceConfigPost();
+        break;
+    case 'audit':
+        $env = null;
+        $get = dbgAuditHook();
+        $post = null;
         break;
 }
 
@@ -88,7 +94,14 @@ if ($get) {
 }
 
 
-function dbgDeviceConfig($did = NULL)
+function dbgAuditHook()
+{
+    return array(
+        'do' => 'audit',
+        'token' => 'e585505613467a58afe1fbaf49359821'
+    );
+}
+function dbgDeviceConfig($did = null)
 {
     return array(
         'do' => 'config',
@@ -114,7 +127,7 @@ function dbgDeviceConfigPost()
 }
 
 
-function dbgDeviceDetail($did = NULL)
+function dbgDeviceDetail($did = null)
 {
     return array(
         'do' => 'detail',
@@ -124,9 +137,9 @@ function dbgDeviceDetail($did = NULL)
 }
 //------------------------------
 
-function dbgDeviceList($kw = NULL)
+function dbgDeviceList($kw = null)
 {
-    $did = NULL;
+    $did = null;
     if (is_numeric($kw)) {
         $did = (int) $kw;
     }
@@ -248,38 +261,8 @@ function dbgAgentPostedFullReportNoPeers()
 {
     return array(
         'data' => <<<EOF
-{
-    "ops": "report",
-    "ts": 1495694362,
-    "data": {
-        "abb_safe": {
-            "noise": -67,
-            "ssid": "6harmonicsGWS",
-            "bssid": "----",
-            "chanbw": "8",
-            "wmac": "AC:EE:3B:03:80:4D",
-            "peers": null,
-            "mode": "Ad-Hoc",
-            "signal": -67,
-            "peer_qty": 0
-        },
-        "nw_thrpt": {
-            "rx": 0,
-            "tx": 0
-        },
-        "radio_safe": {
-            "timeout": 60,
-            "region": 1,
-            "elapsed": 0,
-            "freq": 666,
-            "chanbw": 8,
-            "channo": 45,
-            "txpwr": 25,
-            "hw_ver": "GWS5Kv2",
-            "rxgain": 1
-        }
-    }
-}
+{"ops":"report","ts":1516005347,"data":{"abb_safe":{"noise":-96,"ssid":"6harmonicsGWS","bssid":"----","chanbw":"16","wmac":"AC:EE:3B:03:80:4D","peers":null,"mode":"EAR","signal":-96,"peer_qty":0},"nw_thrpt":{"tx":2252,"ts":1516005347,"rx":1640,"interval":4,"bytes":[{"tx":"0","ifname":"eth0","rx":"0"},{"tx":"239926","ifname":"brlan","rx":"250459"},{"tx":"0","ifname":"wlan0","rx":"0"}]},"radio_safe":{"timeout":15,"region":0,"elapsed":4,"freq":650,"chanbw":16,"channo":43,"txpwr":32,"hw_ver":"GWS5Kv2","rxgain":12}}}
+
 EOF
     );
 }
