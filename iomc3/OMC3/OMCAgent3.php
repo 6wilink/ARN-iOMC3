@@ -84,8 +84,10 @@ final class OMCAgent3
     // verified at 2017.12.28 15:51
     private function newDeviceFound($deviceId = NULL)
     {
+        $now = date('Y-m-d H:i:s');
         $data = array(
-            'wmac' => $deviceId
+            'wmac' => $deviceId,
+            'addat' => $now
         );
         return OMCDeviceDAO::NewDeviceFound($data);
     }
@@ -228,6 +230,7 @@ final class OMCAgent3
             } else {
                 $flagInsertIfNoRecordFound = false;
                 $data = array(
+                    'did' => 0,
                     'realtime' => 'unreachable'
                 );
                 OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'abb_peers', $data, $flagInsertIfNoRecordFound);

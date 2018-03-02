@@ -24,6 +24,7 @@ require_once BPATH . '/OMC3/WSError.php';
 // verified at 2017.12.28 15:48
 final class WebServiceMngr
 {
+    const GS_BAR = 4;
 
     // FIXME: complete user agent list
     // verified at 2017.12.28 15:47
@@ -33,11 +34,42 @@ final class WebServiceMngr
     );
 
     // TODO: handle several kilos of requests at same time
-    static public function EveryRequestHook()
+    static public function ajaxHook()
+    {
+        return self::auditAllDevices();
+    }
+    
+    static private function agentHook()
+    {
+        return self::auditAllDevices();
+    }
+    
+    // audit all device(s), judge if online/offline by sync ts
+    // but there maybe mutli-calls of ajaxHook by different WebApp users
+    // TODO: not verified since 2018.02.05
+    static private function auditAllDevices()
+    {
+        $auditTs = WSDeviceMngr::AuditLastTs();
+        if (! $auditTs) {
+            return WSDeviceMngr::AuditAllDevices();
+        } else {
+            // if got audit ts
+            $gap = floor(strtotime('now') - strtotime($auditTs));
+            if ($gap >= self::GS_BAR) {
+                return WSDeviceMngr::AuditAllDevices();
+            }
+        }
+        return null;
+    }
+    
+    
+    // TODO
+    static private function auditAllAgents()
     {
         // audit_all hook
-        WSAuth::AuditAll(); // is token timeout?
-        WSDeviceMngr::AuditAll(); // is device offline?
+        //WSAuth::AuditAll(); // is token timeout?
+        //WSDeviceMngr::AuditAll(); // is device offline?
+        //return self::auditAllAgents();
         return null;
     }
 
@@ -162,8 +194,8 @@ final class WebServiceMngr
                 case 'audit_all':
                 case 'audit':
                 default:
-                    self::EveryRequestHook();
-                    $reply = OMCError::GetErrorInArray(ERROR_NONE);
+                    self::ajaxHook();
+                    $reply = WSDeviceMngr::DeviceMessages();
                     break;
             }
         } else {

@@ -1,4 +1,5 @@
 <?php
+// TODO: restore line 271 debug (for Agent3)
 // by Qige <qigezhao@gmail.com> since 2017.11.20
 // 2017.12.13/2017.12.25
 'use strict';
@@ -139,6 +140,9 @@ final class OMCDeviceDAO extends OMCBaseDAO
     static public function DeviceStatusSaveByRecordId($deviceQueryId = null, $ntype = null, $data = null, $flagInsertIfNoRecordFound = true)
     {
         if ($deviceQueryId) {
+            // set all peers to "unreachable"
+            $flagUpdateAll = false;
+            
             $deviceStatusQueryId = null;
             
             $rtable = null;
@@ -152,8 +156,17 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     $rtable = self::$DB_DEVICE_ABB_TABLE;
                     break;
                 case 'abb_peers':
-                    $data['realtime'] = 'connected';
-                    $rfilter['pwmac'] = BaseFilter::SearchKey($data, 'pwmac');
+                    // set all peers to "unreachable"
+                    if (key_exists('realtime', $data) && $data['realtime'] == 'unreachable') {
+                        $flagUpdateAll = true;
+                    } else {
+                        $flagUpdateAll = false;
+                        $data['realtime'] = 'connected';
+                    }
+                    $pwmac = BaseFilter::SearchKey($data, 'pwmac');
+                    if ($pwmac) {
+                        $rfilter['pwmac'] = $pwmac;
+                    }
                     $rtable = self::$DB_DEVICE_ABB_PEER_TABLE;
                     break;
                 case 'radio':
@@ -162,7 +175,9 @@ final class OMCDeviceDAO extends OMCBaseDAO
                 case 'nw':
                 default:
                     // insert record
-                    $data['reachable'] = 'online';
+                    if (! key_exists('reachable', $data)) {
+                        $data['reachable'] = 'online';
+                    }
                     $rtable = self::$DB_DEVICE_NETWORK_TABLE;
                     break;
             }
@@ -176,9 +191,12 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $kv = array();
             $sql = null;
             if ($deviceStatusQueryId && $deviceStatusQueryId > 0) {
-                $rfilter = array(
-                    'id' => $deviceStatusQueryId
-                );
+                if (! $flagUpdateAll) {
+                    //add "online" peer
+                    $rfilter = array(
+                        'id' => $deviceStatusQueryId
+                    );
+                }
                 $result = self::Update($rtable, $data, $rfilter, __FUNCTION__);
             } elseif ($flagInsertIfNoRecordFound) {
                 $data['devid'] = $deviceQueryId;
@@ -267,7 +285,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
             $rtable = self::$DB_DEVICE_CMD_TABLE;
             $ttl_left = ($ttl > 0 ? $ttl - 1 : 0);
             $data = array(
-                'ttl' => $ttl_left,
+                'ttl' => $ttl_left, // FIXME: help debug agent3
                 'done' => ($ttl_left > 0 ? 'new' : 'done')
             );
             $rfilter = array(
@@ -346,7 +364,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
             'dev.latlng',
             'dev.lat',
             'dev.lng',
-            'nw.ipaddr'
+            'nw.ipaddr',
+            'nw.reachable'
         );
         $rfilters = array();
         switch ($filterStatus) {
@@ -380,7 +399,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     //'dev.latlng',
                     'dev.lat',
                     'dev.lng',
-                    'nw.ipaddr'
+                    'nw.ipaddr',
+                    'nw.reachable'
                 );
                 $rfilters = array(
                     'dev.id' => $deviceQueryIdSafe
@@ -412,7 +432,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'dev.lat',
                     'dev.lng',
                     'dev.name',
-                    'nw.ipaddr'
+                    'nw.ipaddr',
+                    'nw.reachable'
                 );
                 $rsearch = array(
                     'dev.name' => "%{$safeKw}%",
@@ -426,7 +447,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
             }
         }
         
-        return self::DeviceListFetchAll();
+        return null;
     }
 
 
@@ -445,7 +466,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'name',
                     'latlng',
                     'fw_ver',
-                    'hw_ver'
+                    'hw_ver',
+                    'ts'
                 );
                 $rfilters = array(
                     'id' => $deviceQueryIdSafe
@@ -492,7 +514,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'count(id) as qty'
                 );
                 $rfilter = array(
-                    'devid' => $deviceQueryId
+                    'devid' => $deviceQueryId,
+                    'realtime' => $ptype
                 );
                 $record = self::FetchFieldsOfFirstRecord($table, $rfields, $rfilter); // 2017.12.28 15:29
                 return $record;
@@ -502,7 +525,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
     }
     
     // verified since 2018.01.03 12:30
-    static public function FetchDevicePeers($deviceQueryId = null, $ptype = 'online')
+    static public function FetchDevicePeers($deviceQueryId = null, $ptype = 'connected')
     {
         if ($deviceQueryId) {
             $deviceQueryIdSafe = (int) $deviceQueryId;
@@ -516,7 +539,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'ptx'
                 );
                 $rfilters = array(
-                    'devid' => $deviceQueryId
+                    'devid' => $deviceQueryId,
+                    'realtime' => $ptype
                 );
                 $records = self::Fetch($table, $rfields, $rfilters);
                 if ($records && is_array($records)) {
@@ -561,6 +585,7 @@ final class OMCDeviceDAO extends OMCBaseDAO
             if ($deviceQueryIdSafe > 0) {
                 $tables = self::$DB_DEVICE_NETWORK_TABLE;
                 $fields = array(
+                    'reachable',
                     'ipaddr',
                     'netmask',
                     'gateway',
@@ -603,6 +628,49 @@ final class OMCDeviceDAO extends OMCBaseDAO
             }
         }
         return null;
+    }
+    
+    // get last audit time stamp
+    // since 2018.02.05
+    static public function GetLastDeviceTs($ntype = 'audit', $deviceQueryId = null)
+    {
+        switch($ntype) {
+            case 'syncts':
+                $table = self::$DB_DEVICE_TABLE;
+                $rfields = array(
+                    'id',
+                    'ts'
+                );
+                $rfilter = array(
+                    'id' => (int) $deviceQueryId
+                );
+                $orderby = null;
+                break;
+            case 'auditts':
+                $table = self::$DB_DEVICE_TABLE;
+                $rfields = array(
+                    'id',
+                    'auditat'
+                );
+                $rfilter = array(
+                    'id' => (int) $deviceQueryId
+                );
+                $orderby = null;
+                break;
+            case 'lock': // judge if audit just ran be other thread
+            default:
+                $table = self::$DB_DEVICE_TABLE;
+                $rfields = array(
+                    'id',
+                    'auditat'
+                );
+                $rfilter = null;
+                $orderby = 'auditat desc';
+                break;
+        }
+        
+        $record = self::FetchFirstRecord($table, $rfields, $rfilter, $orderby);
+        return $record;
     }
     
 }

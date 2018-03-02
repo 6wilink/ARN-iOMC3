@@ -34,41 +34,24 @@ final class VendorARN
     static public function ConvertTxpwrToWatt($txpwr = NULL)
     {
         $val = 0;
-        switch ($txpwr) {
-            case 40:
-            case 39:
-            case 38:
-                $val = 8;
-                break;
-            case 37:
-            case 36:
-            case 35:
-                $val = 4;
-                break;
-            case 34:
-            case 33:
-            case 32:
-                $val = 2;
-                break;
-            case 31:
-            case 30:
-                $val = 1;
-                break;
-            case 27:
-                $val = 0.5;
-                break;
-            case 24:
-                $val = 0.25;
-                break;
-            case 23:
-                $val = 0.2;
-                break;
-            case 20:
-                $val = 0.1;
-                break;
-            case 17:
-                $val = 0.05;
-                break;
+        if ($txpwr >= 37) {
+            $val = 8;
+        } else if ($txpwr >= 35) {
+            $val = 4;
+        } else if ($txpwr >= 32) {
+            $val = 2;
+        } else if ($txpwr >= 29) {
+            $val = 1;
+        } else if ($txpwr >= 26) {
+            $val = 0.5;
+        } else if ($txpwr >= 23) {
+            $val = 0.2;
+        } else if ($txpwr >= 20) {
+            $val = 0.1;
+        } else if ($txpwr >= 17) {
+            $val = 0.05;
+        } else {
+            $val = 0.02;
         }
         return $val;
     }

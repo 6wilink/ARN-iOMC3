@@ -14,17 +14,110 @@ require_once BPATH . '/OMC3/OMCDeviceDAO.php';
 // verified at 2017.12.28 17:19
 final class WSDeviceMngr
 {
+    // 3 intervals, 4*3=12 seconds
+    CONST GS_BAR = 12;
+    
+    // 120 timestamp gap, plus 1 interval, 120+2=122 seconds
+    CONST GS_BAR_FIX = 122;
 
-    // TODO: audit device offline by last update ts
-    static public function AuditAll()
+    // get the latest lock time stamp
+    // for audit lock check
+    static public function AuditLastTs()
     {
-        // audit device offline
-        /*$devices = self::DeviceListFetchAll();
-        foreach ($devices as $device) {
-            // TODO: audit last ts, generate msg;
-        }*/
+        $reply = self::getAuditLockTs();
+        $ts = BaseFilter::SearchKey($reply, 'audit');
+        return $ts;
     }
-
+    
+    // TODO: audit device offline by last update ts
+    static public function AuditAllDevices()
+    {
+        $reply = null;
+        
+        // audit device offline
+        $devices = self::deviceListSearchByKeyword(':all');
+        $now = date('Y-m-d H:i:s');
+        foreach ($devices as $device) {
+            $did = BaseFilter::SearchKey($device, 'id');
+            
+            // save online/offline
+            $ts = self::getLastestSyncTs($did);
+            $gap = self::GS_BAR;
+            if (! $ts) {
+                $ts = 0;
+            }
+            
+            // if 
+            $now_val = strtotime($now);
+            $last_min = strtotime('-1 min');
+            $ts_val = strtotime($ts);
+            $gap = (int) ($now_val - $ts_val - self::GS_BAR_FIX);
+            $reply = array(
+                'now_val' => $now_val,
+                'last_min' => $last_min,
+                'ts_val' => $ts_val,
+                'gap' => $gap
+            );
+            if ($gap >= self::GS_BAR) {
+                // mark offline
+                $data = array(
+                    'reachable' => 'offline'
+                );
+                OMCDeviceDAO::DeviceStatusSaveByRecordId($did, 'nw', $data);
+                
+                // offline all its peers
+                $pdata = array(
+                    'realtime' => 'unreachable'
+                );
+                OMCDeviceDAO::DeviceStatusSaveByRecordId($did, 'abb_peers', $pdata);
+                
+                // TODO: trigger DeviceMSG offline
+                ;
+                
+                // let all its peers offline
+            } else {
+                // mark online, save audit ts
+                // mark offline
+                $data = array(
+                    'reachable' => 'online'
+                );
+                OMCDeviceDAO::DeviceStatusSaveByRecordId($did, 'nw', $data);
+                
+                // TODO: trigger DeviceMSG offline
+                ;
+            }
+                        
+            // save audit ts
+            $data = array(
+                'auditts' => $now
+            );
+            OMCDeviceDAO::DeviceSaveByRecordId($did, $data);
+        }
+        
+        return $reply;
+    }
+    
+    static private function getAuditLockTs()
+    {
+        $reply = OMCDeviceDAO::GetLastDeviceTs('lock');
+        $ts = BaseFilter::SearchKey($reply, 'auditat');
+        return $ts;
+    }
+    // get last audit ts
+    static private function getLatestAuditTs($deviceQueryId = null)
+    {
+        $reply = OMCDeviceDAO::GetLastDeviceTs('auditts', $deviceQueryId);
+        $ts = BaseFilter::SearchKey($reply, 'auditat');
+        return $ts;
+    }
+    
+    static private function getLastestSyncTs($deviceQueryId = null)
+    {
+        $reply = OMCDeviceDAO::GetLastDeviceTs('syncts', $deviceQueryId);
+        $ts = BaseFilter::SearchKey($reply, 'ts');
+        return $ts;
+    }
+    
     // --------- --------- Search Device by id, keyword or all --------- ---------
     // verified since 2017.12.28 17:00
     // reserved wrapper
@@ -116,6 +209,7 @@ final class WSDeviceMngr
                 $lat = BaseFilter::SearchKey($record, 'lat');
                 $lng = BaseFilter::SearchKey($record, 'lng');
                 $ipaddr = BaseFilter::SearchKey($record, 'ipaddr');
+                $alive = BaseFilter::SearchKey($record, 'reachable');
                 $qty = self::deviceAbbPeerQty($did, 'online');
                 $r = array(
                     'id' => $did,
@@ -125,6 +219,8 @@ final class WSDeviceMngr
                         'lng' => number_format($lng, 6)
                     ),
                     'ipaddr' => $ipaddr,
+                    'alive' => (($alive && $alive == 'online') ? true : false),
+                    //'reachable' => $alive,
                     'peer_qty' => (is_numeric($qty) ? (int) $qty : 0)
                 );
                 $reply[] = $r;
@@ -144,6 +240,14 @@ final class WSDeviceMngr
     }
 
     // --------- --------- Fetch Device Detail --------- --------- ---------
+    static private function deviceIsAlive($deviceQueryId = null)
+    {
+        if ($deviceQueryId) {
+            $deviceNetwork = OMCDeviceDAO::FetchDeviceNetworkDetail($deviceQueryId);
+            $flagAlive = BaseFilter::SearchKey($deviceNetwork, 'reachable');
+            return ($flagAlive == 'online');
+        }
+    }
     // answer to Ajax: do=detail&did=<n>&token=<token>
     static public function DeviceDetail($deviceQueryId = null)
     {
@@ -151,7 +255,8 @@ final class WSDeviceMngr
             // data.device
             $device = array();
             // device: .wmac, .base, .mac, .hw_ver, .fw_ver, .wireless, .network, .thrpt, .msg
-            $device['basic'] = self::deviceBasicDetail($deviceQueryId);
+            $deviceBasic = self::deviceBasicDetail($deviceQueryId);
+            $device['basic'] = $deviceBasic;
             // device.wireless
             $deivce['wireless'] = array();
             // device.wireless.abb: .ssid, .mode
@@ -168,12 +273,13 @@ final class WSDeviceMngr
             $device['thrpt'] = self::deviceThrptCalc($deviceQueryId); // TODO: calc based on report
             
             // device.msg_qty
-            $device['msg_qty'] = self::deviceMsgQty($deviceQueryId); // TODO: add msg query
+            $device['msg_qty'] = 0;//self::deviceMsgQty($deviceQueryId); // TODO: add msg query
             
             // fre-format
             $reply = array(
                 'data' => array(
-                    'device' => $device
+                    'device' => $device,
+                    'ts' => BaseFilter::SearchKey($deviceBasic, 'ts')
                 )
             );
             //var_dump($device);
@@ -218,13 +324,19 @@ final class WSDeviceMngr
     // verified since 2018.01.03 12:25
     static private function deviceAbbPeerQty($deviceQueryId = null)
     {
-        $records = OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId, 'online');
+        $records = 0;
+        if (self::deviceIsAlive($deviceQueryId)) {
+            $records = OMCDeviceDAO::FetchDevicePeerQty($deviceQueryId, 'connected');
+        }
         return $records;
     }
     // verified since 2018.01.03 12:41
     static private function deviceAbbPeers($deviceQueryId = null)
     {
-        $records = OMCDeviceDAO::FetchDevicePeers($deviceQueryId, 'online');
+        $records = null;
+        if (self::deviceIsAlive($deviceQueryId)) {
+            $records = OMCDeviceDAO::FetchDevicePeers($deviceQueryId, 'connected');
+        }
         return $records;
     }
     
@@ -232,6 +344,9 @@ final class WSDeviceMngr
     static private function deviceRadioDetail($deviceQueryId = null)
     {
         $record = OMCDeviceDAO::FetchDeviceRadioDetail($deviceQueryId);
+        $txpower = BaseFilter::SearchKey($record, 'txpwr');
+        $watt = VendorARN::ConvertTxpwrToWatt($txpower);
+        $record['watt'] = $watt;
         return $record;
     }
     
@@ -246,46 +361,52 @@ final class WSDeviceMngr
     // TODO: not verified since 2017.12.04
     static private function deviceThrptCalc($deviceQueryId = null)
     {
-        $record = OMCDeviceDAO::FetchDeviceNetworkBytes($deviceQueryId);
-        $ifname = BaseFilter::SearchKey($record, 'ifname');
-        $rxbytes = BaseFilter::SearchKey($record, 'rxbytes');
-        $txbytes = BaseFilter::SearchKey($record, 'txbytes');
-        $elapsed = BaseFilter::SearchKey($record, 'elapsed');
-        $ts = BaseFilter::SearchKey($record, 'ts');
-        
-        if (! $elapsed || $elapsed <= 0) {
-            $elapsed = 1;
-        }
-        
-        if ($rxbytes + $txbytes > 0) {
-            $rxthrpt = $rxbytes * 8 / $elapsed / 1024 / 1024;
-            $txthrpt = $txbytes * 8 / $elapsed / 1024 / 1024;
-            $unit = 'Mbps';
-        } else {
-            $unit = 'Mbps';
-            $rxthrpt = 0.001;
-            $txthrpt = 0.001;
-        }
-        
-        return array(
-            'qty' => 1,
-            'rxtx' => array(
-                array(
-                    'ifname' => $ifname,
-                    'unit' => $unit,
-                    'rx' => 0.05 + number_format($rxthrpt, 3),
-                    'tx' => 0.05 + number_format($txthrpt, 3)
+        if (self::deviceIsAlive($deviceQueryId)) {
+            $record = OMCDeviceDAO::FetchDeviceNetworkBytes($deviceQueryId);
+            $ifname = BaseFilter::SearchKey($record, 'ifname');
+            $rxbytes = BaseFilter::SearchKey($record, 'rxbytes');
+            $txbytes = BaseFilter::SearchKey($record, 'txbytes');
+            $elapsed = BaseFilter::SearchKey($record, 'elapsed');
+            $ts = BaseFilter::SearchKey($record, 'ts');
+            
+            if (! $elapsed || $elapsed <= 0) {
+                $elapsed = 1;
+            }
+            
+            if ($rxbytes + $txbytes > 0) {
+                $rxthrpt = $rxbytes * 8 / $elapsed / 1024 / 1024;
+                $txthrpt = $txbytes * 8 / $elapsed / 1024 / 1024;
+                $unit = 'Mbps';
+            } else {
+                $unit = 'Mbps';
+                $rxthrpt = 0.0;
+                $txthrpt = 0.0;
+            }
+            
+            return array(
+                'qty' => 1,
+                'rxtx' => array(
+                    array(
+                        'ifname' => $ifname,
+                        'unit' => $unit,
+                        'rx' => ($rxthrpt ? rand(0,10)/1000 + number_format($rxthrpt, 3) : 0),
+                        'tx' => ($txthrpt ? rand(0,10)/1000 + number_format($txthrpt, 3) : 0)
+                    )
                 )
-            )
-        );
+            );
+        }
     }
 
     // TODO: search database by wmac or devid
     // TODO: not verified since 2017.12.04
-    static private function deviceMsgQty($deviceId = null)
+    static public function DeviceMessages($deviceId = null)
     {
         // return $deviceId ? $deviceId : 0;
-        return 0;
+        return array(
+            'data' => array(
+                'ds' => self::deviceStatistics()
+            )
+        );
     }
 
     // verified since 2018.01.10
