@@ -2,73 +2,114 @@
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
+// by Qige <qigezhao@gmail.com> at 2017.12.21
+(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
+
 require_once BPATH . '/OMC3/WSError.php';
 require_once BPATH . '/OMC3/OMCDeviceDAO.php';
 require_once BPATH . '/OMC3/VendorARN.php';
 
-// 
-final class AgentDeviceMngr
+// TODO: 1. fetch cmds.
+// support agent
+final class OMCAgent3
 {
     private $deviceQueryId = NULL;
     private $deviceId = NULL;
     
     // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:48
     public function __construct($deviceId = NULL)
     {
         $this->deviceId = $deviceId;
-        if ($deviceId) {
-            $deviceQueryId = $this->findDeviceQueryId($deviceId);
-            $this->deviceQueryId = $deviceQueryId;
-        }
+        /*if ($deviceId) {
+            $deviceQueryId = $this->findDeviceRecordId($deviceId);
+        }*/
     }
     
-    // TODO: not verified since 2017.11.04
+    // verified since 2017.12.21
+    // verified at 2017.12.28 15:48
+    public function __destruct()
+    {
+        self::Destroy();
+    }
+    
+    // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:48
     public function Destroy()
     {
-        OMCDeviceDAO::OMCDbDisconnect();
+        OMCDeviceDAO::Disconnect();
+    }
+    
+    // verified at 2017.12.28 15:48
+    public function Reset()
+    {
+        $this->deviceQueryId = NULL;
+        $this->deviceId = NULL;
     }
 
     //--------- --------- device exists, save new device --------- ---------
     
     // NOTE: don't save device id! verified since 2017.11.04
     // return device record id
-    private function findDeviceQueryId($deviceId = NULL)
+    // verified since 2017.12.21
+    // verified at 2017.12.28 15:51
+    private function findDeviceRecordId($deviceId = NULL)
     {
-        if ($deviceId) {
-            $deviceQueryId = OMCDeviceDAO::DeviceQueryId($deviceId);
-            if ($deviceQueryId) {
-                return $deviceQueryId;
-            }
+        $deviceQueryId = $this->deviceQueryId;
+        if ($deviceQueryId < 1) {
+            $rtype = 'device';
+            $rfields = array(
+                'id'
+            );
+            $rfilter = array(
+                'wmac' => $deviceId
+            );
+            $deviceQueryId = OMCDeviceDAO::FindRecordId($rfields, $rtype, $rfilter, __FUNCTION__);
+            $this->deviceQueryId = $deviceQueryId;
         }
-        return NULL;
+        return $deviceQueryId;
     }
     
     // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:51
     private function deviceExists($deviceId = NULL)
     {
-        return (true && OMCDeviceDAO::DeviceExists($deviceId));
+        return ($deviceId && $this->findDeviceRecordId($deviceId));
     }
     
     // save device record with wmac
-    // verified since 2017.11.04
+    // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:51
     private function newDeviceFound($deviceId = NULL)
     {
-        OMCDeviceDAO::NewDeviceFound($deviceId);
+        $now = date('Y-m-d H:i:s');
+        $data = array(
+            'wmac' => $deviceId,
+            'addat' => $now
+        );
+        return OMCDeviceDAO::NewDeviceFound($data);
     }
     
     //--------- --------- Save Agent's Report/Sync --------- --------- ---------
     
     // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:50
     public function DeviceLatestStatusFromAgent($data = NULL, $host = NULL)
     {
         $deviceQueryId = $this->deviceQueryId;
         if (! $deviceQueryId) {
             $deviceId = BaseFilter::SearchKey($data, 'wmac');
+            if (! $deviceId) {
+                $deviceId = $this->deviceId;
+            }
             if (! $this->deviceExists($deviceId)) {
                 $this->newDeviceFound($deviceId);
             }
             
-            $deviceQueryId = self::findDeviceQueryId($deviceId);
+            $deviceQueryId = $this->findDeviceRecordId($deviceId);
             $this->deviceQueryId = $deviceQueryId;
         }
         
@@ -91,7 +132,8 @@ final class AgentDeviceMngr
     }
     
     // FIXME: remove "ts" update of device if too much query slow down the speed
-    // verified since 2017.11.04
+    // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:55
     private function deviceHeatbeat($deviceQueryId = NULL, $host = NULL)
     {
         $now = date('Y-m-d H:i:s');
@@ -99,18 +141,20 @@ final class AgentDeviceMngr
             //'host' => $host,
             'ts' => $now
         );
-        OMCDeviceDAO::DeviceSave($deviceQueryId, $data);
+        OMCDeviceDAO::DeviceSaveByRecordId($deviceQueryId, $data);
         
+        $ntype = 'nw';
         $now = date('Y-m-d H:i:s');
         $data = array(
-            'host' => $host,
+            'ipaddr' => $host,
             'ts' => $now
         );
-        OMCDeviceDAO::DeviceStatusSave($deviceQueryId, 'nw', $data);
+        OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, $ntype, $data);
     }
     
     // save "Agent's Report"
-    // not verified since 2017.11.04
+    // not verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:52
     private function DeviceUpdateAll($deviceQueryId = NULL, $deviceData = NULL, $host = NULL)
     {
         if ($deviceQueryId) {
@@ -128,7 +172,8 @@ final class AgentDeviceMngr
     }
     
     // update abb, insert peers
-    // verified since 2017.11.04
+    // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:52
     private function deviceAbbUpdate($deviceQueryId = NULL, $kpi = NULL)
     {
         if ($deviceQueryId && $kpi) {
@@ -151,9 +196,45 @@ final class AgentDeviceMngr
                 'noise' => $noise,
                 'chanbw' => $chanbw
             );
-            OMCDeviceDAO::DeviceStatusSave($deviceQueryId, 'abb', $data);
+            OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'abb', $data);
             
-            // TODO: insert peers
+            // insert peers
+            // if no peers, set all history peers offline
+            $peer_qty = BaseFilter::SearchKey($kpi, 'peer_qty');
+            $peers = BaseFilter::SearchKey($kpi, 'peers');
+            if ($peer_qty > 0 && is_array($peers)) {
+                foreach($peers as $peer) {
+                    $pwmac = BaseFilter::SearchKey($peer, 'wmac');
+                    $pipaddr = BaseFilter::SearchKey($peer, 'ip');
+                    $psignal = BaseFilter::SearchKey($peer, 'signal');
+                    
+                    $prx_br = BaseFilter::SearchKey($peer, 'rx_br');
+                    $prx_mcs = BaseFilter::SearchKey($peer, 'rx_mcs');
+                    $prx_short_gi = BaseFilter::SearchKey($peer, 'rx_short_gi');
+                    $prx = "{$prx_br},{$prx_mcs},{$prx_short_gi}";
+                    
+                    $ptx_br = BaseFilter::SearchKey($peer, 'tx_br');
+                    $ptx_mcs = BaseFilter::SearchKey($peer, 'tx_mcs');
+                    $ptx_short_gi = BaseFilter::SearchKey($peer, 'tx_short_gi');
+                    $ptx = "{$ptx_br},{$ptx_mcs},{$ptx_short_gi}";
+                    $data = array(
+                        'pwmac' => $pwmac,
+                        'realtime' => 'connected',
+                        'pipaddr' => $pipaddr,
+                        'psignal' => $psignal,
+                        'prx' => $prx,
+                        'ptx' => $ptx
+                    );
+                    OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'abb_peers', $data);
+                }
+            } else {
+                $flagInsertIfNoRecordFound = false;
+                $data = array(
+                    'did' => 0,
+                    'realtime' => 'unreachable'
+                );
+                OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'abb_peers', $data, $flagInsertIfNoRecordFound);
+            }
             
             // insert history
             $data = array(
@@ -166,11 +247,13 @@ final class AgentDeviceMngr
                 'rx' => $rx,
                 'tx' => $tx
             );
-            OMCDeviceDAO::DeviceStatusHistorySave($deviceQueryId, 'abb', $data);
+            OMCDeviceDAO::DeviceStatusHistorySaveByRecordId($deviceQueryId, 'abb', $data);
         }
     }
 
     // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:52
     private function deviceRadioUpdate($deviceQueryId = NULL, $kpi = NULL)
     {
         if ($deviceQueryId && $kpi) {
@@ -190,7 +273,7 @@ final class AgentDeviceMngr
                 'hw_ver' => $hwver,
                 'ts' => $now
             );
-            OMCDeviceDAO::DeviceSave($deviceQueryId, $data);
+            OMCDeviceDAO::DeviceSaveByRecordId($deviceQueryId, $data);
             
             // save cache/status
             $now = date('Y-m-d H:i:s');
@@ -203,7 +286,7 @@ final class AgentDeviceMngr
                 'rxgain' => $rxgain,
                 'ts' => $now
             );
-            OMCDeviceDAO::DeviceStatusSave($deviceQueryId, 'radio', $data);
+            OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'radio', $data);
             
             // insert history
             $now = date('Y-m-d H:i:s');
@@ -216,21 +299,20 @@ final class AgentDeviceMngr
                 'rxgain' => $rxgain,
                 'ts' => $now
             );
-            OMCDeviceDAO::DeviceStatusHistorySave($deviceQueryId, 'radio', $data);
+            OMCDeviceDAO::DeviceStatusHistorySaveByRecordId($deviceQueryId, 'radio', $data);
         }
     }
 
     // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:52
     private function deviceNetworkUpdate($deviceQueryId = NULL, $kpi= NULL, $host = NULL)
     {
         if ($deviceQueryId && $kpi) {
             $ifname = BaseFilter::SearchKey($kpi, 'ifname');
             $netmask = BaseFilter::SearchKey($kpi, 'netmask');
-            $gw = BaseFilter::SearchKey($kpi, 'gw');
+            $gateway = BaseFilter::SearchKey($kpi, 'gateway');
             $vlan = BaseFilter::SearchKey($kpi, 'vlan');
-            
-            $rxthrpt = BaseFilter::SearchKey($kpi, 'rx');
-            $txthrpt = BaseFilter::SearchKey($kpi, 'tx');            
             
             // save cache/status
             $now = date('Y-m-d H:i:s');
@@ -239,52 +321,53 @@ final class AgentDeviceMngr
                 'reachable' => 'online',
                 'ipaddr' => $host,
                 'netmask' => $netmask,
-                'gw' => $gw,
+                'gateway' => $gateway,
                 'vlan' => $vlan,
                 'ts' => $now
             );
-            OMCDeviceDAO::DeviceStatusSave($deviceQueryId, 'nw', $data);
+            OMCDeviceDAO::DeviceStatusSaveByRecordId($deviceQueryId, 'nw', $data);
             
             // insert history
+            $rxbytes = BaseFilter::SearchKey($kpi, 'rx');
+            $txbytes = BaseFilter::SearchKey($kpi, 'tx');
+            $interval = BaseFilter::SearchKey($kpi, 'interval');
             $now = date('Y-m-d H:i:s');
             $data = array(
                 'ifname' => $ifname,
-                'rxthrpt' => $rxthrpt,
-                'txthrpt' => $txthrpt,
+                'rxbytes' => $rxbytes,
+                'txbytes' => $txbytes,
+                'elapsed' => $interval,
                 'ts' => $now
             );
-            OMCDeviceDAO::DeviceStatusHistorySave($deviceQueryId, 'nw', $data);
+            OMCDeviceDAO::DeviceStatusHistorySaveByRecordId($deviceQueryId, 'nw', $data);
         }
     }
 
     //--------- --------- Device Cmds from Admin --------- --------- ---------
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.12
     public function DeviceCmdsForAgent()
     {
         $deviceQueryId = $this->deviceQueryId;
-        if (! $deviceQueryId) {
-            $deviceId = BaseFilter::SearchKey($data, 'wmac');
-            if (! $this->deviceExists($deviceId)) {
-                $this->newDeviceFound($deviceId);
+        $reply = null;
+        if ($deviceQueryId) {        
+            $cmds = $this->fetchCmdsToExec($deviceQueryId);
+            //$reply = OMCError::GetErrorInArray(ERROR_NONE);
+            if ($cmds) {
+                list($key, $value) = explode('=', $cmds);
+                $reply = array(
+                    'cmd' => $key,
+                    'val' => $value
+                );
             }
-            
-            $deviceQueryId = self::findDeviceQueryId($deviceId);
-            $this->deviceQueryId = $deviceQueryId;
         }
         
-        $cmds = $this->fetchCmdsToExec($deviceQueryId);
-        $reply = OMCError::GetErrorInArray(ERROR_NONE);
-        if ($cmds) {
-            $reply = array();
-            $reply['cmd'] = $cmds;
-            
-            return $reply;
-        }
-        return NULL;
+        return $reply;
     }
 
     // reply with cmds from admin
     // TODO: not verified since 2017.11.04
+    // TODO: not verified since 2017.12.12
     private function fetchCmdsToExec($deviceQueryId = NULL)
     {
         return OMCDeviceDAO::CmdsToExecute($deviceQueryId);

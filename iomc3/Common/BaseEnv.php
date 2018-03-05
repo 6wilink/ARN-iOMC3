@@ -3,7 +3,7 @@
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
-//
+// verified since 2017.12.28 17:11
 final class BaseEnv
 {
 

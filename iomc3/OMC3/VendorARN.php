@@ -1,5 +1,5 @@
 <?php
-// by Qige <qigezhao@gmail.com> since 2017.11.29
+// by Qige <qigezhao@gmail.com> since 2017.11.29/2017.12.25
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
@@ -34,41 +34,24 @@ final class VendorARN
     static public function ConvertTxpwrToWatt($txpwr = NULL)
     {
         $val = 0;
-        switch ($txpwr) {
-            case 40:
-            case 39:
-            case 38:
-                $val = 8;
-                break;
-            case 37:
-            case 36:
-            case 35:
-                $val = 4;
-                break;
-            case 34:
-            case 33:
-            case 32:
-                $val = 2;
-                break;
-            case 31:
-            case 30:
-                $val = 1;
-                break;
-            case 27:
-                $val = 0.5;
-                break;
-            case 24:
-                $val = 0.25;
-                break;
-            case 23:
-                $val = 0.2;
-                break;
-            case 20:
-                $val = 0.1;
-                break;
-            case 17:
-                $val = 0.05;
-                break;
+        if ($txpwr >= 37) {
+            $val = 8;
+        } else if ($txpwr >= 35) {
+            $val = 4;
+        } else if ($txpwr >= 32) {
+            $val = 2;
+        } else if ($txpwr >= 29) {
+            $val = 1;
+        } else if ($txpwr >= 26) {
+            $val = 0.5;
+        } else if ($txpwr >= 23) {
+            $val = 0.2;
+        } else if ($txpwr >= 20) {
+            $val = 0.1;
+        } else if ($txpwr >= 17) {
+            $val = 0.05;
+        } else {
+            $val = 0.02;
         }
         return $val;
     }
@@ -89,6 +72,7 @@ final class VendorARN
                 $emode = 'mesh';
                 break;
             case 'adhoc':
+            case 'ad-hoc':
                 $emode = 'adhoc';
                 break;
             default:
@@ -101,8 +85,9 @@ final class VendorARN
     static public function ConvertEnumModeToMode($emode = NULL)
     {
         $mode = NULL;
-        switch ($emode) {
+        switch (strtolower($emode)) {
             case 'adhoc':
+            case 'ad-hoc':
                 $mode = 'Ad-Hoc';
                 break;
             case 'ap':
@@ -122,3 +107,5 @@ final class VendorARN
         return $mode;
     }
 }
+
+?>

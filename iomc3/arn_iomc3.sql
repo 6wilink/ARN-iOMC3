@@ -1,5 +1,5 @@
 ﻿# Host: 192.168.1.4  (Version 5.1.73)
-# Date: 2017-12-05 18:10:02
+# Date: 2018-02-26 12:13:11
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -26,7 +26,7 @@ CREATE TABLE `arn_auth` (
 # Data for table "arn_auth"
 #
 
-INSERT INTO `arn_auth` VALUES (1,X'30',X'31',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2017-12-05 18:07:33'),(2,X'30',X'31',NULL,'Qige','qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2017-12-05 18:07:41');
+INSERT INTO `arn_auth` VALUES (1,X'30',X'30',NULL,NULL,'admin','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-02-26 12:10:54'),(2,X'30',X'30',NULL,NULL,'qigez','*D6FEE54B40F5654D433868F7073C537ACB6B0C98',NULL,NULL,'2018-02-26 12:10:54');
 
 #
 # Structure for table "arn_auth_group"
@@ -57,7 +57,11 @@ CREATE TABLE `arn_device` (
   `wmac` varchar(18) DEFAULT NULL,
   `hw_ver` varchar(64) DEFAULT NULL,
   `fw_ver` varchar(64) DEFAULT NULL,
-  `latlng` varchar(16) DEFAULT NULL,
+  `latlng` varchar(32) DEFAULT NULL,
+  `lat` double(10,8) DEFAULT NULL,
+  `lng` double(11,8) DEFAULT NULL,
+  `addat` datetime DEFAULT NULL,
+  `auditat` datetime DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_wmac` (`wmac`)
@@ -97,6 +101,7 @@ CREATE TABLE `arn_device_abb` (
 CREATE TABLE `arn_device_abb_peers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `devid` int(11) unsigned DEFAULT '0',
+  `realtime` enum('connected','unreachable') COLLATE latin1_general_ci DEFAULT NULL,
   `pwmac` varchar(18) COLLATE latin1_general_ci DEFAULT NULL,
   `pipaddr` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `psignal` tinyint(3) DEFAULT NULL,
@@ -104,7 +109,7 @@ CREATE TABLE `arn_device_abb_peers` (
   `ptx` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_pwmac` (`pwmac`)
+  UNIQUE KEY `uniq_peer` (`pwmac`,`devid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
 #
@@ -118,6 +123,8 @@ CREATE TABLE `arn_device_abb_peers` (
 
 CREATE TABLE `arn_device_cmd` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `done` enum('new','done') COLLATE latin1_general_ci DEFAULT 'done',
+  `ttl` tinyint(3) unsigned NOT NULL DEFAULT '3',
   `devid` int(11) unsigned DEFAULT NULL,
   `cmd` varchar(64) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -136,15 +143,16 @@ CREATE TABLE `arn_device_cmd` (
 CREATE TABLE `arn_device_nw` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `devid` int(11) unsigned DEFAULT NULL,
-  `reachable` enum('unknown','online','offline') DEFAULT NULL,
-  `ipaddr` varchar(16) DEFAULT NULL,
-  `netmask` varchar(16) DEFAULT NULL COMMENT '255.255.255.0',
-  `gw` varchar(32) DEFAULT NULL,
-  `ifname` varchar(32) CHARACTER SET latin1 COLLATE latin1_general_ci DEFAULT NULL COMMENT 'lo,br-lan,eth0,wlan0,wlan0.sta1,bat0',
-  `vlan` varchar(16) CHARACTER SET latin1 COLLATE latin1_general_ci DEFAULT NULL,
+  `reachable` enum('unknown','online','offline') COLLATE latin1_general_ci DEFAULT NULL,
+  `ipaddr` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
+  `netmask` varchar(16) COLLATE latin1_general_ci DEFAULT NULL COMMENT '255.255.255.0',
+  `gateway` varchar(32) COLLATE latin1_general_ci DEFAULT NULL,
+  `ifname` varchar(32) COLLATE latin1_general_ci DEFAULT NULL COMMENT 'lo,br-lan,eth0,wlan0,wlan0.sta1,bat0',
+  `vlan` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  PRIMARY KEY (`id`),
+  KEY `uniq_devid` (`devid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=DYNAMIC;
 
 #
 # Data for table "arn_device_nw"
@@ -205,8 +213,9 @@ CREATE TABLE `arn_history_nw` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `devid` int(11) NOT NULL DEFAULT '0',
   `ifname` varchar(16) COLLATE latin1_general_ci DEFAULT NULL,
-  `rxthrpt` int(11) unsigned DEFAULT NULL,
-  `txthrpt` int(11) unsigned DEFAULT NULL,
+  `rxbytes` int(11) unsigned DEFAULT NULL,
+  `txbytes` int(11) unsigned DEFAULT NULL,
+  `elapsed` int(11) unsigned NOT NULL DEFAULT '1',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=FIXED;

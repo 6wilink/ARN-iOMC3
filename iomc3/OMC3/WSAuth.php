@@ -3,10 +3,14 @@
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
+// by Qige <qigezhao@gmail.com> at 2017.12.28
+(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
+
 require_once BPATH . '/OMC3/WSError.php';
 require_once BPATH . '/OMC3/OMCAuthDAO.php';
 
 // take care of signin/signout/token related
+// verified at 2017.12.28 17:20
 final class WSAuth
 {
 
@@ -22,6 +26,7 @@ final class WSAuth
     }
 
     // save token by DAO, return "TOKEN", verified at 2017.12.05
+    // verified at 2017.12.28 17:40 (don't use FetchFirstRecord())
     static public function Signin($host = NULL, $user = NULL, $passwd = NULL)
     {
         $reply = NULL;
@@ -106,3 +111,5 @@ final class WSAuth
         return $token;
     }
 }
+
+?>

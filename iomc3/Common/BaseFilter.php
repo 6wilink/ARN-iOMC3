@@ -6,22 +6,23 @@
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
 // return safe array/string
+// verified since 2017.12.28 17:11
 class BaseFilter
 {
-    
+
     // TODO: add more chars
-    private static $unsafeItems= array(
+    private static $unsafeItems = array(
         ' ',
         '*',
         '?',
         ';'
     );
-    
+
     static public function FilterAll($data = null, $unsafeItems = null)
     {
         return self::filterArray($data, $unsafeItems);
     }
-    
+
     // find the first value with assigned key
     // support "multi-depth arrray search", by Qige at 2017.11.15
     static public function SearchKey($data = NULL, $key = NULL)
@@ -44,13 +45,13 @@ class BaseFilter
         }
         return $val;
     }
-    
+
     static private function filterArray($data = null, $unsafeItems = null)
     {
         if ($data && is_array($data)) {
             // NOTE: "& $value", not "$value"
             // FIXME: $key maybe not exists (by Qige 2017.11.29)
-            //foreach ($data as $key => & $value) {
+            // foreach ($data as $key => & $value) {
             foreach ($data as & $value) {
                 if ($value && is_array($value)) {
                     $value = self::filterArray($value, $unsafeItems);
@@ -61,7 +62,7 @@ class BaseFilter
         }
         return $data;
     }
-    
+
     static private function filterString($string = null, $unsafeItems = null)
     {
         $str = '';

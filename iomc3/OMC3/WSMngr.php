@@ -1,10 +1,14 @@
 <?php
 // by Qige <qigezhao@gmail.com>
-// tech-preview: 2017.11.29
-// alpha: 2017.12.04/05
+// since 2017.11.29
+// verified at 2017.12.28 17:14
 'use strict';
 (! defined('CALLED_BY')) && exit('404: Page Not Found');
 
+// by Qige <qigezhao@gmail.com> at 2017.12.28
+(! defined('BPATH')) && define('BPATH', dirname(dirname(__FILE__)));
+
+require_once BPATH . '/Common/BaseEnv.php';
 require_once BPATH . '/Common/BaseFilter.php';
 require_once BPATH . '/Common/FormatJSON.php';
 require_once BPATH . '/Common/FormatHttp.php';
@@ -16,21 +20,67 @@ require_once BPATH . '/OMC3/WSError.php';
 
 // handle all request
 // partly verified since 2017.12.04
+// TODO: 1. audit hook ? 2. more "do"
+// verified at 2017.12.28 15:48
 final class WebServiceMngr
 {
+    const GS_BAR = 4;
 
     // FIXME: complete user agent list
+    // verified at 2017.12.28 15:47
     private static $USER_AGENT = array(
         'OMC3Agent',
         'omc3agent'
     );
 
+    // TODO: handle several kilos of requests at same time
+    static public function ajaxHook()
+    {
+        return self::auditAllDevices();
+    }
+    
+    static private function agentHook()
+    {
+        return self::auditAllDevices();
+    }
+    
+    // audit all device(s), judge if online/offline by sync ts
+    // but there maybe mutli-calls of ajaxHook by different WebApp users
+    // TODO: not verified since 2018.02.05
+    static private function auditAllDevices()
+    {
+        $auditTs = WSDeviceMngr::AuditLastTs();
+        if (! $auditTs) {
+            return WSDeviceMngr::AuditAllDevices();
+        } else {
+            // if got audit ts
+            $gap = floor(strtotime('now') - strtotime($auditTs));
+            if ($gap >= self::GS_BAR) {
+                return WSDeviceMngr::AuditAllDevices();
+            }
+        }
+        return null;
+    }
+    
+    
+    // TODO
+    static private function auditAllAgents()
+    {
+        // audit_all hook
+        //WSAuth::AuditAll(); // is token timeout?
+        //WSDeviceMngr::AuditAll(); // is device offline?
+        //return self::auditAllAgents();
+        return null;
+    }
+
     // verified since 2017.11.04
-    static public function Run($envRaw = NULL, $urlRaw = NULL, $dataRaw = NULL)
+    // 2017.12.21
+    // verified at 2017.12.28 15:44
+    static public function Run($envRaw = null, $urlRaw = null, $dataRaw = null)
     {
         // var_dump($urlRaw, $dataRaw);
         // FIXME: if $reply valid, must put all into field $reply['data']
-        $response = $reply = $responseFormat = NULL;
+        $response = $reply = $responseFormat = null;
         
         // check UserAgent first
         $envSafe = BaseFilter::FilterAll($envRaw);
@@ -49,7 +99,7 @@ final class WebServiceMngr
                 $reply = self::actionsAnonymous($envSafe, $urlSafe, $dataSafe);
                 break;
             default:
-                $reply = self::actionsRequireAutherization($envSafe, $urlSafe, $dataSafe);
+                $reply = self::actionsRequireAuthentication($envSafe, $urlSafe, $dataSafe);
                 break;
         }
         
@@ -61,7 +111,7 @@ final class WebServiceMngr
             $reply += OMCError::GetErrorInArray(ERROR_NONE);
         }
         
-        // TODO: add more data format: csv, xml, html, etc.
+        // FIXME: add more data format: csv, xml, html, etc.
         switch ($responseFormat) {
             case 'kv':
                 $response = FormatHttp::Encode($reply);
@@ -75,19 +125,25 @@ final class WebServiceMngr
         return $response;
     }
 
-    // check user agent. verified since 2017.11.04
-    static private function actionsRequireUserAgent($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
+    // check user agent
+    // verified since 2017.11.04
+    // 2017.12.21
+    // verified at 2017.12.28 15:46
+    static private function actionsRequireUserAgent($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
-        $reply = NULL;
+        $reply = null;
         $ua = BaseEnv::RemoteUserAgent($envSafe);
         if (self::verifyUserAgent($ua)) {
             $host = BaseEnv::RemoteIPAddr($envSafe);
             $report = BaseFilter::SearchKey($dataSafe, 'data');
             $reply = WSAgentMngr::ReportReceivedAndFetchCmds($host, $report);
             
-            // audit_all hook
-            WSAuth::AuditAll(); // is token timeout?
-            WSDeviceMngr::AuditAll(); // is device offline?
+            if (! $reply) {
+                $reply = OMCError::GetErrorInArray(ERROR_NOTHING_TODO);
+            }
+            
+            // FIXME: only run by valid source
+            // self::EveryRequestHook(); // if no is using WebApp, it won't matter
         } else {
             $reply = OMCError::GetErrorInArray(ERROR_UNKNOWN_AR_UA);
         }
@@ -95,11 +151,16 @@ final class WebServiceMngr
     }
 
     // verified since 2017.11.04
-    static private function actionsRequireAutherization($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
+    // verified at 2017.12.28 15:46
+    static private function actionsRequireAuthentication($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
         $token = BaseFilter::SearchKey($urlSafe, 'token');
         if (self::verifyAuthToken($token)) {
             $do = BaseFilter::SearchKey($urlSafe, 'do');
+            
+            // FIXME: only run by valid source, can be changed by WebApp interactions
+            // self::EveryRequestHook();
+            
             switch ($do) {
                 case 'devices':
                 case 'device_list':
@@ -107,29 +168,34 @@ final class WebServiceMngr
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceSearch($kw, $dqid);
                     break;
+                case 'maps':
+                    $kw = BaseFilter::SearchKey($urlSafe, 'keyword');
+                    $dqid = BaseFilter::SearchKey($urlSafe, 'did');
+                    $reply = WSDeviceMngr::DeviceSearchWithGPS($kw, $dqid);
+                    break;
                 case 'detail':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceDetail($dqid);
-                    break;
-                case 'audit_all':
-                    WSAuth::AuditAll(); // is token timeout?
-                    WSDeviceMngr::AuditAll(); // is device offline?
-                    $reply = OMCError::GetErrorInArray(ERROR_NONE);
                     break;
                 case 'signout':
                     $token = BaseFilter::SearchKey($urlSafe, 'token');
                     $reply = WSAuth::Singout($host, $token);
                     break;
-                case 'config_load':
+                case 'options':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
                     $reply = WSDeviceMngr::DeviceConfigLoad($dqid);
                     break;
                 case 'config':
+                case 'save':
                 case 'set':
                     $dqid = BaseFilter::SearchKey($urlSafe, 'did');
-                    $reply = WSDeviceMngr::DeviceConfigInQueue($dqid);
+                    $reply = WSDeviceMngr::DeviceConfigInQueue($dqid, $dataSafe);
                     break;
+                case 'audit_all':
+                case 'audit':
                 default:
+                    self::ajaxHook();
+                    $reply = WSDeviceMngr::DeviceMessages();
                     break;
             }
         } else {
@@ -139,9 +205,10 @@ final class WebServiceMngr
     }
 
     // verified since 2017.11.04
-    static private function actionsAnonymous($envSafe = NULL, $urlSafe = NULL, $dataSafe = NULL)
+    // verified at 2017.12.28 15:46
+    static private function actionsAnonymous($envSafe = null, $urlSafe = null, $dataSafe = null)
     {
-        $reply = NULL;
+        $reply = null;
         $do = BaseFilter::SearchKey($urlSafe, 'do');
         switch ($do) {
             case 'signin':
@@ -160,14 +227,16 @@ final class WebServiceMngr
         return $reply;
     }
 
-    // verified since 2017.11.04
-    static private function verifyAuthToken($token = NULL)
+    // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:46
+    static private function verifyAuthToken($token = null)
     {
         return ($token && WSAuth::IsTokenValid($token));
     }
 
-    // verified since 2017.11.04
-    static private function verifyUserAgent($ua = NULL)
+    // verified since 2017.11.04|2017.12.21
+    // verified at 2017.12.28 15:46
+    static private function verifyUserAgent($ua = null)
     {
         return ($ua && in_array($ua, self::$USER_AGENT));
     }

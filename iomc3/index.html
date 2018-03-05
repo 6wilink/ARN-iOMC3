@@ -190,7 +190,7 @@
 							</div>
 						</div>
 						<div class="ui dropdown item">
-							<i class="dropdown icon"></i>数据过滤器
+							<span data-tooltip="请选择设备过滤条件" data-position="bottom left">数据过滤器</span><i class="dropdown icon"></i>
 							<div class="menu" id="qz-devices-filter">
 								<div class="header">请选择</div>
 								<div class="divider"></div>
@@ -210,7 +210,7 @@
 					<div class="ui fluid vertical right pointing menu">
 						<div class="header item" id="qz-devices-list-header">
 							设备列表
-							<div class="ui green label">-/-/-</div>
+							<div class="ui green label" data-tooltip="全部设备＝离线设备+在线设备" data-position="top center">-/-/-</div>
 						</div>
 						<a class="item">正在载入，请稍候……</a>
 					</div>
@@ -222,7 +222,7 @@
 					<div class="ui tiny modal" id="qz-device-config-confirm">
 						<div class="ui icon header">
 							<i class="warning sign yellow icon"></i>
-							<p>您当前的操作将有可能会中断当前所有无线连接，是否“继续”？</p>
+							<p>继续操作有可能会中断当前无线连接，是否“继续”？</p>
 						</div>
 						<div class="actions">
 							<button class="ui yellow button"
@@ -422,7 +422,7 @@
 											type="text" value="-" id="qz-device-config-ip">
 									</div>
 									<div class="field">
-										<label>子网掩码</label> <input placeholder="默认为24/255.255.255.0"
+										<label>子网掩码</label> <input placeholder="默认为255.255.255.0/24"
 											type="text" value="-" id="qz-device-config-netmask">
 									</div>
 									<div class="field">
@@ -455,13 +455,13 @@
 											<i class="dropdown icon"></i>
 											<div class="menu">
 												<div class="item" data-value="ear">
-													<i class="signal icon"></i>子站
+													<i class="signal icon"></i>EAR 子站
 												</div>
 												<div class="item" data-value="car">
-													<i class="sitemap icon"></i>基站
+													<i class="sitemap icon"></i>CAR 基站
 												</div>
 												<div class="item" data-value="mesh">
-													<i class="share alternate icon"></i>自组网
+													<i class="share alternate icon"></i>Mesh 自组网
 												</div>
 											</div>
 										</div>
@@ -603,9 +603,9 @@
 								<thead>
 									<tr>
 										<th>设备标识</th>
+										<th>接收信号强度</th>
 										<th>无线接收质量</th>
 										<th>无线发射质量</th>
-										<th>备注</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -622,8 +622,8 @@
 									<tr>
 										<th>设备标识</th>
 										<th>总速率</th>
-										<th>下行速率</th>
-										<th>上行速率</th>
+										<th>接收速率</th>
+										<th>发送速率</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -659,10 +659,10 @@
 					</div>
 				</div>
 				<div class="ui qz-vfit qz-scroll" id="qz-maps-devices">
-					<div class="ui fluid vertical menu">
+					<!--<div class="ui fluid vertical menu">
 						<div class="header item">基本信息</div>
 						<div class="item">正在读取，请稍候……</div>
-					</div>
+					</div>-->
 					<div class="ui fluid vertical menu">
 						<div class="item">
 							<div class="ui icon input">
@@ -728,7 +728,7 @@
 	<script type="text/javascript" src="resource/qz-common.js"></script>
 	<script type="text/javascript" src="resource/qz-sui.js"></script>
 	<script type='text/javascript' src='resource/qz-lite.js'></script>
-	<!--<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>-->
+	<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMap' async defer></script>
 	<!--<script type='text/javascript' src='resource/qz-lite-autotest.js'></script>-->
 </body>
 </html>
