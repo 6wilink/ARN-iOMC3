@@ -206,6 +206,7 @@ final class WSDeviceMngr
             foreach ($records as $record) {
                 $did = BaseFilter::SearchKey($record, 'id');
                 $name = BaseFilter::SearchKey($record, 'name');
+                $emode = BaseFilter::SearchKey($record, 'emode');
                 $lat = BaseFilter::SearchKey($record, 'lat');
                 $lng = BaseFilter::SearchKey($record, 'lng');
                 $ipaddr = BaseFilter::SearchKey($record, 'ipaddr');
@@ -218,6 +219,7 @@ final class WSDeviceMngr
                         'lat' => number_format($lat, 6),
                         'lng' => number_format($lng, 6)
                     ),
+                    'emode' => $emode,
                     'ipaddr' => $ipaddr,
                     'alive' => (($alive && $alive == 'online') ? true : false),
                     //'reachable' => $alive,
