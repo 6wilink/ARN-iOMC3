@@ -1,7 +1,9 @@
 /*
  * by Qige <qigezhao@gmail.com> since 2017.09.07
  * 1 [TAB] = 4 [SPACEs]
- * last update: 2018.02.26
+ * last update: 20180226
+ * last update: 20180414
+
  */
 
 // Handle url/signin/token/devices/maps/tools
@@ -198,16 +200,10 @@
 				}
 			},
             MapsDeviceDetail: function(did, lat, lng) {
-                console.log('* should move maps center to this device pos:', lat, lng);
+               //console.log('* should move maps center to this device pos:', lat, lng);
                 var dmap = $.Lite.data.map;
-                if (dmap) {
+                if ($.Val.IsValid(dmap)) {
                     var center = new Microsoft.Maps.Location(lat, lng);
-                    var icon = new Microsoft.Maps.Pushpin(center);
-                    
-                    // TODO: save all icons
-                    dmap.entities.clear();
-                    
-                    dmap.entities.push(icon);
                     dmap.setView({
                         center: center
                     });
@@ -1599,8 +1595,12 @@
 					// update Maps.[LIST]
 					var list_header = $("#qz-maps-list-header");
 					list_header.nextAll().remove();
+                    
 					if (qty > 0) {
 						var list = data.devices;
+                        
+                        // update device icons
+                        var icons = [];
 						$.each(list, function() {
                             var $this = $(this)[0];
                             var id = $this.id, name = $this.name, ipaddr = $this.ipaddr;
@@ -1608,6 +1608,9 @@
                             var lat = latlng.lat;
                             var lng = latlng.lng;
                             var peer_qty = $this.peer_qty, html = '';
+                            
+                            var p = { lat: lat, lng: lng };
+                            icons.push(p);
 
                             if (!$.Val.IsValid(name)) name = '未命名的新设备';
                             if (!$.Val.IsValid(peer_qty)) peer_qty = 0;
@@ -1641,6 +1644,9 @@
                             }
                             list_header.after(html);
                         });
+                        
+                        // update icons
+                        $.BingMaps.UpdateIcons(icons);
 
 						// update Device Qty
 						var qty_icon = list_header.find(".label");
@@ -1734,10 +1740,34 @@
                     }
                 );
 			}
+            $.BingMaps.UpdateIcons();
 			// */
 		},
 		UpdateIcons: function(icons) {
-            // TODO
+            // FIXME: wait until maps loaded
+            var dmap = $.Lite.data.map;
+            var bicons = $.BingMaps.icons;
+            
+            if (icons && icons.length > 0) {
+                if (bicons) {
+                    if (bicons.length <= icons.length) {
+                        $.BingMaps.icons = icons;
+                    }
+                } else {
+                    $.BingMaps.icons = icons;
+                }
+            }
+            
+            bicons = $.BingMaps.icons;
+            if ($.Val.IsValid(dmap)) {
+                dmap.entities.clear();
+                $.each(bicons, function() {
+                    var _this = $(this)[0];
+                    var p = new Microsoft.Maps.Location(_this.lat, _this.lng);
+                    var icon = new Microsoft.Maps.Pushpin(p);
+                    dmap.entities.push(icon);                    
+                });
+            }
 		}
 	}
 })(jQuery); // $.BingMaps
