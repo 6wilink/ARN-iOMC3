@@ -3,6 +3,7 @@
  * 1 [TAB] = 4 [SPACEs]
  * last update: 20180226
  * last update: 20180414
+
  */
 
 // Handle url/signin/token/devices/maps/tools
@@ -199,7 +200,7 @@
 				}
 			},
             MapsDeviceDetail: function(did, lat, lng) {
-                //console.log('* should move maps center to this device pos:', lat, lng);
+               //console.log('* should move maps center to this device pos:', lat, lng);
                 var dmap = $.Lite.data.map;
                 if ($.Val.IsValid(dmap)) {
                     var center = new Microsoft.Maps.Location(lat, lng);
