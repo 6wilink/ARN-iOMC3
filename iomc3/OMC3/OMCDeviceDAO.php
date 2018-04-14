@@ -301,13 +301,16 @@ final class OMCDeviceDAO extends OMCBaseDAO
     static private function fetchDeviceListByFilter($rfields = null, $rfilters = null, $rsearch = null)
     {
         $tableDevice = self::$DB_DEVICE_TABLE;
+        $tableAbb = self::$DB_DEVICE_ABB_TABLE;
         $tableNetwork = self::$DB_DEVICE_NETWORK_TABLE;
         $tables = array(
             "{$tableDevice} as dev",
-            "{$tableNetwork} as nw"
+            "{$tableNetwork} as nw",
+            "{$tableAbb} as abb"
         );
         $joins = array(
-            'dev.id=nw.devid'
+            'dev.id=nw.devid',
+            'dev.id=abb.devid'
         );
         return self::FetchInMultiTables($tables, $rfields, $joins, $rfilters, $rsearch);
     }
@@ -315,15 +318,17 @@ final class OMCDeviceDAO extends OMCBaseDAO
     static private function fetchDeviceListWithLatLngByFilter($rfields = null, $rfilters = null, $rsearch = null)
     {
         $tableDevice = self::$DB_DEVICE_TABLE;
+        $tableAbb = self::$DB_DEVICE_ABB_TABLE;
         $tableNetwork = self::$DB_DEVICE_NETWORK_TABLE;
         $tables = array(
             "{$tableDevice} as dev",
-            "{$tableNetwork} as nw"
+            "{$tableNetwork} as nw",
+            "{$tableAbb} as abb"
         );
         $joins = array(
             'dev.id=nw.devid',
-            '(dev.latlng is not NULL or dev.latlng != NULL)'//,
-            //'dev.lat!=0.00',
+            '(dev.latlng is not NULL or dev.latlng != NULL)',
+            'dev.id=abb.devid'
             //'dev.lng!=0.00'
         );
         return self::FetchInMultiTables($tables, $rfields, $joins, $rfilters, $rsearch);
@@ -365,7 +370,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
             'dev.lat',
             'dev.lng',
             'nw.ipaddr',
-            'nw.reachable'
+            'nw.reachable',
+            'abb.emode'
         );
         $rfilters = array();
         switch ($filterStatus) {
@@ -400,7 +406,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'dev.lat',
                     'dev.lng',
                     'nw.ipaddr',
-                    'nw.reachable'
+                    'nw.reachable',
+                    'abb.emode'
                 );
                 $rfilters = array(
                     'dev.id' => $deviceQueryIdSafe
@@ -433,7 +440,8 @@ final class OMCDeviceDAO extends OMCBaseDAO
                     'dev.lng',
                     'dev.name',
                     'nw.ipaddr',
-                    'nw.reachable'
+                    'nw.reachable',
+                    'abb.emode'
                 );
                 $rsearch = array(
                     'dev.name' => "%{$safeKw}%",
