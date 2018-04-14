@@ -1,9 +1,7 @@
 /*
  * by Qige <qigezhao@gmail.com> since 2017.09.07
  * 1 [TAB] = 4 [SPACEs]
- * last update: 20180226
- * last update: 20180414
-
+ * last update: 2018.02.26
  */
 
 // Handle url/signin/token/devices/maps/tools
@@ -200,7 +198,7 @@
 				}
 			},
             MapsDeviceDetail: function(did, lat, lng) {
-               //console.log('* should move maps center to this device pos:', lat, lng);
+                //console.log('* should move maps center to this device pos:', lat, lng);
                 var dmap = $.Lite.data.map;
                 if ($.Val.IsValid(dmap)) {
                     var center = new Microsoft.Maps.Location(lat, lng);
@@ -1605,11 +1603,12 @@
                             var $this = $(this)[0];
                             var id = $this.id, name = $this.name, ipaddr = $this.ipaddr;
                             var latlng = $this.gps;
+                            var emode = $this.emode;
                             var lat = latlng.lat;
                             var lng = latlng.lng;
                             var peer_qty = $this.peer_qty, html = '';
                             
-                            var p = { lat: lat, lng: lng };
+                            var p = { lat: lat, lng: lng, emode: emode };
                             icons.push(p);
 
                             if (!$.Val.IsValid(name)) name = '未命名的新设备';
@@ -1764,11 +1763,55 @@
                 $.each(bicons, function() {
                     var _this = $(this)[0];
                     var p = new Microsoft.Maps.Location(_this.lat, _this.lng);
-                    var icon = new Microsoft.Maps.Pushpin(p);
+                    var icon = new Microsoft.Maps.Pushpin(p, { icon: $.BingMaps.deviceIcon(_this) });
                     dmap.entities.push(icon);                    
                 });
             }
-		}
+		},
+        
+        deviceIcon: function(bicon) {
+            var icon = 'resource/icon-offline.png';
+            var emode = bicon.emode;
+            var alive = bicon.alive;
+            //if (alive) {
+                switch(emode) {
+                    case 'mesh':
+                        icon = 'resource/icon-mesh.png';
+                        break;
+                    case 'ap':
+                        icon = 'resource/icon-ap.png';
+                        break;
+                    case 'sta':
+                    default:
+                        icon = 'resource/icon-sta.png';
+                        break;
+                }
+            //}
+            
+            return icon;            
+        },
+        
+        deviceColor: function(bicon) {
+            var color = 'grey';
+            var emode = bicon.emode;
+            var alive = bicon.alive;
+            if (alive) {
+                switch(emode) {
+                    case 'mesh':
+                        color = 'yellow';
+                        break;
+                    case 'ap':
+                        color = 'red';
+                        break;
+                    case 'sta':
+                    default:
+                        color = 'blue';
+                        break;
+                }
+            }
+            
+            return color;
+        }
 	}
 })(jQuery); // $.BingMaps
 
