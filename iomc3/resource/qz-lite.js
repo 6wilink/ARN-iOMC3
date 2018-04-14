@@ -1,7 +1,9 @@
 /*
  * by Qige <qigezhao@gmail.com> since 2017.09.07
  * 1 [TAB] = 4 [SPACEs]
- * last update: 2018.02.26
+ * last update: 20180226
+ * last update: 20180414
+
  */
 
 // Handle url/signin/token/devices/maps/tools
@@ -52,11 +54,11 @@
 				var token = $.Lite.Url.TOKEN();
 				if ($.Val.IsValid(token)) {
                     // make url
-					var page = $.Url.PageOnly();                    
+					var page = $.Url.PageOnly();
 					var section = ($.Val.IsValid(sec) ? sec : $.Lite.Url.Section());
                     var deviceId = ($.Val.IsValid(did) ? did : $.Lite.Url.DeviceID());
                     var param = [token, section, deviceId];
-                    
+
                     var url = page + '#' + param.join('-');
 					$.Url.GotoAnchor(url);
 				} else {
@@ -145,7 +147,7 @@
                 if (flagSuccessful) {
                     $("#qz-devices-status").SUIMessageSuccess(msg).show();
                 } else {
-                    $("#qz-devices-status").SUIMessageError(msg).show();                    
+                    $("#qz-devices-status").SUIMessageError(msg).show();
                 }
 			},
 
@@ -158,7 +160,7 @@
 						data = {};
 					}
                     data.DeviceId = did;
-                    
+
 					$.Lite.data = data;
 					$.Request.DeviceDetail(did);
 
@@ -171,18 +173,18 @@
 					$.LiteUI.DeviceConfig.Saving();
 					var name = $("#qz-device-config-name").val();
 					var latlng = $("#qz-device-config-latlng").val();
-					
+
                     var ip = $("#qz-device-config-ip").val();
 					var mask = $("#qz-device-config-netmask").val();
 					var gw = $("#qz-device-config-gw").val();
-					
+
                     var mode = $("#qz-device-config-mode").find('input').val();
-					
+
                     var region = $("#qz-device-config-region").find('input').val();
 					var freq = $("#qz-device-config-freq").val();
 					var channel = $("#qz-device-config-channel").val();
 					var txpower = $("#qz-device-config-txpower").find('input').val();
-                    
+
 					$.Request.DeviceConfigSave(did, {
                         did: did, ops: 'config',
 						name: name, latlng: latlng,
@@ -340,11 +342,11 @@
 				$("#qz-devices-btn-search").click(function() {
                     var kw_input = $("#qz-devices-text-keyword");
 					var keyword = kw_input.val();
-                    
+
 					var flagAutoLoad = true;
 					$.Request.Devices(flagAutoLoad, keyword);
                     kw_input.select();
-                    
+
                     if ($.Val.IsInt(keyword)) {
                         $.Lite.Url.Set('search', keyword);
                     }
@@ -409,7 +411,7 @@
 				$("#qz-device-btn-maps").click(function() {
 					var did = $("#qz-device-detail").attr('did');
 					$.Lite.Url.Set('maps', did);
-                    
+
                     var flagAutoLoad = true;
 					$.Lite.Run.Maps(flagAutoLoad);
 				});
@@ -482,13 +484,13 @@
 
 				$("#qz-device-config-wireless-tools").click(function() {
 					$.Lite.Url.Set('tools', 'radio');
-					$.Lite.Run.Tools(); 
+					$.Lite.Run.Tools();
 				});
 			},
 			Maps: function() { // TODO: bind all button/input event(s) here
 				$("#qz-maps-text-keyword").focus(function() {
 					$(this).select();
-				}).keydown(function(e) { 
+				}).keydown(function(e) {
 					if (e.keyCode == 13) {
 						$("#qz-maps-btn-search").trigger('click');
 					}
@@ -496,7 +498,7 @@
 				$("#qz-maps-btn-search").click(function() {
                     var kw_input = $("#qz-maps-text-keyword");
 					var keyword = kw_input.val();
-                    
+
 					var flagAutoLoad = true;
                     $.Request.DevicesInMaps(flagAutoLoad, keyword);
 				});
@@ -532,7 +534,7 @@
 				var tmr = tmrs && $.Val.IsValid(tmrs.auditAll) ? tmrs.auditAll : null;
 				if (! $.Val.IsValid(tmr)) {
 					var t = setInterval($.Request.AuditAll, $.Lite.defaults.interval.auditAll);
-                    
+
 					if (! data) $.Lite.data = {};
 					if (! tmrs) $.Lite.data.Timers = {};
 					$.Lite.data.Timers.auditAll = t;
@@ -544,7 +546,7 @@
 				var tmr = tmrs && $.Val.IsValid(tmrs.DeviceFetchLatest) ? tmrs.DeviceFetchLatest : null;
 				if (!$.Val.IsValid(tmr)) {
 					var t = setInterval($.Request.DeviceFetchLatest, $.Lite.defaults.interval.deviceDetail);
-					
+
                     if (!data) $.Lite.data = {};
 					if (!tmrs) $.Lite.data.Timers = {};
 					$.Lite.data.Timers.DeviceFetchLatest = t;
@@ -595,10 +597,10 @@
                         var auth = data && $.Val.IsValid(data.auth) ? data.auth : null;
                         var token = auth && $.Val.IsValid(auth.token) ? auth.token : null;
                         var page = $.Url.PageOnly();
-                        
+
                         // set url & call
                         var url = page + '#' + token;
-                        $.Url.GotoAnchor(url); 
+                        $.Url.GotoAnchor(url);
 
                         var flagAutoLoad = true;
                         $.Lite.Run.Devices(flagAutoLoad);
@@ -657,7 +659,7 @@
                     if ($.LiteUI.Update.Device(resp.data)) {
                         var data = $.Val.IsValid($.Lite.data) ? $.Lite.data: null;
                         var did = data && $.Val.IsValid(data.DeviceId) ? $.Lite.data.DeviceId : null;
-                                
+
                         // fix "maps" -> "devices", due to detail update interval
                         /*if ($.Val.IsInt(did)) {
                             $.Lite.Url.Set('devices', did);
@@ -688,7 +690,7 @@
 			if ($.Val.IsValid(resp) && $.Val.IsValid(resp.error)) {
 				error = resp.error;
 			}
-            
+
 			switch (error) {
                 case 'none':
                     if ($.LiteUI.Update.DeviceConfig(resp.data)) {
@@ -724,7 +726,7 @@
                     var ts = new Date().toLocaleString();
                     var flagSuccessful = true;
                     $.Lite.Update.DevicesStatus('设备操作已完成 @' + ts, flagSuccessful);
-                    
+
                     // reload device list
                     var flagAutoLoad = true;
                     $.Lite.Run.Devices(flagAutoLoad);
@@ -750,7 +752,7 @@
 			if ($.Val.IsValid(resp) && $.Val.IsValid(resp.error)) {
 				error = resp.error;
 			}
-            
+
 			switch (error) {
                 case 'none':
                     var data = resp.data;
@@ -782,7 +784,7 @@
 			if ($.Val.IsValid(resp) && $.Val.IsValid(resp.error)) {
 				error = resp.error;
 			}
-            
+
 			switch (error) {
                 case 'none':
                     var data = resp.data;
@@ -1148,11 +1150,11 @@
                 $("#qz-devices-device-ip,#qz-devices-device-netmask").val('');
                 $("#qz-devices-device-gw").val('');
                 $("#qz-device-network").find('.label').text('');
-                
+
                 var links_tbody = $("#qz-device-links-detail").find('tbody');
                 var links_tbody_html = '<tr><td class="disabled" colspan="4">无线空闲（没有连接到其它设备）</td></tr>';
                 links_tbody.nextAll().remove().end().html(links_tbody_html);
-                
+
                 var thrpt_tbody = $("#qz-device-thrpt-detail").find('tbody');
                 var thrpt_tbody_html = '<tr><td colspan="4">正在统计，请稍候</td></tr>';
                 thrpt_tbody.nextAll().remove().end().html(thrpt_tbody_html);
@@ -1189,7 +1191,7 @@
                     } else {
                         lbl.removeClass('green').addClass('red');
                     }
-                    
+
                     var cache = $.Lite.data;
                     var ds_total = cache && $.Val.IsInt(cache.ds_total) ? cache.ds_total : 0;
                     var ds_offline = cache && $.Val.IsInt(cache.ds_offline) ? cache.ds_offline : 0;
@@ -1260,7 +1262,7 @@
 							var unit = rt.unit;
 							var dl = parseFloat(rt.rx), ul = parseFloat(rt.tx);
 							var dlul = dl + ul;
-                            
+
 							thrpt_tbody_html += '<tr>';
 							thrpt_tbody_html += '<td>' + desc + '</td>';
 							thrpt_tbody_html += '<td>' + dlul.toFixed(3) + ' '
@@ -1328,11 +1330,11 @@
 						$("#qz-devices-device-freq").val(fdesc);
 						$("#qz-devices-device-txpower").val($.GWS.Txpower(txpower, watt));
 						$("#qz-devices-device-chanbw").val(chanbw + ' MHz');
-                        
+
                         // label
 						$("#qz-device-wireless").find('.label')
                             .text(rgn + '-' + freq + '/' + chanbw);
-                    
+
                         h1 = mdesc+' - '+name;
                         if ($.Val.IsValid(txpower)) {
                             h1 += (' - '+txpower+' dBm');
@@ -1366,13 +1368,13 @@
 
                     // set header
                     $("#qz-devices-device-name-header").text(h1);
-                    
+
                     var peer_qty = abb && $.Val.IsValid(abb.peer_qty) ? abb.peer_qty : 0;
 					var peers = abb && $.Val.IsValid(abb.peers) ? abb.peers : null;
                     $.LiteUI.Update.DeviceKPIPeers(peers, peer_qty);
-                    
+
                     $.LiteUI.Update.DeviceKPIThrpt(thrpt);
-                    
+
                     var rpt_ts = new Date().toLocaleString();
                     var flagSuccessful = true;
                     $.Lite.Update.DevicesStatus('设备信息已更新 @' + rpt_ts, flagSuccessful);
@@ -1384,14 +1386,14 @@
 			DevicesList: function(data) {
 				if (data) {
                     $.LiteUI.Reset.DeviceList();
-                    
+
 					var ds = data.ds;
 					var total = ds.total;
 					var offline = ds.offline ? ds.offline: 0;
 					var online = ds.online ? ds.online: 0;
 					var qty = data.qty;
 					var qty_desc = total + '=' + offline + '+' + online;
-                    
+
 					// update Devices.[LIST]
 					var list_header = $("#qz-devices-list-header");
 					list_header.nextAll().remove();
@@ -1405,7 +1407,7 @@
 
                             if (!$.Val.IsValid(name)) name = '未命名的新设备';
                             if (!$.Val.IsValid(peer_qty)) peer_qty = 0;
-                            
+
                             if (peer_qty > 0 && $.Val.IsValid(alive)) {
                                 html = '<a class="item" id="'
                                     + id
@@ -1453,13 +1455,13 @@
 						devices.click(function() {
 							$("#qz-devices-list-header").nextAll()
                                 .removeClass('active');
-                                
+
 							$(this).addClass('active');
 
 							var id = $(this).attr('id');
 							$.Lite.Update.DeviceDetail(id);
                             $.Lite.Url.Set('devices', id);
-                            
+
                             // Hide "Config" when list refreshed
                             $.LiteUI.DeviceConfig.Hide();
                         });
@@ -1479,13 +1481,13 @@
                         }
                         //devices.first().trigger('click'); // < 2018.02.07
 					} else {
-						// $.Lite.data.DeviceId = 0; 
+						// $.Lite.data.DeviceId = 0;
 						// TODO: remove update device id
 						var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
 						list_header.after(html);
 					}
 				} else {
-					// $.Lite.data.DeviceId = 0; 
+					// $.Lite.data.DeviceId = 0;
 					// TODO: remove update device id
 					var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
 					list_header.after(html);
@@ -1494,7 +1496,7 @@
 			DeviceConfig: function(data) {
 				if (data) {
                     $.LiteUI.Reset.DeviceOptions();
-                    
+
 					var device = data.device;
                     var basic = device && device.basic;
                     var network = device && device.network;
@@ -1521,7 +1523,7 @@
                         $("#qz-device-config-region").dropdown('set selected', region.toString());
                         $("#qz-device-config-channel").val(radio.channel);
                         $("#qz-device-config-chanbw").dropdown('set selected', radio.chanbw);
-                        
+
                         var txpwr = parseInt(radio.txpwr);
                         switch(txpwr) {
                             case 33:
@@ -1582,7 +1584,7 @@
             MapsDevicesList: function(data) {
 				if (data) {
                     $.LiteUI.Reset.DeviceInMaps();
-                    
+
 					var ds = data.ds;
 					var total = ds.total;
 					var offline = ds.offline ? ds.offline: 0;
@@ -1593,10 +1595,10 @@
 					// update Maps.[LIST]
 					var list_header = $("#qz-maps-list-header");
 					list_header.nextAll().remove();
-                    
+
 					if (qty > 0) {
 						var list = data.devices;
-                        
+
                         // update device icons
                         var icons = [];
 						$.each(list, function() {
@@ -1607,13 +1609,13 @@
                             var lat = latlng.lat;
                             var lng = latlng.lng;
                             var peer_qty = $this.peer_qty, html = '';
-                            
+
                             var p = { lat: lat, lng: lng, emode: emode };
                             icons.push(p);
 
                             if (!$.Val.IsValid(name)) name = '未命名的新设备';
                             if (!$.Val.IsValid(peer_qty)) peer_qty = 0;
-                            
+
                             if (peer_qty > 0) {
                                 html = '<a class="item" id="'
                                     + id
@@ -1643,7 +1645,7 @@
                             }
                             list_header.after(html);
                         });
-                        
+
                         // update icons
                         $.BingMaps.UpdateIcons(icons);
 
@@ -1666,7 +1668,7 @@
 							var lat = $(this).attr('lat');
 							var lng = $(this).attr('lng');
 							$.Lite.Update.MapsDeviceDetail(did, lat, lng);
-                            
+
                             // set URL
                             $.Lite.Url.Set('maps', did);
                         });
@@ -1694,13 +1696,13 @@
                         }
                         //devices.first().trigger('click'); // < 2018.02.07
 					} else {
-						// $.Lite.data.DeviceId = 0; 
+						// $.Lite.data.DeviceId = 0;
 						// TODO: remove update device id
 						var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
 						list_header.after(html);
 					}
 				} else {
-					// $.Lite.data.DeviceId = 0; 
+					// $.Lite.data.DeviceId = 0;
 					// TODO: remove update device id
 					var html = '<a class="item" id="0">(未找到符合条件的设备)</a>';
 					list_header.after(html);
@@ -1746,7 +1748,7 @@
             // FIXME: wait until maps loaded
             var dmap = $.Lite.data.map;
             var bicons = $.BingMaps.icons;
-            
+
             if (icons && icons.length > 0) {
                 if (bicons) {
                     if (bicons.length <= icons.length) {
@@ -1756,7 +1758,7 @@
                     $.BingMaps.icons = icons;
                 }
             }
-            
+
             bicons = $.BingMaps.icons;
             if ($.Val.IsValid(dmap)) {
                 dmap.entities.clear();
@@ -1764,11 +1766,11 @@
                     var _this = $(this)[0];
                     var p = new Microsoft.Maps.Location(_this.lat, _this.lng);
                     var icon = new Microsoft.Maps.Pushpin(p, { icon: $.BingMaps.deviceIcon(_this) });
-                    dmap.entities.push(icon);                    
+                    dmap.entities.push(icon);
                 });
             }
 		},
-        
+
         deviceIcon: function(bicon) {
             var icon = 'resource/icon-offline.png';
             var emode = bicon.emode;
@@ -1787,10 +1789,10 @@
                         break;
                 }
             //}
-            
-            return icon;            
+
+            return icon;
         },
-        
+
         deviceColor: function(bicon) {
             var color = 'grey';
             var emode = bicon.emode;
@@ -1809,7 +1811,7 @@
                         break;
                 }
             }
-            
+
             return color;
         }
 	}
